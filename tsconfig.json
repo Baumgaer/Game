@@ -1,0 +1,42 @@
+{
+    "compileOnSave": true,
+    "compilerOptions": {
+        "target": "es6",
+        "module": "commonjs",
+        "lib": ["es2018", "webworker", "dom"],
+        "skipLibCheck": true,
+        "outDir": "Application",
+        "rootDir": "resources",
+        "removeComments": true,
+        "importHelpers": true,
+        "isolatedModules": true,
+
+        "newLine": "LF",
+        "watch": true,
+
+        "strict": true,
+        "noImplicitAny": true,
+        "strictNullChecks": true,
+        "strictFunctionTypes": true,
+        "noImplicitThis": true,
+        "alwaysStrict": true,
+
+        "noUnusedLocals": true,
+        "noUnusedParameters": true,
+        "noImplicitReturns": true,
+        "noFallthroughCasesInSwitch": true,
+        "allowUnreachableCode": false,
+
+        "moduleResolution": "node",
+        "typeRoots": [],
+        "types": [],
+        "allowSyntheticDefaultImports": false,
+
+        "diagnostics": true,
+        "inlineSourceMap": true,
+
+        "experimentalDecorators": true,
+        "emitDecoratorMetadata": true,
+    },
+    "exclude": []
+}

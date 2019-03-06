@@ -1,0 +1,34 @@
+{
+    "defaultSeverity": "error",
+    // "extends": ["tslint:recommended"],
+    "jsRules": {},
+    "rules": {
+        "semicolon": [true, "always"],
+        "no-string-literal": true,
+        "no-trailing-whitespace": true,
+        "completed-docs": true,
+        "class-name": true,
+        "encoding": true,
+        "triple-equals": true,
+        "no-var-keyword": true,
+        "no-use-before-declare": true,
+        "no-duplicate-variable": true,
+        "curly": [true, "ignore-same-line"],
+        "whitespace": [true, "check-separator", "check-type", "check-preblock", "check-decl"],
+        "prefer-for-of": true,
+        "forin": true,
+        "linebreak-style": [true, "LF"],
+        "variable-name": [
+            true,
+            "ban-keywords",
+            "check-format",
+            "allow-leading-underscore",
+            "allow-pascal-case"
+        ],
+        "trailing-comma": [true, {
+            "multiline": "never",
+            "singleline": "never"
+        }]
+    },
+    "rulesDirectory": []
+}
