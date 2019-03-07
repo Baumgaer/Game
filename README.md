@@ -36,7 +36,7 @@ Most of the communication for this game should be among the clients via WebRTC t
 
 This project will be **designed for linux** especially **ubuntu** because it is easier to maintain third party software and most important to be sure that everyone has the same dependencies like ever other.
 
-Windows user can use a virtual machine to run the Software and with a network share it is possible to use developer software on windows. Or they can use a subsystem which is recommended.
+Windows user can use a virtual machine to run the Software and with a network share it is possible to use developer software on windows. Or they can use a subsystem which is recommended. **NOTICE:** to use git it is not possible to use the ui of your software if you use a subsystem because the software is running on windows but the project is running on linux!
 
 MacOS user can also use a virtual machine with ubuntu installes and also use network share or they can use [Noah](https://github.com/linux-noah/noah) which provides a subsystem on MacOS.
 
