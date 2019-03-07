@@ -77,7 +77,7 @@ Linux users have the easiest way... They just use Linux...
 5. Clone the repository
 
     ```bash
-    git clone git@github.com:Eluminati/BlockWars.git .
+    git clone https://github.com/Eluminati/Game.git .
     ```
 
     - Notice the "." at the End. It is best to clone it in a folder named Game
