@@ -21,6 +21,8 @@
     "author": "René Baumgärtner",
     "license": "ISC",
     "devDependencies": {
+        "@types/grunt": "^0.4.24",
+        "@types/mocha": "^5.2.6",
         "eslint": "^5.15.1",
         "eslint-plugin-mysticatea": "^4.2.4",
         "grunt-contrib-watch-chokidar": "^1.0.0",

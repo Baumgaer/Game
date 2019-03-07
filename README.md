@@ -14,7 +14,7 @@ In this case the player itself is a godlike creature like in [Dungeon Keeper](ht
 
 Every monster has it's unique skill in fighting, profession and behavior which includes interaction with other monsters. The player can tell a monster what to do in a way like [SIMS](https://en.wikipedia.org/wiki/The_Sims) does. This offers especially in a fighting situation much more possibilities to act strategical than in other **real time strategy** games.
 
-To manage all these creatures, the player **builds a dungeon with a core** where the monsters can life and work for the player. But it should also be possible to play as a caravan, which carries the **core** through the world instead of building a dungeon. To create necessary things the player can build in this case a temporary base.
+To manage all these creatures, the player **builds a dungeon with a core** where the monsters can life and work for the player. But it should also be possible to **play as a caravan**, which **carries the core** through the world instead of building a dungeon. To create necessary things the player can build in this case a temporary base.
 
 The focus in this game should be on:
 
@@ -117,3 +117,5 @@ Linux users have the easiest way... They just use Linux...
 5. Create junctions for every directory in the output directory to the source directory if it is noticed in the corresponding `README.md`. So you have all resources available in your source folder and you are not forced to change the environment (This will happen automatically later).
 
 6. When you install a new package, write it in to the `package.json` by using the `--save` or `--save-dev`. After you pushed your changes and another one pulls your changes, the new dependencies will be added, removed or updated.
+
+7. Since we are using TypeScript/AssemblyScript remember to install the corresponding type definition via `npm i @types/<package> --save-dev`
