@@ -1,6 +1,6 @@
 {
     "name": "game",
-    "version": "1.0.0",
+    "version": "0.0.1",
     "description": "A MMORPG mixed with RTS and simulation in the underground and on the bad side",
     "main": "index.js",
     "scripts": {
@@ -12,7 +12,7 @@
         "Simulation",
         "MMORPG",
         "Procedural",
-        "WebAssambly"
+        "WebAssembly"
     ],
     "repository": {
         "type": "git",
@@ -37,10 +37,5 @@
     "dependencies": {
         "pm2": "^3.3.1",
         "tslib": "^1.9.3"
-    },
-    "husky": {
-        "hooks": {
-            "pre-commit": "lint-staged"
-        }
     }
 }
