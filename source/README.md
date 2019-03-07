@@ -6,6 +6,6 @@ Source files are:
 
 * typescript
 * less files
-* single asset files like textures
+* single asset files like textures or iconpacks
 
 every source file will be compiled in the corresponding out directory.

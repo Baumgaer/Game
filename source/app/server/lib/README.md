@@ -1,3 +1,3 @@
 # Library
 
-see [here](./../../lib/README.md) for more information.
+see [here](/source/app/lib/) for more information.

@@ -6,4 +6,4 @@ Tasks are written with Grunt. For more information see: <https://gruntjs.com/get
 
 Please write every test in a typescript file to have secure typings in your code and name the test file \<name>.task.ts.
 
-Grunt is configured by the [gruntfile.js](./../../gruntfile.js) in the root directory.
+Grunt is configured by the [gruntfile.js](/gruntfile.js) in the root directory.

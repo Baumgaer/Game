@@ -1,3 +1,3 @@
 # Models
 
-see [here](./../../models/README.md) for more information.
+see [here](/source/app/models/) for more information.
