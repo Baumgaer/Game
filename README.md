@@ -93,3 +93,27 @@ Linux users have the easiest way... They just use Linux...
     ```bash
     npm install
     ```
+
+## Best practices
+
+1. Because there is a commit hook which checks every function and property for a doc string, it happens sometimes that a developer writes nonesense in the documentation. This doc strings will later be used for a documentation WIKI so it is very important to write useful and correct documentation especially for newcomers to have a easy introduction to this project.
+
+2. When you create a new directory remember to create a `README.md` which contains documentation for:
+    - What is contained in there
+    - What is the intention of this directory/package
+    - Is it hard linked to somewhere
+
+    So everyone can understand the project structure.
+
+3. Remember that there are several root directories
+    - Project root
+    - output root
+    - source root
+
+    Depending on what you are planing to do, choose the nearest path.
+
+4. Write tests for your new component or change tests if you changed a component.
+
+5. Create junctions for every directory in the output directory to the source directory if it is noticed in the corresponding `README.md`. So you have all resources available in your source folder and you are not forced to change the environment (This will happen automatically later).
+
+6. When you install a new package, write it in to the `package.json` by using the `--save` or `--save-dev`. After you pushed your changes and another one pulls your changes, the new dependencies will be added, removed or updated.
