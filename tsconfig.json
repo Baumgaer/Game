@@ -1,18 +1,16 @@
 {
-    "compileOnSave": true,
     "compilerOptions": {
         "target": "es6",
         "module": "commonjs",
         "lib": ["es2018", "webworker", "dom"],
         "skipLibCheck": true,
-        "outDir": "Application",
-        "rootDir": "resources",
+        "outDir": "out",
+        "rootDir": "source",
         "removeComments": true,
         "importHelpers": true,
         "isolatedModules": true,
 
         "newLine": "LF",
-        "watch": true,
 
         "strict": true,
         "noImplicitAny": true,
@@ -32,11 +30,12 @@
         "types": [],
         "allowSyntheticDefaultImports": false,
 
-        "diagnostics": true,
         "inlineSourceMap": true,
 
         "experimentalDecorators": true,
         "emitDecoratorMetadata": true,
     },
-    "exclude": []
+    "exclude": [
+        "node_modules"
+    ]
 }
