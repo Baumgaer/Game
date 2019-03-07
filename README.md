@@ -41,3 +41,55 @@ Windows user can use a virtual machine to run the Software and with a network sh
 MacOS user can also use a virtual machine with ubuntu installes and also use network share or they can use [Noah](https://github.com/linux-noah/noah) which provides a subsystem on MacOS.
 
 Linux users have the easiest way... They just use Linux...
+
+## Getting started
+
+1. Install a subsystem
+
+    - Windows: <https://docs.microsoft.com/en-us/windows/wsl/install-win10>
+    - MacOS: <https://github.com/linux-noah/noah>
+
+    The following steps are depending on you are using **Ubuntu** (as subsystem)
+
+2. install NodeJS by following the install instructions here: <https://github.com/nodesource/distributions>
+
+    ```bash
+    sudo apt-get install curl
+    curl -sL https://deb.nodesource.com/setup_11.x | sudo -E bash -
+    sudo apt-get install -y nodejs
+    ```
+
+3. Configure git
+
+    ```bash
+    git config --global pull.rebase true
+    git config --global core.autocrlf true
+    git config --global user.name "<first name> <last name>"
+    git config --global user.email "<email>"
+    ```
+
+4. Create SSH key if you use SSH
+
+    ```bash
+    ssh-keygen -t rsa -C "<your email>"
+    ```
+
+5. Clone the repository
+
+    ```bash
+    git clone git@github.com:Eluminati/BlockWars.git .
+    ```
+
+    - Notice the "." at the End. It is best to clone it in a folder named Game
+
+6. Change into the Game directory
+
+    ```bash
+    cd Game
+    ```
+
+7. Install the Project via NPM
+
+    ```bash
+    npm install
+    ```
