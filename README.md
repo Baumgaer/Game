@@ -2,6 +2,13 @@
 
 Welcome to the "Game". At the moment there is no good name for this project because it seems to be very difficult to find one. If you have a good and unique name feel free to tell it to us.
 
+## Table of contents
+
+1. [The Idea of the Game](#the-idea-of-the-game)
+2. [Architecture of the Game](#architecture-of-the-game)
+3. [Getting started](#getting-started)
+4. [Best practices](#best-practices)
+
 ## The Idea of the Game
 
 Planed is a MMORPG which takes place on an infinite **procedural generated** map. On this map are some predefined cities which have a certain amount of players can start in. If the amount is reached a new city will be created.
