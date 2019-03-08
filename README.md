@@ -7,7 +7,8 @@ Welcome to the "Game". At the moment there is no good name for this project beca
 1. [The Idea of the Game](#the-idea-of-the-game)
 2. [Architecture of the Game](#architecture-of-the-game)
 3. [Getting started](#getting-started)
-4. [Best practices](#best-practices)
+4. [Toolchain](#toolchain)
+5. [Best practices](#best-practices)
 
 ## The Idea of the Game
 
@@ -40,6 +41,10 @@ and way more which can be read in the WIKI
 The Game will be a browser game based on [TypeScript](https://www.typescriptlang.org/)/[AssemblyScript](https://github.com/AssemblyScript/assemblyscript)/JavaScript/[WebAssembly](https://webassembly.org/), [WebGL](https://developer.mozilla.org/en/docs/Web/API/WebGL_API), [WebAudio](https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API), [ServiceWorker](https://developer.mozilla.org/en-US/docs/Web/API/Service_Worker_API), [WebRTC](https://webrtc.org/), [WebSockets](https://developer.mozilla.org/en-US/docs/Web/API/WebSockets_API) and the libraries [Three.js](https://threejs.org/) or [Babylon.js](https://www.babylonjs.com/). Which library will be taken depends on number of tutorials, simplicity and possibilities.
 
 Most of the communication for this game should be among the clients via WebRTC to reduce the server load and outsourcing complex calculation which appears very often. To improve the performance on client side, we will use ServiceWorkers and WebWorkers. ServiceWorkers for caching and faster startup of the mobile app via manifest file and WebWorkers for multi threading. Very complex calculations should also be compiled to WebAssembly on client and server side. for this we use AssemblyScript.
+
+Another speedup will be [Redis](https://redis.io/) which will be used as a cache, session storage and many other temporary things.
+
+To persist the data we will use a database but which one has to be decided.
 
 This project will be **designed for linux** especially **ubuntu** because it is easier to maintain third party software and most important to be sure that everyone has the same dependencies like ever other.
 
@@ -100,6 +105,30 @@ Linux users have the easiest way... They just use Linux...
     ```bash
     npm install
     ```
+
+## Toolchain
+
+To get the best development experience you should install available plugins for your editor, which we are using here.
+
+1. Should be available in your IDE
+
+    - [EditorConfig](https://editorconfig.org/): Everyone should use the same Configuration for the editor
+    - TSLint ([Atom](https://atom.io/packages/linter-tslint) | [VSCode](https://marketplace.visualstudio.com/items?itemName=ms-vscode.vscode-typescript-tslint-plugin)): Write well formatted code in TypeScript
+    - ESLint ([Atom](https://atom.io/packages/linter-eslint) | [VSCode](https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint)): Write well formatted code in JavaScript
+    - typescript ([Atom](https://atom.io/packages/atom-typescript)): Better intellisense while writing Typescript and AssemblyScript
+    - Mocha ([Atom](https://atom.io/packages/mocha-ui) | [VSCode](https://marketplace.visualstudio.com/items?itemName=maty.vscode-mocha-sidebar)): There are some perfect sidebars available for VSCode
+    - Grunt ([Atom](https://atom.io/packages/grunt-runner)): Start a Grunt task in an easy and fast way
+
+2. Can be available in your IDE
+
+    - Import Cost ([Atom](https://atom.io/packages/import-cost-atom) | [VSCode](https://marketplace.visualstudio.com/items?itemName=wix.vscode-import-cost)): See how big your import is
+    - DocBlockr ([Atom](https://atom.io/packages/docblockr) | [VSCode](https://marketplace.visualstudio.com/items?itemName=joelday.docthis)): Create in an easy way a documentation string
+    - Spell checker ([VSCode](https://marketplace.visualstudio.com/items?itemName=streetsidesoftware.code-spell-checker)): Not just correct code but also correct spelling ;-)
+
+3. Some of your best friends
+
+    - [Redis Commander](http://joeferner.github.io/redis-commander/): View the current content of the redis cache
+    - Integrated terminal ([Atom](https://github.com/jeremyramin/terminal-plus)): This is very useful because of the used subsystem and less opened windows
 
 ## Best practices
 

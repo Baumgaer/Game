@@ -1,1 +1,23 @@
+# third party libraries
 node_modules
+
+# Development configuration
+out/app/config/development/**/*.ini
+out/app/client/config/development/**/*.ini
+out/app/server/config/development/**/*.ini
+
+# Hardlinks client section
+source/app/client/audios/**/*
+source/app/client/config/**/*
+source/app/client/css/**/*
+source/app/client/images/**/*
+source/app/client/locales/**/*
+source/app/client/videos/**/*
+
+# Hardlinks BDO section
+source/app/config/**/*
+source/app/tools/**/*
+source/app/views/**/*
+
+# Hardlinks server section
+source/app/server/config/**/*
