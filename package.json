@@ -4,7 +4,8 @@
     "description": "A MMORPG mixed with RTS and simulation in the underground and on the bad side",
     "main": "index.js",
     "scripts": {
-        "test": "echo \"Error: no test specified\" && exit 1"
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "dev": "concurrently \"tsc -w\" \"grunt\""
     },
     "keywords": [
         "Game",
@@ -21,8 +22,12 @@
     "author": "René Baumgärtner",
     "license": "ISC",
     "devDependencies": {
+        "@types/app-root-path": "^1.2.4",
+        "@types/graceful-fs": "^4.1.3",
         "@types/grunt": "^0.4.24",
+        "@types/less": "^3.0.0",
         "@types/mocha": "^5.2.6",
+        "@types/node": "^11.11.0",
         "eslint": "^5.15.1",
         "eslint-plugin-mysticatea": "^4.2.4",
         "grunt-contrib-watch-chokidar": "^1.0.0",
@@ -37,7 +42,12 @@
         "webpack": "^4.29.6"
     },
     "dependencies": {
+        "app-root-path": "^2.1.0",
+        "concurrently": "^4.1.0",
+        "graceful-fs": "^4.1.15",
+        "grunt": "^1.0.3",
         "pm2": "^3.3.1",
+        "simplex-noise": "^2.4.0",
         "tslib": "^1.9.3"
     }
 }

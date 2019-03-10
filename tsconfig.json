@@ -1,6 +1,6 @@
 {
     "compilerOptions": {
-        "target": "es6",
+        "target": "esnext",
         "module": "commonjs",
         "lib": ["es2018", "webworker", "dom"],
         "skipLibCheck": true,
@@ -8,7 +8,7 @@
         "rootDir": "source",
         "removeComments": true,
         "importHelpers": true,
-        "isolatedModules": true,
+        "isolatedModules": false,
 
         "newLine": "LF",
 
@@ -27,7 +27,10 @@
 
         "moduleResolution": "node",
         "typeRoots": [],
-        "types": [],
+        "types": [
+            "node",
+            "grunt"
+        ],
         "allowSyntheticDefaultImports": false,
 
         "inlineSourceMap": true,
