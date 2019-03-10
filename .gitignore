@@ -21,3 +21,9 @@ source/app/views/**/*
 
 # Hardlinks server section
 source/app/server/config/**/*
+
+# Variable content
+var/*/*
+var/*.*
+!var/README.md
+!var/**/README.md
