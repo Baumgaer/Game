@@ -106,6 +106,18 @@ Linux users have the easiest way... They just use Linux...
     npm install
     ```
 
+8. Create junctions in your ORIGINAL operating system
+
+    ```bash
+    node setup.js -j
+    ```
+
+9. Begin with development
+
+    ```bash
+    npm run dev
+    ```
+
 ## Toolchain
 
 To get the best development experience you should install available plugins for your editor, which we are using here.
