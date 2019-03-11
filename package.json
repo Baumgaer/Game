@@ -6,7 +6,10 @@
     "scripts": {
         "postinstall": "node setup.js",
         "test": "echo \"Error: no test specified\" && exit 1",
-        "dev": "concurrently \"tsc -w\" \"grunt\""
+        "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\" \"npm run dev:tasks\"",
+        "dev:server": "tsc -w -p ./tsconfig.json",
+        "dev:client": "tsc -w -p ./source/app/client/ts/tsconfig.json",
+        "dev:tasks": "grunt"
     },
     "keywords": [
         "Game",
