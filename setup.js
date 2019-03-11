@@ -7,6 +7,15 @@ const commandLineUsage = require("command-line-usage");
 
 let VERBOSE = false;
 
+let settings = {
+    junctions: {
+        ignoredPaths: [
+            path.resolve(arp.path, "out/app/client/css"),
+            path.resolve(arp.path, "out/app/client/js")
+        ]
+    }
+};
+
 /**
  * Iterates recursively through a folder tree
  *
@@ -50,7 +59,7 @@ function createJunctions() {
     for (const item of outPaths) {
         let target = item.replace(outPath, sourcePath);
         if (!sourcePaths.includes(item.replace(outPath, sourcePath))) {
-            if (!item.includes(lastJunction)) {
+            if (!item.includes(lastJunction) && !settings.junctions.ignoredPaths.includes(item)) {
                 lastJunction = item;
                 console.log(colors.cyan.bold("create junction:"), item, colors.cyan("<=>"), target);
                 fs.symlink(item, target, 'junction', (error) => {
@@ -99,8 +108,8 @@ if (require && require.main === module) {
     if (options.help) console.log(commandLineUsage(sections));
     if (options.junctions) createJunctions();
     if (!options.help) {
-        console.log(`${colors.magenta.bold('NOTE')}: Execute junction creation on original OS to see junctions in the editors tree.`);
+        console.log(`\n${colors.magenta.bold('NOTE')}: Execute junction creation on original OS to see junctions in the editors tree.`);
         console.log("      Type node setup.js --help for more information!");
-        console.log("FINISHED!");
+        console.log(colors.green("\nFINISHED!"));
     }
 }

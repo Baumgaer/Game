@@ -1,7 +1,8 @@
-import { resolve, isAbsolute } from 'path';
+import { resolve } from 'path';
 import { path as rootPath } from 'app-root-path';
 import { existsSync, unlinkSync } from 'graceful-fs';
 import * as colors from 'colors';
+import { getCorrespondingFile, isSourceFile } from './../utils/projectStructure';
 
 module.exports = (grunt: IGrunt): void => {
     grunt.config.merge({
@@ -32,34 +33,4 @@ module.exports = (grunt: IGrunt): void => {
             }
         }
     });
-
-    /**
-     * Returns the corresponding path of the other target
-     *
-     * @param {string} filePath Path of the file for which the corresponding path is searched
-     * @returns {string} The corresponding path
-     */
-    function getCorrespondingFile(filePath: string): string {
-        if (!isAbsolute(filePath)) filePath = resolve(rootPath, filePath);
-        let sourcePath = resolve(rootPath, 'source');
-        let outPath = resolve(rootPath, 'out');
-        if (isSourceFile(filePath)) {
-            return filePath.replace(sourcePath, outPath).replace('.ts', '.js');
-        }
-        return filePath.replace(outPath, sourcePath).replace('.js', '.ts');
-    }
-
-    /**
-     * Checks if a file path is source or not
-     *
-     * @param {string} filePath Path of the file which should be checked
-     * @returns {boolean}
-     */
-    function isSourceFile(filePath: string): boolean {
-        if (!isAbsolute(filePath)) filePath = resolve(rootPath, filePath);
-        if (filePath.includes(resolve(rootPath, 'source'))) {
-            return true;
-        }
-        return false;
-    }
 };
