@@ -1,0 +1,9 @@
+{
+    "extends": "./../../../../baseTSConfig.json",
+    "compilerOptions": {
+        "target": "es5",
+        "module": "amd",
+        "rootDir": "./",
+        "outDir": "./../../../../out/app/client/js"
+    }
+}

@@ -1,0 +1,37 @@
+{
+    "compilerOptions": {
+        "lib": ["es2018", "webworker", "dom"],
+        "skipLibCheck": true,
+        "removeComments": true,
+        "importHelpers": true,
+        "isolatedModules": false,
+
+        "newLine": "LF",
+
+        "strict": true,
+        "noImplicitAny": true,
+        "strictNullChecks": true,
+        "strictFunctionTypes": true,
+        "noImplicitThis": true,
+        "alwaysStrict": true,
+
+        "noUnusedLocals": true,
+        "noUnusedParameters": true,
+        "noImplicitReturns": true,
+        "noFallthroughCasesInSwitch": true,
+        "allowUnreachableCode": false,
+
+        "moduleResolution": "node",
+        "typeRoots": [],
+        "types": [
+            "node",
+            "grunt"
+        ],
+        "allowSyntheticDefaultImports": false,
+
+        "inlineSourceMap": true,
+
+        "experimentalDecorators": true,
+        "emitDecoratorMetadata": true
+    }
+}
