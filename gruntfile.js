@@ -12,6 +12,17 @@ module.exports = function (grunt) {
                     event: ['unlink', 'change', 'add'],
                     spawn: false
                 }
+            },
+            "cleanup.ts": {
+                files: [
+                    'source/**/*.ts',
+                    'source/**/*.*.ts'
+                ],
+                tasks: ['cleanup:ts'],
+                options: {
+                    event: ['unlink'],
+                    spawn: false
+                }
             }
         }
     });

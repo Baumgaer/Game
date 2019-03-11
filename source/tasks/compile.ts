@@ -2,17 +2,14 @@ import { render } from 'less';
 import { path as rootPath } from 'app-root-path';
 import { join } from 'path';
 import { readFileSync, writeFileSync } from 'graceful-fs';
-
 //@ts-ignore
 import * as lessPluginCleanCSS from 'less-plugin-clean-css';
 
-let lessCleanCSS = new lessPluginCleanCSS({
-    advanced: true
-});
 /**
  * Compiles several formats in source folder to corresponding compilation in out folder
  *
  * @param {IGrunt} grunt
+ * @returns {void}
  */
 module.exports = (grunt: IGrunt): void => {
     grunt.config.merge({
@@ -29,7 +26,7 @@ module.exports = (grunt: IGrunt): void => {
         grunt.config(`${target}.program`, target.split('.').pop());
     });
 
-    grunt.registerMultiTask('compile', 'Compiles TypeScript and Less', function() {
+    grunt.registerMultiTask('compile', 'Compiles Less', function() {
         let done = this.async();
 
         let promises: Array<Promise<any>> = [];
@@ -54,7 +51,11 @@ function compileLess(): Promise<any> {
         let src = join(rootPath, 'source', 'app', 'client', 'less', 'index.less');
         render(readFileSync(src).toString(), {
             filename: src,
-            plugins: [lessCleanCSS]
+            plugins: [
+                new lessPluginCleanCSS({
+                    advanced: true
+                })
+            ]
         }).then((output) => {
             let src = join(rootPath, 'out', 'app', 'client', 'css', 'bundle.css');
             writeFileSync(src, output.css, {
