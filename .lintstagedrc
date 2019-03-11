@@ -1,5 +1,5 @@
 {
     "**/*.ts": ["tslint --project ./tsconfig.json --fix", "git add"],
     "**/*.*.ts": ["tslint --project ./tsconfig.json --fix", "git add"],
-    "source/**/*.js": ["eslint --fix", "git add"]
+    "*.js": ["eslint --fix", "git add"]
 }
