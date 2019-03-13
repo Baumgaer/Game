@@ -26,7 +26,8 @@
         "types": [
             "node",
             "grunt",
-            "mocha"
+            "mocha",
+            "fastify"
         ],
         "allowSyntheticDefaultImports": false,
 

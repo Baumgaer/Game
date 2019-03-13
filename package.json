@@ -5,7 +5,7 @@
     "main": "index.js",
     "scripts": {
         "postinstall": "node setup.js",
-        "test": "mocha -opts ./mocha.opts",
+        "test": "nyc mocha -opts ./mocha.opts",
         "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\" \"npm run dev:tasks\"",
         "dev:server": "tsc -w -p ./tsconfig.json",
         "dev:client": "tsc -w -p ./source/app/client/ts/tsconfig.json",
@@ -57,6 +57,7 @@
         "command-line-args": "^5.0.2",
         "command-line-usage": "^5.0.5",
         "concurrently": "^4.1.0",
+        "fastify": "^2.0.1",
         "graceful-fs": "^4.1.15",
         "grunt": "^1.0.3",
         "pm2": "^3.4.0",
