@@ -25,7 +25,8 @@
         "typeRoots": [],
         "types": [
             "node",
-            "grunt"
+            "grunt",
+            "mocha"
         ],
         "allowSyntheticDefaultImports": false,
 
