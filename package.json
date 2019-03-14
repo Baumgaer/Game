@@ -35,6 +35,7 @@
         "@types/less": "^3.0.0",
         "@types/mocha": "^5.2.6",
         "@types/node": "^11.11.3",
+        "@types/nunjucks": "^3.1.1",
         "@types/source-map-support": "^0.5.0",
         "chai": "^4.2.0",
         "colors": "^1.3.3",
@@ -58,9 +59,12 @@
         "command-line-usage": "^5.0.5",
         "concurrently": "^4.1.0",
         "fastify": "^2.0.1",
+        "fastify-static": "^2.3.4",
         "graceful-fs": "^4.1.15",
         "grunt": "^1.0.3",
+        "nunjucks": "^3.2.0",
         "pm2": "^3.4.0",
+        "point-of-view": "^3.1.1",
         "simplex-noise": "^2.4.0",
         "tslib": "^1.9.3"
     }

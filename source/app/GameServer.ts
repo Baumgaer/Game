@@ -37,7 +37,9 @@ class GameServer extends BaseServer {
         _request: FastifyRequest<IncomingMessage>,
         reply: FastifyReply<OutgoingMessage>
     ): Promise<void> {
-        reply.send('tach auch');
+        reply.view('index', {
+            hello: 'world'
+        });
     }
 }
 

@@ -8,6 +8,12 @@
     },
     "exclude": [
         "node_modules",
-        "./source/app/client/ts"
+        "source/app/client",
+        "out",
+        "var",
+        "source/app/config",
+        "source/app/tools",
+        "source/app/views",
+        "source/app/server/config"
     ]
 }
