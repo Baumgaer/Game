@@ -31,7 +31,7 @@ export abstract class BaseServer extends EventEmitter {
      * @type {express.Application}
      * @memberof BaseServer
      */
-    protected app: express.Application = express();
+    protected readonly app: express.Application = express();
 
     /**
      * The real HTTP server which is listening on the provided port
@@ -40,7 +40,7 @@ export abstract class BaseServer extends EventEmitter {
      * @type {Server}
      * @memberof BaseServer
      */
-    protected server: Server = createServer(this.app);
+    protected readonly server: Server = createServer(this.app);
 
     /**
      * Represents the current state of the server depending on the currently
