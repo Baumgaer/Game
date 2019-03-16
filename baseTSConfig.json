@@ -1,6 +1,6 @@
 {
     "compilerOptions": {
-        "lib": ["es2018", "webworker", "dom"],
+        "lib": ["es2018", "webworker"],
         "skipLibCheck": true,
         "removeComments": true,
         "importHelpers": true,
@@ -27,7 +27,7 @@
             "node",
             "grunt",
             "mocha",
-            "fastify"
+            "express"
         ],
         "allowSyntheticDefaultImports": false,
 

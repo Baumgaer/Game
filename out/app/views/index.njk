@@ -10,6 +10,22 @@
 
 <body>
     <img src="/static/images/helloWorld.jpg" alt="test">
+
+    <script>
+        let webSocket = new WebSocket("ws://localhost:3000");
+        webSocket.onopen = function () {
+            console.log("Client is connected");
+            this.send(JSON.stringify({
+                type: "message",
+                data: "looool"
+            }));
+        };
+
+        webSocket.onmessage = function (data, flags) {
+            console.log(`WebSocketClient message: `, data);
+        }
+
+    </script>
 </body>
 
 </html>

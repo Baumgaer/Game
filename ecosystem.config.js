@@ -14,6 +14,7 @@ module.exports = {
         script: './out/app/GameServer.js',
 
         // Options reference: https://pm2.io/doc/en/runtime/reference/ecosystem-file/
+        source_map_support: true,
         log: false,
         pid_file: "var/pids/gameServer.pid",
         error: "var/logs/gameServerError.log",

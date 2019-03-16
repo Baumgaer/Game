@@ -1,10 +1,10 @@
-import * as fastify from 'fastify';
-import * as pointOfView from 'point-of-view';
+import * as express from 'express';
 import * as nunjucks from 'nunjucks';
 import { resolve } from 'path';
 import { path as rootPath } from 'app-root-path';
-import * as fastifyStatic from 'fastify-static';
 import { EventEmitter } from 'events';
+import { createServer, Server } from 'http';
+import { AddressInfo } from 'ws';
 
 declare type states =
     | 'loadConfig'
@@ -25,13 +25,22 @@ declare type states =
  */
 export abstract class BaseServer extends EventEmitter {
     /**
-     * The factorized framework instance
+     * The application which handles the routing and serving and so on
      *
      * @protected
-     * @type {(fastify.FastifyInstance | null)}
+     * @type {express.Application}
      * @memberof BaseServer
      */
-    protected server: fastify.FastifyInstance = fastify();
+    protected app: express.Application = express();
+
+    /**
+     * The real HTTP server which is listening on the provided port
+     *
+     * @protected
+     * @type {Server}
+     * @memberof BaseServer
+     */
+    protected server: Server = createServer(this.app);
 
     /**
      * Represents the current state of the server depending on the currently
@@ -45,11 +54,13 @@ export abstract class BaseServer extends EventEmitter {
 
     constructor() {
         super();
-        this.server.server.on('listening', () => {
+        this.server.on('listening', () => {
             this.state = 'started';
             this.emit(this.state);
+            let addressInfo = <AddressInfo>this.server.address();
+            console.log(`Server started: ${addressInfo.address}:${addressInfo.port}`);
         });
-        this.server.server.on('close', () => {
+        this.server.on('close', () => {
             this.state = 'stopped';
             this.emit(this.state);
         });
@@ -95,19 +106,14 @@ export abstract class BaseServer extends EventEmitter {
      */
     protected async setupServer(): Promise<void> {
         // Setup the template engine
-        this.server.register(pointOfView, <pointOfView.PointOfViewOptions>{
-            engine: {
-                nunjucks: nunjucks
-            },
-            includeViewExtension: true,
-            templates: resolve(rootPath, './out/app/views')
+        nunjucks.configure(resolve(rootPath, './out/app/views'), {
+            express: this.app,
+            autoescape: true
         });
+        this.app.set('view engine', 'njk');
 
         // Setup static files directory
-        this.server.register(fastifyStatic, {
-            root: resolve(rootPath, './out/app/client'),
-            prefix: '/static/'
-        });
+        this.app.use(express.static(resolve(rootPath, './out/app/client')));
     }
 
     /**
@@ -135,7 +141,7 @@ export abstract class BaseServer extends EventEmitter {
      * @returns {Promise<void>}
      * @memberof BaseServer
      */
-    public async start(): Promise<string> {
+    public async start(): Promise<Server> {
         await new Promise((resolve) => {
             let interval = setInterval(() => {
                 if (this.state === 'ready') {
@@ -144,15 +150,13 @@ export abstract class BaseServer extends EventEmitter {
                 }
             });
         });
-        return new Promise<string>(async (resolve) => {
+        return new Promise<Server>((resolve) => {
             try {
                 let port = 8080;
                 if (process.env.PORT) {
                     port = parseInt(process.env.PORT, 10);
                 }
-                let listening = await this.server.listen(port);
-                resolve(listening);
-                console.log('Server started:', listening);
+                resolve(this.server.listen(port, 'localhost'));
             } catch (error) {
                 console.error(error);
                 process.exit(1);
