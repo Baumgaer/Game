@@ -1,18 +1,17 @@
-const fs = require("graceful-fs");
-const arp = require("app-root-path");
-const path = require("path");
-const colors = require("colors");
-const commandLineArgs = require("command-line-args");
-const commandLineUsage = require("command-line-usage");
+const fs = require('graceful-fs');
+const os = require('os');
+const arp = require('app-root-path');
+const path = require('path');
+const colors = require('colors');
+const commandLineArgs = require('command-line-args');
+const commandLineUsage = require('command-line-usage');
+const childProcess = require('child_process');
 
 let VERBOSE = false;
 
 let settings = {
     junctions: {
-        ignoredPaths: [
-            path.resolve(arp.path, "out/app/client/css"),
-            path.resolve(arp.path, "out/app/client/js")
-        ]
+        ignoredPaths: [path.resolve(arp.path, 'out/app/client/css'), path.resolve(arp.path, 'out/app/client/js')]
     }
 };
 
@@ -33,7 +32,9 @@ function walkDir(dir, dirList) {
         try {
             isDir = fs.statSync(newDir).isDirectory() && fs.realpathSync(newDir) === newDir;
         } catch (error) {
-            if (VERBOSE) console.log(`${colors.yellow('WARNING')}: ${colors.cyan(newDir)} marked as ${colors.red('UNKNOWN')}!`);
+            if (VERBOSE) {
+                console.log(`${colors.yellow('WARNING')}: ${colors.cyan(newDir)} marked as ${colors.red('UNKNOWN')}!`);
+            }
         }
         if (isDir) {
             dirList.push(newDir);
@@ -49,8 +50,8 @@ function walkDir(dir, dirList) {
  * @returns {void}
  */
 function createJunctions() {
-    let outPath = path.join(arp.path, "out");
-    let sourcePath = path.join(arp.path, "source");
+    let outPath = path.join(arp.path, 'out');
+    let sourcePath = path.join(arp.path, 'source');
     let outPaths = walkDir(outPath);
     let sourcePaths = walkDir(sourcePath);
 
@@ -61,7 +62,7 @@ function createJunctions() {
         if (!sourcePaths.includes(item.replace(outPath, sourcePath))) {
             if (!item.includes(lastJunction) && !settings.junctions.ignoredPaths.includes(item)) {
                 lastJunction = item;
-                console.log(colors.cyan.bold("create junction:"), item, colors.cyan("<=>"), target);
+                console.log(colors.cyan.bold('create junction:'), item, colors.cyan('<=>'), target);
                 fs.symlink(item, target, 'junction', (error) => {
                     if (error && error.code === 'EEXIST') {
                         fs.unlinkSync(target);
@@ -73,26 +74,81 @@ function createJunctions() {
     }
 }
 
+/**
+ * Installs Docker depending on the operation system is a Linux system
+ *
+ * @returns {void}
+ */
+function installDocker() {
+    if (!os.type() === 'Linux') {
+        console.log(`${colors.red.bold('ERROR')}: Your operation system is not a linux`);
+        return;
+    }
+
+    childProcess.execSync('apt-get remove docker docker-engine docker.io containerd runc', {
+        stdio: 'inherit'
+    });
+    childProcess.execSync('apt-get update -y', {
+        stdio: 'inherit'
+    });
+    childProcess.execSync(
+        'sudo apt-get install -y apt-transport-https ca-certificates curl software-properties-common', {
+            stdio: 'inherit'
+        }
+    );
+    childProcess.execSync('apt-get upgrade -y', {
+        stdio: 'inherit'
+    });
+    childProcess.execSync('curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -', {
+        stdio: 'inherit'
+    });
+    childProcess.execSync('sudo apt-key fingerprint 0EBFCD88', {
+        stdio: 'inherit'
+    });
+    childProcess.execSync('./getDocker.sh', {
+        stdio: 'inherit'
+    });
+    childProcess.execSync('usermod -aG docker $USER', {
+        stdio: 'inherit'
+    });
+    childProcess.execSync('apt-get install -y python python-pip', {
+        stdio: 'inherit'
+    });
+    childProcess.execSync('pip install --user docker-compose', {
+        stdio: 'inherit'
+    });
+}
+
 if (require && require.main === module) {
     let optionList = [{
-        name: 'help',
-        alias: 'h',
-        type: Boolean,
-        defaultValue: false,
-        description: 'This message'
-    }, {
-        name: 'verbose',
-        alias: 'v',
-        type: Boolean,
-        defaultValue: false,
-        description: 'Offers more output'
-    }, {
-        name: 'junctions',
-        alias: 'j',
-        type: Boolean,
-        defaultValue: false,
-        description: 'creates junctions of folders from the out folder which are not contained in source'
-    }];
+            name: 'help',
+            alias: 'h',
+            type: Boolean,
+            defaultValue: false,
+            description: 'This message'
+        },
+        {
+            name: 'verbose',
+            alias: 'v',
+            type: Boolean,
+            defaultValue: false,
+            description: 'Offers more output'
+        },
+        {
+            name: 'junctions',
+            alias: 'j',
+            type: Boolean,
+            defaultValue: false,
+            description: 'creates junctions of folders from the out folder which are not contained in source'
+        },
+        {
+            name: 'docker',
+            alias: 'd',
+            type: Boolean,
+            defaultValue: false,
+            description: 'Installs Docker depending on the OS is a linux'
+        }
+    ];
 
     let sections = [{
             header: 'The post install script',
@@ -107,9 +163,14 @@ if (require && require.main === module) {
     VERBOSE = options.verbose;
     if (options.help) console.log(commandLineUsage(sections));
     if (options.junctions) createJunctions();
+    if (options.docker) installDocker();
     if (!options.help) {
-        console.log(`\n${colors.magenta.bold('NOTE')}: Execute junction creation on original OS to see junctions in the editors tree.`);
-        console.log("      Type node setup.js --help for more information!");
-        console.log(colors.green("\nFINISHED!"));
+        console.log(
+            `\n${colors.magenta.bold(
+                'NOTE'
+            )}: Execute junction creation on original OS to see junctions in the editors tree.`
+        );
+        console.log('      Type node setup.js --help for more information!');
+        console.log(colors.green('\nFINISHED!'));
     }
 }

@@ -61,9 +61,29 @@ Linux users have the easiest way... They just use Linux...
     - Windows: <https://docs.microsoft.com/en-us/windows/wsl/install-win10>
     - MacOS: <https://github.com/linux-noah/noah>
 
-    The following steps are depending on you are using **Ubuntu** (as subsystem)
+2. Install [Docker](https://www.docker.com/) on your native OS:
 
-2. install NodeJS by following the install instructions here: <https://github.com/nodesource/distributions>
+    - Window: <https://download.docker.com/win/stable/Docker%20for%20Windows%20Installer.exe>
+    - MacOS: <https://download.docker.com/mac/stable/Docker.dmg>
+    - Linux/Unix: `sudo node ./setup.js -d` - **Do this after the "npm install"!**
+        - This is also required on the windows subsystem!
+        - After this type the following in case of a windows subsystem:
+
+            ```bash
+            export DOCKER_HOST=tcp://localhost:2375" >> ~/.bashrc && source ~/.bashrc
+            ```
+
+3. Configure docker on your native OS:
+
+    To enable access from the subsystem to the native docker host, go to:
+
+    `Settings => General => expose daemon on tcp://localhost:2375 without TLS`
+
+    Don't be afraid because of the "without TLS". We will never access this over the web. This is just for development.
+
+    The following steps are depending on you are using **Ubuntu** (as subsystem):
+
+4. install NodeJS by following the install instructions here: <https://github.com/nodesource/distributions>
 
     ```bash
     sudo apt-get install curl
@@ -71,7 +91,7 @@ Linux users have the easiest way... They just use Linux...
     sudo apt-get install -y nodejs
     ```
 
-3. Configure git
+5. Configure git on your subsystem
 
     ```bash
     git config --global pull.rebase true
@@ -80,13 +100,13 @@ Linux users have the easiest way... They just use Linux...
     git config --global user.email "<email>"
     ```
 
-4. Create SSH key if you use SSH
+6. Create SSH key if you use SSH
 
     ```bash
     ssh-keygen -t rsa -C "<your email>"
     ```
 
-5. Clone the repository
+7. Clone the repository
 
     ```bash
     git clone https://github.com/Eluminati/Game.git .
@@ -94,29 +114,47 @@ Linux users have the easiest way... They just use Linux...
 
     - Notice the "." at the End. It is best to clone it in a folder named Game
 
-6. Change into the Game directory
+8. Change into the Game directory
 
     ```bash
     cd Game
     ```
 
-7. Install the Project via NPM
+9. Install the Project via NPM
 
     ```bash
     npm install
     ```
 
-8. Create junctions in your ORIGINAL operating system
+10. Create junctions in your ORIGINAL operating system, for better development (optional)
 
     ```bash
     node setup.js -j
     ```
 
-9. Begin with development
+11. install necessary Docker images
+
+    ```bash
+    // Redis
+    docker pull redis
+    docker run --name redis -p 7001:6379 -d redis
+
+    // ArangoDB
+    docker pull arangodb
+    docker run -e ARANGO_NO_AUTH=1 --name arangodb -p 8529:8529 -d arangodb
+    ```
+
+12. start the development server
 
     ```bash
     npm run dev
     ```
+
+"That's it!"... I know this is much to do but after this it works everywhere in the exact same way and we will use a linux as production os!
+
+## Start and stop the application
+
+To start the app type: `npm start` and to stop the app type `npm stop`. For more commands type `npx pm2` which is our process manager. Or you have a look to the [package.json](./package.json) to see the start and stop scripts.
 
 ## Toolchain
 
