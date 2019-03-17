@@ -1,8 +1,10 @@
 import * as express from 'express';
+import * as hpp from 'hpp';
+import * as helmet from 'helmet';
+import * as compression from 'compression';
 import * as nunjucks from 'nunjucks';
 import { resolve } from 'path';
 import { path as rootPath } from 'app-root-path';
-import { EventEmitter } from 'events';
 import { createServer, Server } from 'http';
 import { AddressInfo } from 'ws';
 
@@ -23,7 +25,7 @@ declare type states =
  * @abstract
  * @class BaseServer
  */
-export abstract class BaseServer extends EventEmitter {
+export abstract class BaseServer {
     /**
      * The application which handles the routing and serving and so on
      *
@@ -53,39 +55,29 @@ export abstract class BaseServer extends EventEmitter {
     protected state: states = 'stopped';
 
     constructor() {
-        super();
         this.server.on('listening', () => {
             this.state = 'started';
-            this.emit(this.state);
             let addressInfo = <AddressInfo>this.server.address();
             console.log(`Server started: ${addressInfo.address}:${addressInfo.port}`);
         });
         this.server.on('close', () => {
             this.state = 'stopped';
-            this.emit(this.state);
         });
         this.state = 'loadConfig';
-        this.emit(this.state);
         this.loadConfig()
             .then(() => {
                 this.state = 'setupServer';
-                this.emit(this.state);
                 this.setupServer();
             })
             .then(() => {
                 this.state = 'routeCollection';
-                this.emit(this.state);
                 this.routeCollection();
             })
             .then(() => {
                 this.state = 'afterRouteCollection';
-                this.emit(this.state);
                 this.afterRouteCollection();
             })
-            .then(() => {
-                this.state = 'ready';
-                this.emit(this.state);
-            });
+            .then(() => (this.state = 'ready'));
     }
 
     /**
@@ -105,15 +97,25 @@ export abstract class BaseServer extends EventEmitter {
      * @memberof BaseServer
      */
     protected async setupServer(): Promise<void> {
+        // parse the body to get post data and so on
+        // NOTE: This is important for some middlewares to have directly
+        this.app.use(express.json());
+        this.app.use(express.urlencoded({ extended: true }));
+
+        // Setup compression and security
+        this.app.use(compression());
+        this.app.use(helmet());
+        this.app.use(hpp());
+
         // Setup the template engine
-        nunjucks.configure(resolve(rootPath, './out/app/views'), {
+        nunjucks.configure(resolve(rootPath, 'out', 'app', 'views'), {
             express: this.app,
             autoescape: true
         });
         this.app.set('view engine', 'njk');
 
         // Setup static files directory
-        this.app.use(express.static(resolve(rootPath, './out/app/client')));
+        this.app.use(express.static(resolve(rootPath, 'out', 'app', 'client')));
     }
 
     /**
@@ -176,40 +178,5 @@ export abstract class BaseServer extends EventEmitter {
         await this.server.close();
         console.log('Server stopped');
         process.exit(0);
-    }
-
-    /**
-     * Adds an event listener based on the available states
-     *
-     * @param {states} state
-     * @param {(...args: any[]) => void} listener
-     * @returns {this}
-     * @memberof BaseServer
-     */
-    public on(state: states, listener: (...args: any[]) => void): this {
-        return super.on(state, listener);
-    }
-
-    /**
-     * Adds an event listener based on the available states one times and
-     * removes it after the event occurs.
-     *
-     * @param {states} state
-     * @param {(...args: any[]) => void} listener
-     * @returns {this}
-     * @memberof BaseServer
-     */
-    public once(state: states, listener: (...args: any[]) => void): this {
-        return super.once(state, listener);
-    }
-
-    /**
-     * Removes an existing event listener
-     *
-     * @param state
-     * @param listener
-     */
-    public off(state: states, listener: (...args: any[]) => void): this {
-        return super.off(state, listener);
     }
 }
