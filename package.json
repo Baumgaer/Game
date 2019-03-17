@@ -4,16 +4,20 @@
     "description": "A MMORPG mixed with RTS and simulation in the underground and on the bad side",
     "main": "index.js",
     "scripts": {
-        "postinstall": "node setup.js",
+        "install:subsystem": "npm install --ignore-scripts && node setup.js -d",
+        "postinstall": "node setup.js -d -j",
         "test": "nyc mocha -opts ./mocha.opts",
+
         "start": "npm run start:arangodb && npm run start:redis && npm run start:app && docker container list",
         "start:app": "pm2 start ./ecosystem.config.js",
         "start:redis": "docker start redis",
         "start:arangodb": "docker start arangodb",
+
         "stop": "npm run stop:app all && npm run stop:redis && npm run stop:arangodb && docker container list",
         "stop:app": "pm2 stop",
         "stop:redis": "docker stop redis",
         "stop:arangodb": "docker stop arangodb",
+
         "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\" \"npm run dev:tasks\"",
         "dev:server": "tsc -w -p ./tsconfig.json",
         "dev:client": "tsc -w -p ./source/app/client/ts/tsconfig.json",

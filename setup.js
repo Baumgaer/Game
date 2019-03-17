@@ -81,40 +81,54 @@ function createJunctions() {
  */
 function installDocker() {
     if (!os.type() === 'Linux') {
-        console.log(`${colors.red.bold('ERROR')}: Your operation system is not a linux`);
-        return;
+
+        childProcess.execSync('apt-get remove docker docker-engine docker.io containerd runc', {
+            stdio: 'inherit'
+        });
+        childProcess.execSync('apt-get update -y', {
+            stdio: 'inherit'
+        });
+        childProcess.execSync(
+            'sudo apt-get install -y apt-transport-https ca-certificates curl software-properties-common', {
+                stdio: 'inherit'
+            }
+        );
+        childProcess.execSync('apt-get upgrade -y', {
+            stdio: 'inherit'
+        });
+        childProcess.execSync('curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -', {
+            stdio: 'inherit'
+        });
+        childProcess.execSync('sudo apt-key fingerprint 0EBFCD88', {
+            stdio: 'inherit'
+        });
+        childProcess.execSync('./getDocker.sh', {
+            stdio: 'inherit'
+        });
+        childProcess.execSync('usermod -aG docker $USER', {
+            stdio: 'inherit'
+        });
+        childProcess.execSync('apt-get install -y python python-pip', {
+            stdio: 'inherit'
+        });
+        childProcess.execSync('pip install --user docker-compose', {
+            stdio: 'inherit'
+        });
     }
 
-    childProcess.execSync('apt-get remove docker docker-engine docker.io containerd runc', {
+    childProcess.execSync('docker rm redis arangodb', {
         stdio: 'inherit'
     });
-    childProcess.execSync('apt-get update -y', {
+    childProcess.execSync('docker pull redis', {
         stdio: 'inherit'
     });
-    childProcess.execSync(
-        'sudo apt-get install -y apt-transport-https ca-certificates curl software-properties-common', {
-            stdio: 'inherit'
-        }
-    );
-    childProcess.execSync('apt-get upgrade -y', {
+    childProcess.execSync('docker run --name redis -p 7001:6379 -d redis', {
         stdio: 'inherit'
     });
-    childProcess.execSync('curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -', {
+    childProcess.execSync('docker pull arangodb', {
         stdio: 'inherit'
     });
-    childProcess.execSync('sudo apt-key fingerprint 0EBFCD88', {
-        stdio: 'inherit'
-    });
-    childProcess.execSync('./getDocker.sh', {
-        stdio: 'inherit'
-    });
-    childProcess.execSync('usermod -aG docker $USER', {
-        stdio: 'inherit'
-    });
-    childProcess.execSync('apt-get install -y python python-pip', {
-        stdio: 'inherit'
-    });
-    childProcess.execSync('pip install --user docker-compose', {
+    childProcess.execSync('docker run -e ARANGO_NO_AUTH=1 --name arangodb -p 8529:8529 -d arangodb', {
         stdio: 'inherit'
     });
 }

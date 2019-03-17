@@ -44,36 +44,22 @@ Most of the communication for this game should be among the clients via WebRTC t
 
 Another speedup will be [Redis](https://redis.io/) which will be used as a cache, session storage and many other temporary things.
 
-To persist the data we will use a database but which one has to be decided.
-
-This project will be **designed for linux** especially **ubuntu** because it is easier to maintain third party software and most important to be sure that everyone has the same dependencies like ever other.
-
-Windows user can use a virtual machine to run the Software and with a network share it is possible to use developer software on windows. Or they can use a subsystem which is recommended. **NOTICE:** to use git it is not possible to use the ui of your software if you use a subsystem because the software is running on windows but the project is running on linux!
-
-MacOS user can also use a virtual machine with ubuntu installes and also use network share or they can use [Noah](https://github.com/linux-noah/noah) which provides a subsystem on MacOS.
-
-Linux users have the easiest way... They just use Linux...
+To persist the data we will use [ArangoDB](https://www.arangodb.com/).
 
 ## Getting started
 
-1. Install a subsystem
+1. Install a subsystem (Optional):
 
     - Windows: <https://docs.microsoft.com/en-us/windows/wsl/install-win10>
     - MacOS: <https://github.com/linux-noah/noah>
 
-2. Install [Docker](https://www.docker.com/) on your native OS:
+2. Install [Docker](https://www.docker.com/) (on your subsystem and native OS):
 
     - Window: <https://download.docker.com/win/stable/Docker%20for%20Windows%20Installer.exe>
     - MacOS: <https://download.docker.com/mac/stable/Docker.dmg>
-    - Linux/Unix: `sudo node ./setup.js -d` - **Do this after the "npm install"!**
-        - This is also required on the windows subsystem!
-        - After this type the following in case of a windows subsystem:
+    - Linux/Unix: will be installed later automatically
 
-            ```bash
-            export DOCKER_HOST=tcp://localhost:2375" >> ~/.bashrc && source ~/.bashrc
-            ```
-
-3. Configure docker on your native OS:
+3. Configure docker on your native OS (optional):
 
     To enable access from the subsystem to the native docker host, go to:
 
@@ -81,9 +67,11 @@ Linux users have the easiest way... They just use Linux...
 
     Don't be afraid because of the "without TLS". We will never access this over the web. This is just for development.
 
-    The following steps are depending on you are using **Ubuntu** (as subsystem):
+4. install NodeJS:
 
-4. install NodeJS by following the install instructions here: <https://github.com/nodesource/distributions>
+    **Windows** and **MacOS** user download the installer: <https://nodejs.org/en/>
+
+    **Linux** users do the following:
 
     ```bash
     sudo apt-get install curl
@@ -91,7 +79,9 @@ Linux users have the easiest way... They just use Linux...
     sudo apt-get install -y nodejs
     ```
 
-5. Configure git on your subsystem
+    or do this [installation instructions](https://github.com/nodesource/distributions).
+
+5. Configure git:
 
     ```bash
     git config --global pull.rebase true
@@ -100,13 +90,13 @@ Linux users have the easiest way... They just use Linux...
     git config --global user.email "<email>"
     ```
 
-6. Create SSH key if you use SSH
+6. Create SSH key if you use SSH:
 
     ```bash
     ssh-keygen -t rsa -C "<your email>"
     ```
 
-7. Clone the repository
+7. Clone the repository:
 
     ```bash
     git clone https://github.com/Eluminati/Game.git .
@@ -114,37 +104,34 @@ Linux users have the easiest way... They just use Linux...
 
     - Notice the "." at the End. It is best to clone it in a folder named Game
 
-8. Change into the Game directory
+8. Change into the Game directory:
 
     ```bash
     cd Game
     ```
 
-9. Install the Project via NPM
+9. Install the Project via NPM:
+
+    **Native** os user do:
 
     ```bash
     npm install
     ```
 
-10. Create junctions in your ORIGINAL operating system, for better development (optional)
+    **Subsystem** user do:
+
+    ```bash
+    export DOCKER_HOST=tcp://localhost:2375" >> ~/.bashrc && source ~/.bashrc
+    npm run install:subsystem
+    ```
+
+10. Create junctions in your ORIGINAL operating system (optional):
 
     ```bash
     node setup.js -j
     ```
 
-11. install necessary Docker images
-
-    ```bash
-    // Redis
-    docker pull redis
-    docker run --name redis -p 7001:6379 -d redis
-
-    // ArangoDB
-    docker pull arangodb
-    docker run -e ARANGO_NO_AUTH=1 --name arangodb -p 8529:8529 -d arangodb
-    ```
-
-12. start the development server
+11. start the development server:
 
     ```bash
     npm run dev
