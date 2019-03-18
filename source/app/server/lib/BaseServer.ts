@@ -3,10 +3,13 @@ import * as hpp from 'hpp';
 import * as helmet from 'helmet';
 import * as compression from 'compression';
 import * as nunjucks from 'nunjucks';
+import * as expressSession from 'express-session';
+import * as connectRedis from 'connect-redis';
 import { resolve } from 'path';
 import { path as rootPath } from 'app-root-path';
 import { createServer, Server } from 'http';
 import { AddressInfo } from 'ws';
+import { createHash } from 'crypto';
 
 declare type states =
     | 'loadConfig'
@@ -45,6 +48,15 @@ export abstract class BaseServer {
     protected readonly server: Server = createServer(this.app);
 
     /**
+     * Provides the initialized express session as a handler for other mechanisms
+     *
+     * @protected
+     * @type {express.RequestHandler}
+     * @memberof BaseServer
+     */
+    protected sessionParser?: express.RequestHandler;
+
+    /**
      * Represents the current state of the server depending on the currently
      * running life cycle function.
      *
@@ -64,12 +76,8 @@ export abstract class BaseServer {
         this.server.on('close', () => {
             this.state = 'stopped';
         });
-        this.state = 'loadConfig';
-        this.loadConfig()
-            .then(() => {
-                this.state = 'setupServer';
-                this.setupServer();
-            })
+        this.state = 'setupServer';
+        this.setupServer()
             .then(() => {
                 this.state = 'routeCollection';
                 this.routeCollection();
@@ -82,16 +90,7 @@ export abstract class BaseServer {
     }
 
     /**
-     * 1. Load the configuration
-     *
-     * @protected
-     * @returns {Promise<void>}
-     * @memberof BaseServer
-     */
-    protected async loadConfig(): Promise<void> {}
-
-    /**
-     * 2. Create the server instance
+     * 1. Create the server instance
      *
      * @protected
      * @returns {Promise<void>}
@@ -108,6 +107,30 @@ export abstract class BaseServer {
         this.app.use(helmet());
         this.app.use(hpp());
 
+        let RedisStore = connectRedis(expressSession);
+        let sessionConfig = Object.assign(
+            {
+                secret: createHash('sha512').update('keyboardCat').digest('base64'),
+                resave: false,
+                saveUninitialized: false,
+                cookie: {
+                    secure: false,
+                    httpOnly: true
+                }
+            },
+            {
+                store: new RedisStore({
+                    host: 'localhost',
+                    port: 7001,
+                    prefix: 'session:',
+                    disableTTL: false,
+                    logErrors: true
+                })
+            }
+        );
+        this.sessionParser = expressSession(sessionConfig);
+        this.app.use(this.sessionParser);
+
         // Setup the template engine
         nunjucks.configure(resolve(rootPath, 'out', 'app', 'views'), {
             express: this.app,
@@ -120,7 +143,7 @@ export abstract class BaseServer {
     }
 
     /**
-     * 3. collects all available routes and initializes them
+     * 2. collects all available routes and initializes them
      *
      * @protected
      * @returns {Promise<void>}
@@ -129,7 +152,7 @@ export abstract class BaseServer {
     protected async routeCollection(): Promise<void> {}
 
     /**
-     * 4. Usually used for creation of error handling middlewares
+     * 3. Usually used for creation of error handling middlewares
      *
      * @protected
      * @returns {Promise<void>}

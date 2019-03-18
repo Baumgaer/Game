@@ -13,6 +13,18 @@ class GameServer extends WebSocketServer {
      * Test
      *
      * @protected
+     * @param {Request} request
+     * @returns {Promise<boolean>}
+     * @memberof GameServer
+     */
+    protected async verifyWebSocketClient(_request: Request): Promise<boolean> {
+        return true;
+    }
+
+    /**
+     * Test
+     *
+     * @protected
      * @returns {Promise<void>}
      * @memberof GameServer
      */

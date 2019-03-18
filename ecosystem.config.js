@@ -34,5 +34,30 @@ module.exports = {
             PORT: 8080,
             SUBDOMAIN: "game"
         }
+    }, {
+        name: 'WebServer',
+        script: './out/app/WebServer.js',
+
+        // Options reference: https://pm2.io/doc/en/runtime/reference/ecosystem-file/
+        source_map_support: true,
+        log: false,
+        pid_file: "var/pids/webServer.pid",
+        error: "var/logs/webServerError.log",
+        merge_logs: true,
+        instances: 2,
+        autorestart: true,
+        watch: watch,
+        ignore_watch: ignoreWatch,
+        max_memory_restart: '1G',
+        env: {
+            NODE_ENV: 'development',
+            PORT: 3001,
+            SUBDOMAIN: "game"
+        },
+        env_production: {
+            NODE_ENV: 'production',
+            PORT: 8081,
+            SUBDOMAIN: "game"
+        }
     }]
 };

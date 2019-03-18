@@ -1,6 +1,6 @@
 {
     "compilerOptions": {
-        "lib": ["es2018", "webworker"],
+        "lib": ["es2018", "webworker", "dom"],
         "skipLibCheck": true,
         "removeComments": true,
         "importHelpers": true,

@@ -1,7 +1,7 @@
 import { BaseServer } from './BaseServer';
 import * as ws from 'ws';
 import { IncomingMessage, ClientRequest } from 'http';
-
+import { Request, Response } from 'express';
 /**
  * Test
  *
@@ -24,7 +24,8 @@ export abstract class WebSocketServer extends BaseServer {
         super(params);
 
         this.webSocketServer = new ws.Server({
-            server: this.server
+            server: this.server,
+            verifyClient: this.verifyClient.bind(this)
         });
 
         this.webSocketServer.on('connection', (socket: ws, request: IncomingMessage) => {
@@ -39,6 +40,38 @@ export abstract class WebSocketServer extends BaseServer {
             socket.on('error', this.onWebSocketError.bind(this));
             socket.on('close', this.onWebSocketClose.bind(this));
         });
+    }
+
+    /**
+     * Maps the express session on the web socket server and provides a hook
+     * to control the access of a user to the connection.
+     *
+     * @protected
+     * @param {wsVerifyClientInfo} info
+     * @param {wsVerifyClientDone} done
+     * @returns {Promise<void>}
+     * @memberof WebSocketServer
+     */
+    private async verifyClient(info: wsVerifyClientInfo, done: wsVerifyClientDone): Promise<void> {
+        if (this.sessionParser) {
+            this.sessionParser(<Request>info.req, <Response>{}, async () => {
+                done(await this.verifyWebSocketClient(<Request>info.req));
+            });
+            return;
+        }
+        done(false);
+    }
+
+    /**
+     * Test
+     *
+     * @protected
+     * @param {Request} _request
+     * @returns {Promise<boolean>}
+     * @memberof WebSocketServer
+     */
+    protected async verifyWebSocketClient(_request: Request): Promise<boolean> {
+        return false;
     }
 
     /**
