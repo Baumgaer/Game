@@ -115,7 +115,7 @@ To persist the data we will use [ArangoDB](https://www.arangodb.com/).
     **Native** os user do:
 
     ```bash
-    npm install
+    npm run install:nativesystem
     ```
 
     **Subsystem** user do:
