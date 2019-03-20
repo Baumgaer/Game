@@ -1,63 +1,47 @@
 /* eslint-disable camelcase */
-let ignoreWatch = [
-    "out/app/views",
-    "out/app/client",
-    "out/app/config",
-    "out/app/server/config"
-];
 
-let watch = "out/app";
-
+// Options reference: https://pm2.io/doc/en/runtime/reference/ecosystem-file/
+let defaults = {
+    instances: 2,
+    autostart: true,
+    watch: "out/app",
+    ignore_watch: [
+        "out/app/views",
+        "out/app/client",
+        "out/app/config",
+        "out/app/server/config"
+    ],
+    log: false,
+    merge_logs: true,
+    source_map_support: true,
+    max_memory_restart: '1G'
+};
 module.exports = {
-    apps: [{
+    apps: [Object.assign({}, defaults, {
         name: 'GameServer',
-        script: './out/app/GameServer.js',
-
-        // Options reference: https://pm2.io/doc/en/runtime/reference/ecosystem-file/
-        source_map_support: true,
-        log: false,
+        script: 'out/app/WebServer.js',
         pid_file: "var/pids/gameServer.pid",
         error: "var/logs/gameServerError.log",
-        merge_logs: true,
-        instances: 2,
-        autorestart: true,
-        watch: watch,
-        ignore_watch: ignoreWatch,
-        max_memory_restart: '1G',
         env: {
             NODE_ENV: 'development',
-            PORT: 3000,
-            SUBDOMAIN: "game"
+            PORT: 3000
         },
         env_production: {
             NODE_ENV: 'production',
-            PORT: 8080,
-            SUBDOMAIN: "game"
+            PORT: 8080
         }
-    }, {
+    }), Object.assign({}, defaults, {
         name: 'WebServer',
-        script: './out/app/WebServer.js',
-
-        // Options reference: https://pm2.io/doc/en/runtime/reference/ecosystem-file/
-        source_map_support: true,
-        log: false,
+        script: 'out/app/WebServer.js',
         pid_file: "var/pids/webServer.pid",
         error: "var/logs/webServerError.log",
-        merge_logs: true,
-        instances: 2,
-        autorestart: true,
-        watch: watch,
-        ignore_watch: ignoreWatch,
-        max_memory_restart: '1G',
         env: {
             NODE_ENV: 'development',
-            PORT: 3001,
-            SUBDOMAIN: "game"
+            PORT: 3001
         },
         env_production: {
             NODE_ENV: 'production',
-            PORT: 8081,
-            SUBDOMAIN: "game"
+            PORT: 8081
         }
-    }]
+    })]
 };

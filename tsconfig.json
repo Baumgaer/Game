@@ -4,7 +4,11 @@
         "target": "esnext",
         "module": "commonjs",
         "outDir": "out",
-        "rootDir": "source"
+        "rootDir": "source",
+        "baseUrl": "source",
+        "paths": {
+            "@app/*": ["app/*"]
+        }
     },
     "exclude": [
         "node_modules",

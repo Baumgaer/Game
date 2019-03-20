@@ -25,7 +25,7 @@ module.exports = (grunt: IGrunt): void => {
             let correspondingFile = getCorrespondingFile(currentFile);
 
             let fileToDelete = null;
-            if (isSourceFile(currentFile) && existsSync(correspondingFile)) fileToDelete = currentFile;
+            if (isSourceFile(currentFile) && existsSync(correspondingFile)) fileToDelete = correspondingFile;
             if (!isSourceFile(currentFile) && !existsSync(correspondingFile)) fileToDelete = currentFile;
             if (fileToDelete) {
                 grunt.log.ok(`${colors.cyan.bold('Cleanup')}: ${currentFile} ${colors.cyan('=>')} ${fileToDelete}`);
