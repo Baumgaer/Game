@@ -1,6 +1,6 @@
 import { render } from 'less';
 import { path as rootPath } from 'app-root-path';
-import { join } from 'path';
+import { resolve as resolvePath } from 'path';
 import { readFileSync, writeFileSync } from 'graceful-fs';
 //@ts-ignore
 import * as lessPluginCleanCSS from 'less-plugin-clean-css';
@@ -48,7 +48,7 @@ module.exports = (grunt: IGrunt): void => {
  */
 function compileLess(): Promise<any> {
     return new Promise<any>((resolve: Function) => {
-        let src = join(rootPath, 'source', 'app', 'client', 'less', 'index.less');
+        let src = resolvePath(rootPath, 'source', 'app', 'client', 'less', 'index.less');
         render(readFileSync(src).toString(), {
             filename: src,
             plugins: [
@@ -57,7 +57,7 @@ function compileLess(): Promise<any> {
                 })
             ]
         }).then((output) => {
-            let src = join(rootPath, 'out', 'app', 'client', 'css', 'bundle.css');
+            let src = resolvePath(rootPath, 'out', 'app', 'client', 'css', 'bundle.css');
             writeFileSync(src, output.css, {
                 encoding: 'utf-8'
             });
