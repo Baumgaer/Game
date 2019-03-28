@@ -1,4 +1,4 @@
-import { resolve, isAbsolute } from 'path';
+import { resolve, isAbsolute, sep } from 'path';
 import { path as rootPath } from 'app-root-path';
 
 /**
@@ -15,13 +15,13 @@ export function getCorrespondingFile(filePath: string): string {
     if (isSourceFile(filePath)) {
         correspondingFile = filePath.replace(sourcePath, outPath).replace('.ts', '.js');
         if (isOnClientSide(filePath)) {
-            correspondingFile = correspondingFile.replace('/ts/', '/js/');
+            correspondingFile = correspondingFile.replace(`${sep}ts${sep}`, `${sep}js${sep}`);
         }
         return correspondingFile;
     }
     correspondingFile = filePath.replace(outPath, sourcePath).replace('.js', '.ts');
     if (isOnClientSide(filePath)) {
-        correspondingFile = correspondingFile.replace('/js/', '/ts/');
+        correspondingFile = correspondingFile.replace(`${sep}js${sep}`, `${sep}ts${sep}`);
     }
     return correspondingFile;
 }
