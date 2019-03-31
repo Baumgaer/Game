@@ -4,7 +4,9 @@
         "target": "esnext",
         "module": "commonjs",
         "outDir": "out",
-        "rootDir": "source"
+        "rootDir": "source",
+        "incremental": true,
+        "tsBuildInfoFile": "var/buildcache/.backend"
     },
     "exclude": [
         "node_modules",
