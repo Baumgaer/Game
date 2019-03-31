@@ -1,5 +1,5 @@
 /* eslint-disable camelcase */
-
+const lodash = require('lodash');
 // Options reference: https://pm2.io/doc/en/runtime/reference/ecosystem-file/
 let defaults = {
     instances: 2,
@@ -17,7 +17,7 @@ let defaults = {
     max_memory_restart: '1G'
 };
 module.exports = {
-    apps: [Object.assign({}, defaults, {
+    apps: [lodash.merge({}, defaults, {
         name: 'GameServer',
         script: 'out/app/WebServer.js',
         pid_file: "var/pids/gameServer.pid",
@@ -30,7 +30,7 @@ module.exports = {
             NODE_ENV: 'production',
             PORT: 8080
         }
-    }), Object.assign({}, defaults, {
+    }), lodash.merge({}, defaults, {
         name: 'WebServer',
         script: 'out/app/WebServer.js',
         pid_file: "var/pids/webServer.pid",

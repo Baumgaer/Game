@@ -1,3 +1,4 @@
+import { BDOMapCache } from './BDOMapCache';
 /**
  * Manages the configuration on client and server side.
  * The order of getting the configuration is the following:
@@ -20,14 +21,13 @@ export abstract class BDOConfigManager {
     /**
      * If there is no redis or this is executed on client side, the config
      * will be stored here for a certain amount of time. Otherwise it will be
-     * stored in the redis or localStorage if available or all operations are
-     * done.
+     * stored in the redis or localStorage if available.
      *
      * @protected
      * @type {object}
      * @memberof BDOConfigManager
      */
-    protected cache: Map<string, any> = new Map();
+    protected cache: BDOMapCache<string, any> = new BDOMapCache();
 
     /**
      * Loads the config from the requested file on server side or on client side
@@ -36,7 +36,7 @@ export abstract class BDOConfigManager {
      * @returns {object} The configuration variables
      * @memberof BDOConfigManager
      */
-    protected abstract load(config: string): object;
+    protected abstract load(config: string): Promise<IndexStructure>;
 
     /**
      * Gets the configuration from cache or calls load to load missing configurations
@@ -45,7 +45,14 @@ export abstract class BDOConfigManager {
      * @returns {object} The configuration variables
      * @memberof BDOConfigManager
      */
-    public abstract get(config: string): object;
+    public async get(config: string): Promise<IndexStructure> {
+        let value = await this.getCache(config);
+        if (!value) {
+            value = await this.load(config);
+            await this.setCache(config, value);
+        }
+        return Promise.resolve(value);
+    }
 
     /**
      * Changes the config inside the cache not inside the permanent storage
@@ -57,6 +64,18 @@ export abstract class BDOConfigManager {
     public abstract set(config: string): object;
 
     /**
+     * Loads the config directly from the cache inside this class if not
+     * expired or from the store
+     *
+     * @protected
+     * @abstract
+     * @param {string} config configuration name to load
+     * @returns {Promise<IndexStructure | null>}
+     * @memberof BDOConfigManager
+     */
+    protected abstract getCache(config: string): Promise<IndexStructure | null>;
+
+    /**
      * Writes the config into the cache which can be the variable inside this
      * class or a redis store or a localStore.
      *
@@ -65,5 +84,5 @@ export abstract class BDOConfigManager {
      * @returns {boolean} true on success, false else
      * @memberof BDOConfigManager
      */
-    protected abstract doCache(config: string, value: any): Promise<boolean>;
+    protected abstract setCache(config: string, value: any): Promise<boolean>;
 }
