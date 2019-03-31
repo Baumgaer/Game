@@ -10,6 +10,9 @@ import { path as rootPath } from 'app-root-path';
 import { createServer, Server } from 'http';
 import { AddressInfo } from 'ws';
 import { createHash } from 'crypto';
+import { ConfigManager } from './ConfigManager';
+
+let configManager = ConfigManager.getInstance();
 
 declare type states =
     | 'loadConfig'
@@ -106,7 +109,7 @@ export abstract class BaseServer {
         this.app.use(compression());
         this.app.use(helmet());
         this.app.use(hpp());
-
+        await configManager.get('config');
         let RedisStore = connectRedis(expressSession);
         let sessionConfig = Object.assign(
             {
@@ -121,10 +124,11 @@ export abstract class BaseServer {
             {
                 store: new RedisStore({
                     host: 'localhost',
-                    port: 7001,
+                    port: 6379,
                     prefix: 'session:',
                     disableTTL: false,
-                    logErrors: true
+                    logErrors: true,
+                    db: (await configManager.get('databases')).redis.sessions
                 })
             }
         );

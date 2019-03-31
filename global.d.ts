@@ -10,6 +10,10 @@ type wsVerifyClientDone = (
     headers?: OutgoingHttpHeaders | undefined
 ) => void;
 
+declare interface IndexStructure {
+    [member: string]: any
+}
+
 namespace Express {
 
     interface Request {
