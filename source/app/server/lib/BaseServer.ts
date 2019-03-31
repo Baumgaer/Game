@@ -11,8 +11,11 @@ import { createServer, Server } from 'http';
 import { AddressInfo } from 'ws';
 import { createHash } from 'crypto';
 import { ConfigManager } from './ConfigManager';
+import ms = require('ms');
 
 let configManager = ConfigManager.getInstance();
+// Later this will hold an array of configurations loaded by configManager
+let configs = null;
 
 declare type states =
     | 'loadConfig'
@@ -100,6 +103,13 @@ export abstract class BaseServer {
      * @memberof BaseServer
      */
     protected async setupServer(): Promise<void> {
+        configs = await Promise.all([
+            configManager.get('config'),
+            configManager.get('passwords'),
+            configManager.get('databases'),
+            configManager.get('ports'),
+            configManager.get('paths')
+        ]);
         // parse the body to get post data and so on
         // NOTE: This is important for some middlewares to have directly
         this.app.use(express.json());
@@ -109,26 +119,28 @@ export abstract class BaseServer {
         this.app.use(compression());
         this.app.use(helmet());
         this.app.use(hpp());
-        await configManager.get('config');
         let RedisStore = connectRedis(expressSession);
         let sessionConfig = Object.assign(
-            {
-                secret: createHash('sha512').update('keyboardCat').digest('base64'),
-                resave: false,
-                saveUninitialized: false,
+            <expressSession.SessionOptions>{
+                secret: createHash(configs[0].session.hashFunction)
+                    .update(configs[1].sessionSecretSeed)
+                    .digest(configs[0].session.digest),
+                resave: configs[0].session.resave,
+                saveUninitialized: configs[0].session.saveUninitialized,
                 cookie: {
-                    secure: false,
-                    httpOnly: true
+                    secure: configs[0].session.secureCookie,
+                    httpOnly: configs[0].session.httpOnly,
+                    maxAge: parseInt(ms(configs[0].session.maxAge), 10)
                 }
             },
             {
                 store: new RedisStore({
                     host: 'localhost',
-                    port: 6379,
-                    prefix: 'session:',
-                    disableTTL: false,
-                    logErrors: true,
-                    db: (await configManager.get('databases')).redis.sessions
+                    port: configs[3].redis,
+                    prefix: `${configs[0].session.prefix}:`,
+                    disableTTL: configs[0].session.disableTTL,
+                    logErrors: configs[0].session.logErrors,
+                    db: configs[2].redis.sessions
                 })
             }
         );
@@ -136,14 +148,14 @@ export abstract class BaseServer {
         this.app.use(this.sessionParser);
 
         // Setup the template engine
-        nunjucks.configure(resolve(rootPath, 'out', 'app', 'views'), {
+        nunjucks.configure(resolve(rootPath, configs[4].views), {
             express: this.app,
-            autoescape: true
+            autoescape: configs[0].viewEngine.autoescape
         });
-        this.app.set('view engine', 'njk');
+        this.app.set('view engine', configs[0].viewEngine.extension);
 
         // Setup static files directory
-        this.app.use(express.static(resolve(rootPath, 'out', 'app', 'client')));
+        this.app.use(express.static(resolve(rootPath, configs[4].staticFiles)));
     }
 
     /**
