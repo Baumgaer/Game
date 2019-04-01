@@ -3,6 +3,7 @@ import * as colors from 'colors';
 import { createWriteStream } from 'graceful-fs';
 import { resolve } from 'path';
 import { path as rootPath } from 'app-root-path';
+import { merge } from 'lodash';
 import { BDOLogger, logLevels, printEnvironments } from './../../lib/BDOLogger';
 
 /**
@@ -28,7 +29,7 @@ export class Logger extends BDOLogger {
 
     constructor(params?: ConstParams<Logger>) {
         super();
-        if (params) Object.assign(this, params);
+        merge(this, params);
     }
 
     /**
