@@ -19,6 +19,8 @@
         "no-var-keyword": true,
         "no-use-before-declare": true,
         "no-duplicate-variable": true,
+        "no-console": true,
+        "no-implicit-dependencies": true,
         "curly": [true, "ignore-same-line"],
         "whitespace": [true, "check-separator", "check-type", "check-preblock", "check-decl"],
         "prefer-for-of": true,

@@ -1,7 +1,9 @@
 import { Redis, messageType } from './Redis';
 import { RedisOptions } from 'ioredis';
 import { merge } from 'lodash';
+import { Logger } from './Logger';
 
+let logger = new Logger();
 /**
  * Fired when a redis client does not exist
  *
@@ -137,7 +139,7 @@ export class RedisClientManager {
      * @memberof RedisClientManager
      */
     onClientConnect(client: Redis): void {
-        console.info(`Redis client ${client.id} is connected`);
+        logger.info(`Redis client ${client.id} is connected`);
     }
 
     /**
@@ -148,7 +150,7 @@ export class RedisClientManager {
      * @memberof RedisClientManager
      */
     onClientReconnect(client: Redis, times: number): void {
-        console.info(`${client.id} is reconnecting in ${times}ms`);
+        logger.info(`${client.id} is reconnecting in ${times}ms`);
     }
 
     /**
@@ -158,7 +160,7 @@ export class RedisClientManager {
      * @memberof RedisClientManager
      */
     onClientReady(client: Redis): void {
-        console.info(`Redis client ${client.id} is ready`);
+        logger.info(`Redis client ${client.id} is ready`);
         this.clients.set(client.id, client);
     }
 
@@ -179,7 +181,7 @@ export class RedisClientManager {
                 callback.apply(this, params);
             }
         }
-        console.info(`Redis client ${client.id} received topic ${topic} with params ${params}`);
+        logger.info(`Redis client ${client.id} received topic ${topic} with params ${params}`);
     }
 
     /**
@@ -191,7 +193,7 @@ export class RedisClientManager {
      * @memberof RedisClientManager
      */
     onClientError(client: Redis, error: Error): Error {
-        console.error(`RedisClientError of ${client.id}: ${error}`);
+        logger.error(`RedisClientError of ${client.id}: ${error}`);
         (<any>client).reloadFunction && (<any>client).reloadFunction();
         return error;
     }
@@ -222,7 +224,7 @@ export class RedisClientManager {
             }
             client.quit();
             client.on('close', () => {
-                console.info(`Redis Client "${id}" is dead`);
+                logger.info(`Redis Client "${id}" is dead`);
                 client && client.removeAllListeners();
                 resolve(this.clients.delete(id));
             });

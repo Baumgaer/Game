@@ -2,6 +2,9 @@ import { BaseServer } from './BaseServer';
 import * as ws from 'ws';
 import { IncomingMessage, ClientRequest } from 'http';
 import { Request, Response } from 'express';
+import { Logger } from './Logger';
+
+let logger = new Logger();
 /**
  * Test
  *
@@ -29,7 +32,7 @@ export abstract class WebSocketServer extends BaseServer {
         });
 
         this.webSocketServer.on('connection', (socket: ws, request: IncomingMessage) => {
-            console.log('New connection:', request.connection.address());
+            logger.info(`New connection: ${request.connection.address()}`);
             this.onWebSocketConnection(socket, request);
             socket.on('open', this.onWebSocketOpen.bind(this));
             socket.on('upgrade', this.onWebSocketUpgrade.bind(this));

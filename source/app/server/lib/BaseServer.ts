@@ -1,3 +1,4 @@
+import ms = require('ms');
 import * as express from 'express';
 import * as hpp from 'hpp';
 import * as helmet from 'helmet';
@@ -11,9 +12,10 @@ import { createServer, Server } from 'http';
 import { AddressInfo } from 'ws';
 import { createHash } from 'crypto';
 import { ConfigManager } from './ConfigManager';
-import ms = require('ms');
+import { Logger } from './Logger';
 
 let configManager = ConfigManager.getInstance();
+let logger = new Logger();
 // Later this will hold an array of configurations loaded by configManager
 let configs = null;
 
@@ -77,7 +79,7 @@ export abstract class BaseServer {
         this.server.on('listening', () => {
             this.state = 'started';
             let addressInfo = <AddressInfo>this.server.address();
-            console.log(`Server started: ${addressInfo.address}:${addressInfo.port}`);
+            logger.info(`Server started: ${addressInfo.address}:${addressInfo.port}`);
         });
         this.server.on('close', () => {
             this.state = 'stopped';
@@ -200,7 +202,7 @@ export abstract class BaseServer {
                 }
                 resolve(this.server.listen(port, 'localhost'));
             } catch (error) {
-                console.error(error);
+                logger.error(error);
                 process.exit(1);
             }
         });
@@ -216,7 +218,7 @@ export abstract class BaseServer {
      */
     public async stop(): Promise<void> {
         await this.server.close();
-        console.log('Server stopped');
+        logger.info('Server stopped');
         process.exit(0);
     }
 }
