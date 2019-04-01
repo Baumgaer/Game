@@ -3,7 +3,10 @@ import { RedisOptions } from 'ioredis';
 import { merge } from 'lodash';
 import { Logger } from './Logger';
 
-let logger = new Logger();
+let logger = new Logger({
+    preventConsolePrint: true
+});
+
 /**
  * Fired when a redis client does not exist
  *

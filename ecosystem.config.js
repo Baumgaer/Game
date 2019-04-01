@@ -19,7 +19,7 @@ let defaults = {
 module.exports = {
     apps: [lodash.merge({}, defaults, {
         name: 'GameServer',
-        script: 'out/app/WebServer.js',
+        script: 'out/app/GameServer.js',
         pid_file: "var/pids/gameServer.pid",
         error: "var/logs/gameServerError.log",
         env: {

@@ -1,4 +1,7 @@
+/* tslint:disable:no-console*/
 import * as moment from 'moment';
+import { sep } from 'path';
+import { includesMemberOfList, getPrototypeNamesRecursive } from './../utils/environment';
 
 export type logLevels = 'log' | 'debug' | 'info' | 'warn' | 'error';
 export type printEnvironments = 'console' | 'file' | 'browser';
@@ -27,7 +30,7 @@ export abstract class BDOLogger {
     public logFile?: string = 'default.log';
 
     /**
-     * Disables console printing when logger is not a normal log
+     * Disables console printing when logger is not a normal log or error
      *
      * @type {boolean}
      * @memberof BDOLogger
@@ -56,6 +59,16 @@ export abstract class BDOLogger {
      * @memberof BDOLogger
      */
     public logLevel?: logLevels = 'info';
+
+    /**
+     * Holds a list of prototype names to determine the log point correctly
+     *
+     * @protected
+     * @readonly
+     * @type {Array<string>}
+     * @memberof BDOLogger
+     */
+    protected readonly prototypeNames: Array<string> = getPrototypeNamesRecursive(this);
 
     constructor(params?: ConstParams<BDOLogger>) {
         if (params) Object.assign(this, params);
@@ -116,20 +129,49 @@ export abstract class BDOLogger {
     }
 
     /**
+     * Determines the log point of this logger and returns the corresponding
+     * file name and line number.
+     *
+     * @returns {string}
+     * @memberof Logger
+     */
+    protected getLogPoint(): string {
+        let stack = (<string>new Error().stack).split('\n');
+        let callpoint;
+        for (const [index, stackpart] of stack.entries()) {
+            if (!index) continue;
+            if (!includesMemberOfList(stackpart, this.prototypeNames, '.ts')) {
+                callpoint = stackpart.split(sep).pop();
+                break;
+            }
+        }
+        if (callpoint) {
+            callpoint = callpoint.replace(')', '');
+        } else {
+            callpoint = '';
+        }
+        return callpoint;
+    }
+
+    /**
      * Logs the message to console and file with given log level.
-     * If log level is log "preventConsolePrint" will be ignored.
+     * If log level is log or error "preventConsolePrint" will be ignored.
      * If log level is error "preventFilePrint" will be ignored.
      *
      * @param {*} message
      * @param {logLevels} [loglevel='log']
      * @memberof BDOLogger
      */
-    public log(message: any, loglevel: logLevels = 'log'): void {
-        if (!this.preventConsolePrint && loglevel !== 'log') {
+    public log(message: any, loglevel: logLevels = 'log', ...args: Array<any>): void {
+        if (!this.preventConsolePrint && !['log', 'error'].includes(loglevel)) {
             let header = this.getHeader(loglevel);
-            (<IndexStructure>console)[loglevel](header, message);
+            let newArgs = [header, message].concat(args);
+            (<IndexStructure>console)[loglevel].apply(this, newArgs);
         }
-        if (!this.preventFilePrint && loglevel !== 'error') this.writeToFile(loglevel, message);
+        let parsedString = JSON.stringify(args);
+        if (!this.preventFilePrint && loglevel !== 'error') {
+            this.writeToFile(loglevel, message + parsedString.substr(1, parsedString.length - 2));
+        }
     }
 
     /**
@@ -138,8 +180,9 @@ export abstract class BDOLogger {
      * @param {*} message
      * @memberof BDOLogger
      */
-    public debug(message: any): void {
-        if (this.isAllowed('debug')) this.log(message, 'debug');
+    public debug(message: any, ...args: any): void {
+        let apply = [message, 'debug'].concat(args);
+        if (this.isAllowed('debug')) this.log.apply(this, <[any, logLevels]>apply);
     }
 
     /**
@@ -148,8 +191,9 @@ export abstract class BDOLogger {
      * @param {*} message
      * @memberof BDOLogger
      */
-    public info(message: any): void {
-        if (this.isAllowed('info')) this.log(message, 'info');
+    public info(message: any, ...args: any): void {
+        let apply = [message, 'info'].concat(args);
+        if (this.isAllowed('info')) this.log.apply(this, <[any, logLevels]>apply);
     }
 
     /**
@@ -158,8 +202,9 @@ export abstract class BDOLogger {
      * @param {*} message
      * @memberof BDOLogger
      */
-    public warn(message: any): void {
-        if (this.isAllowed('warn')) this.log(message, 'warn');
+    public warn(message: any, ...args: any): void {
+        let apply = [message, 'warn'].concat(args);
+        if (this.isAllowed('warn')) this.log.apply(this, <[any, logLevels]>apply);
     }
 
     /**
@@ -168,7 +213,8 @@ export abstract class BDOLogger {
      * @param {*} message
      * @memberof BDOLogger
      */
-    public error(message: any): void {
-        if (this.isAllowed('error')) this.log(message, 'error');
+    public error(message: any, ...args: any): void {
+        let apply = [message, 'error'].concat(args);
+        if (this.isAllowed('error')) this.log.apply(this, <[any, logLevels]>apply);
     }
 }

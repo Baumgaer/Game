@@ -3,7 +3,6 @@ import * as colors from 'colors';
 import { createWriteStream } from 'graceful-fs';
 import { resolve } from 'path';
 import { path as rootPath } from 'app-root-path';
-import { isNodeJS } from '../../utils/environment';
 import { BDOLogger, logLevels, printEnvironments } from './../../lib/BDOLogger';
 
 /**
@@ -55,13 +54,15 @@ export class Logger extends BDOLogger {
         let procInfo = this.getProcInfo();
         let currentTime = this.currentTime();
         let upperLogLevel = logLevel.toUpperCase();
-        if (isNodeJS() && printEnv === 'console') {
+        let logPoint = this.getLogPoint();
+        if (printEnv === 'console') {
             let formattedLogLevel = this.logLevelColors[logLevel](upperLogLevel);
             let formattedPid = colors.magenta(procInfo);
-            let formattedTime = colors.blue(currentTime);
-            return `[${formattedLogLevel} - ${formattedPid} - ${formattedTime}]`;
+            let formattedLogPoint = colors.magenta(logPoint);
+            let formattedTime = colors.cyan(currentTime);
+            return `[${formattedLogLevel} - ${formattedPid} - ${formattedTime} at ${formattedLogPoint}]`;
         }
-        return `[${upperLogLevel} - ${procInfo} - ${currentTime}]`;
+        return `[${upperLogLevel} - ${procInfo} - ${currentTime} at ${logPoint}]`;
     }
 
     /**

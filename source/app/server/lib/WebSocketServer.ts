@@ -32,7 +32,7 @@ export abstract class WebSocketServer extends BaseServer {
         });
 
         this.webSocketServer.on('connection', (socket: ws, request: IncomingMessage) => {
-            logger.info(`New connection: ${request.connection.address()}`);
+            logger.info(`New connection:`, request.connection.address());
             this.onWebSocketConnection(socket, request);
             socket.on('open', this.onWebSocketOpen.bind(this));
             socket.on('upgrade', this.onWebSocketUpgrade.bind(this));

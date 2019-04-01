@@ -20,3 +20,38 @@ export function isNodeJS(): boolean {
 export function isBrowser(): boolean {
     return !isNodeJS();
 }
+
+/**
+ * Iterates an object's prototypes recursive and collects the names
+ *
+ * @export
+ * @param {*} object
+ * @returns {Array<string>}
+ */
+export function getPrototypeNamesRecursive(object: any): Array<string> {
+    let prototypes: Array<string> = [];
+    let prototype = Object.getPrototypeOf(object);
+    if (prototype) {
+        prototypes.push(prototype.constructor.name);
+        prototypes.concat(getPrototypeNamesRecursive(prototype));
+    }
+    return prototypes;
+}
+
+/**
+ * Checks if a member of list is includes in search string respecting the
+ * extension of the list member.
+ *
+ * @export
+ * @param {string} search
+ * @param {Array<any>} list
+ * @returns {boolean}
+ */
+export function includesMemberOfList(search: string, list: Array<string>, extension: string = ''): boolean {
+    for (const member of list) {
+        if (search.includes(`${member}${extension}`)) {
+            return true;
+        }
+    }
+    return false;
+}
