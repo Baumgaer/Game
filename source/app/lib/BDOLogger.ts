@@ -14,14 +14,6 @@ export type printEnvironments = 'console' | 'file' | 'browser';
  */
 export abstract class BDOLogger {
     /**
-     * A momentJS time format string
-     *
-     * @type {string}
-     * @memberof BDOLogger
-     */
-    public dateFormat?: string = 'DD.MM.YYYY HH:mm:ss';
-
-    /**
      * The file to write logging in
      *
      * @type {string}
@@ -69,10 +61,6 @@ export abstract class BDOLogger {
      * @memberof BDOLogger
      */
     protected readonly prototypeNames: Array<string> = getPrototypeNamesRecursive(this);
-
-    constructor(params?: ConstParams<BDOLogger>) {
-        if (params) Object.assign(this, params);
-    }
 
     /**
      * Collects information from pm2 about the current process
@@ -125,7 +113,7 @@ export abstract class BDOLogger {
      * @memberof BDOLogger
      */
     protected currentTime(): string {
-        return moment().format(this.dateFormat);
+        return moment().format('DD.MM.YYYY HH:mm:ss');
     }
 
     /**

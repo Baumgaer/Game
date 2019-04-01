@@ -27,7 +27,8 @@ export class Logger extends BDOLogger {
     };
 
     constructor(params?: ConstParams<Logger>) {
-        super(params);
+        super();
+        if (params) Object.assign(this, params);
     }
 
     /**

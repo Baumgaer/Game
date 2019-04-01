@@ -23,8 +23,8 @@ export abstract class WebSocketServer extends BaseServer {
      */
     protected readonly webSocketServer: ws.Server;
 
-    constructor(params: ConstParams<WebSocketServer> = {}) {
-        super(params);
+    constructor() {
+        super();
 
         this.webSocketServer = new ws.Server({
             server: this.server,

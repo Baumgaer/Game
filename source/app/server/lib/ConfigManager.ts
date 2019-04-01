@@ -42,10 +42,6 @@ export class ConfigManager extends BDOConfigManager {
         return ConfigManager.instance;
     }
 
-    private constructor() {
-        super();
-    }
-
     /**
      * Creates a new redis client if not exists
      *

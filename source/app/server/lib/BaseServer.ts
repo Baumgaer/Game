@@ -74,8 +74,7 @@ export abstract class BaseServer {
      */
     protected state: states = 'stopped';
 
-    constructor(params: ConstParams<BaseServer> = {}) {
-        Object.assign(this, params);
+    constructor() {
         this.server.on('listening', () => {
             this.state = 'started';
             let addressInfo = <AddressInfo>this.server.address();
