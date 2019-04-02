@@ -22,7 +22,8 @@
             "node",
             "grunt",
             "mocha",
-            "express"
+            "express",
+            "open-simplex-noise"
         ],
         "allowSyntheticDefaultImports": false,
 

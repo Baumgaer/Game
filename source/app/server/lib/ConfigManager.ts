@@ -99,7 +99,7 @@ export class ConfigManager extends BDOConfigManager {
      * @param {IndexStructure} obj
      * @memberof ConfigManager
      */
-    correctDataTypes(obj: IndexStructure): void {
+    private correctDataTypes(obj: IndexStructure): void {
         for (const k in obj) {
             if (typeof obj[k] === 'object' && obj[k] !== null) {
                 this.correctDataTypes(obj[k]);
