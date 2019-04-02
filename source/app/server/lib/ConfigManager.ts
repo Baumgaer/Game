@@ -8,7 +8,6 @@ import { RedisClientManager } from './RedisClientManager';
 import { Redis } from './Redis';
 
 let clientName = 'ConfigManager';
-let configKey = `${clientName}:config`;
 /**
  * Manages the configuration on server side. See BDOConfigManager for mode
  * information
@@ -168,8 +167,7 @@ export class ConfigManager extends BDOConfigManager {
             return Promise.resolve(fromLocalCache);
         }
         let client = await this.getRedis();
-        let conf = await client.get(configKey);
-        if (conf !== null) conf = conf[config] || null;
+        let conf = await client.get(`${clientName}:${config}`);
         if (conf !== null) this.cache.set(config, conf);
         return Promise.resolve(conf);
     }
@@ -185,10 +183,7 @@ export class ConfigManager extends BDOConfigManager {
     protected async setCache(config: string, value: IndexStructure): Promise<boolean> {
         this.cache.set(config, value, 60 * 10);
         let client = await this.getRedis();
-        value = {
-            [config]: value
-        };
-        client.update(configKey, value);
+        client.update(`${clientName}:${config}`, value);
         return Promise.resolve(true);
     }
 }
