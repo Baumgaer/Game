@@ -1,5 +1,6 @@
 {
-    "source/**/*.ts": ["tslint --project ./tsconfig.json --fix", "git add"],
-    "source/**/*.*.ts": ["tslint --project ./tsconfig.json --fix", "git add"],
+    "source/**/*.ts": ["tslint --project ./tsconfig.json --exclude source/app/client/ts/**/*.ts --fix", "git add"],
+    "source/**/*.*.ts": ["tslint --project ./tsconfig.json --exclude source/app/client/ts/**/*.ts --fix", "git add"],
+    "source/app/client/ts/**/*.ts": ["tslint --project ./source/app/client/ts/tsconfig.json --fix", "git add"],
     "*.js": ["eslint --fix", "git add"]
 }

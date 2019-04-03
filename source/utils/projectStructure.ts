@@ -1,5 +1,6 @@
 import { resolve, isAbsolute, sep } from 'path';
 import { path as rootPath } from 'app-root-path';
+import { walk as wWalk, WalkStats } from 'walk';
 
 /**
  * Returns the corresponding path of the other target
@@ -57,4 +58,30 @@ export function isOnClientSide(filePath: string): boolean {
         return true;
     }
     return false;
+}
+
+/**
+ * Iterates over the structure of a given directory recursive and executes the
+ * onFileFound function on every found file.
+ *
+ * @export
+ * @param {string} dir absolute or relative by project root path to dir
+ * @param {(path: string, stats: Stats) => void} onFileFound
+ * @returns
+ */
+export function walk(dir: string, onFile?: (file: string, status: WalkStats) => void): Promise<Array<string>> {
+    if (!isAbsolute(dir)) dir = resolve(rootPath, dir);
+    let walker = wWalk(dir);
+    let results: Array<string> = [];
+    return new Promise((resolver) => {
+        walker.on('file', (root, fileStats, next) => {
+            let path = resolve(root, fileStats.name);
+            results.push(path);
+            onFile && onFile(path, fileStats);
+            next();
+        });
+        walker.on('end', () => {
+            resolver(results);
+        });
+    });
 }

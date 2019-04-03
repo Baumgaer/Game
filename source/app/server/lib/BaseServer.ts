@@ -6,6 +6,7 @@ import * as compression from 'compression';
 import * as nunjucks from 'nunjucks';
 import * as expressSession from 'express-session';
 import * as connectRedis from 'connect-redis';
+//import * as expressGraphQL from 'express-graphql';
 import { resolve } from 'path';
 import { path as rootPath } from 'app-root-path';
 import { createServer, Server } from 'http';
@@ -148,6 +149,15 @@ export abstract class BaseServer {
         this.sessionParser = expressSession(sessionConfig);
         this.app.use(this.sessionParser);
 
+        // Setup the API
+        // this.app.use(
+        //     '/api',
+        //     expressGraphQL({
+        //         schema: '',
+        //         graphiql: process.env.NODE_ENV === 'development' ? true : false
+        //     })
+        // );
+
         // Setup the template engine
         nunjucks.configure(resolve(rootPath, configs[4].views), {
             express: this.app,
@@ -158,6 +168,8 @@ export abstract class BaseServer {
         // Setup static files directory
         this.app.use(express.static(resolve(rootPath, configs[4].staticFiles)));
     }
+
+    // protected async getApiSchemas() {}
 
     /**
      * 2. collects all available routes and initializes them
