@@ -50,7 +50,7 @@ export abstract class BDOLogger {
      * @type {logLevels}
      * @memberof BDOLogger
      */
-    public logLevel?: logLevels = 'info';
+    public logLevel?: logLevels = 'debug';
 
     /**
      * Holds a list of prototype names to determine the log point correctly

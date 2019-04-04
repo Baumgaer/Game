@@ -1,5 +1,5 @@
 import { Redis, messageType } from './Redis';
-import { RedisOptions } from 'ioredis';
+import * as IORedis from 'ioredis';
 import { merge } from 'lodash';
 import { Logger } from './Logger';
 
@@ -76,37 +76,20 @@ export class RedisClientManager {
      * @returns {Promise<Redis>}
      * @memberof RedisClientManager
      */
-    public createClient(id: string, options: RedisOptions, subscribe?: boolean): Promise<Redis> {
-        const defaults = {
-            retryStrategy: this.retryStrategy.bind(this),
-            reconnectOnError: this.reconnectOnError.bind(this)
-        };
-        options = merge(defaults, options);
-        return new Promise<Redis>((resolve, reject) => {
-            if (this.clients.has(id)) {
-                return reject(new ClientAlreadyExistsError(`Redis client ${id} already exists`));
-            }
-            const client = new Redis(options);
-            client.id = id;
-            if (subscribe) {
-                client.on('message', (topic: string, params: string) => {
-                    this.onClientMessage(client, topic, JSON.parse(params));
-                });
-            }
-            client.on('error', (error) => {
-                reject(this.onClientError(client, error));
-            });
-            client.on('reconnecting', (times) => {
-                this.onClientReconnect(client, times);
-            });
-            client.on('connect', () => {
-                this.onClientConnect(client);
-            });
-            client.on('ready', () => {
-                this.onClientReady(client);
-                resolve(client);
-            });
-        });
+    public createClient(id: string, options: IORedis.RedisOptions, subscribe?: boolean): Promise<Redis> {
+        return this.clientCreation(id, options, subscribe || false, false) as Promise<Redis>;
+    }
+
+    /**
+     * Creates a very slightly manipulated client for third party libraries
+     *
+     * @param {string} id
+     * @param {IORedis.RedisOptions} options
+     * @returns {Promise<IORedis.Redis>}
+     * @memberof RedisClientManager
+     */
+    public createThirdPartyClient(id: string, options: IORedis.RedisOptions): Promise<IORedis.Redis> {
+        return this.clientCreation(id, options, false, true) as Promise<IORedis.Redis>;
     }
 
     /**
@@ -116,7 +99,7 @@ export class RedisClientManager {
      * @returns {(Redis | undefined)}
      * @memberof RedisClientManager
      */
-    public getClient(id: string): Redis | undefined {
+    public getClient(id: string): Redis | IORedis.Redis | undefined {
         return this.clients.get(id);
     }
 
@@ -157,6 +140,57 @@ export class RedisClientManager {
             }
             await Promise.all(promises);
             resolve(true);
+        });
+    }
+
+    /**
+     * Creates the real client depending on third party is true or not
+     *
+     * @private
+     * @param {string} id
+     * @param {IORedis.RedisOptions} options
+     * @param {boolean} subscribe
+     * @param {boolean} thirdParty
+     * @returns {(Promise<IORedis.Redis | Redis>)}
+     * @memberof RedisClientManager
+     */
+    private clientCreation(
+        id: string,
+        options: IORedis.RedisOptions,
+        subscribe: boolean,
+        thirdParty: boolean
+    ): Promise<IORedis.Redis | Redis> {
+        const defaults = {
+            retryStrategy: this.retryStrategy.bind(this),
+            reconnectOnError: this.reconnectOnError.bind(this)
+        };
+        options = merge(defaults, options);
+        return new Promise<IORedis.Redis | Redis>((resolve, reject) => {
+            let client: IORedis.Redis | Redis;
+            if (thirdParty) {
+                client = new IORedis(options);
+            } else {
+                client = new Redis(options);
+            }
+            ((client as unknown) as Redis).id = id;
+            if (subscribe) {
+                client.on('message', (topic: string, params: string) => {
+                    this.onClientMessage((client as unknown) as Redis, topic, JSON.parse(params));
+                });
+            }
+            client.on('error', (error) => {
+                reject(this.onClientError((client as unknown) as Redis, error));
+            });
+            client.on('reconnecting', (times) => {
+                this.onClientReconnect((client as unknown) as Redis, times);
+            });
+            client.on('connect', () => {
+                this.onClientConnect((client as unknown) as Redis);
+            });
+            client.on('ready', () => {
+                this.onClientReady((client as unknown) as Redis);
+                resolve(client);
+            });
         });
     }
 

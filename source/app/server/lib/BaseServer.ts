@@ -14,11 +14,14 @@ import { path as rootPath } from 'app-root-path';
 import { createServer, Server } from 'http';
 import { AddressInfo } from 'ws';
 import { createHash } from 'crypto';
+import { RedisPubSub as GraphQLRedisPubSub } from 'graphql-redis-subscriptions';
 import { ConfigManager } from './ConfigManager';
+import { RedisClientManager } from './RedisClientManager';
 import { Logger } from './Logger';
 import { walk } from './../../../utils/projectStructure';
 
 const configManager = ConfigManager.getInstance();
+const redisClientManager = RedisClientManager.getInstance();
 const logger = new Logger({
     logLevel: 'debug'
 });
@@ -30,6 +33,8 @@ declare type states =
     | 'setupServer'
     | 'routeCollection'
     | 'afterRouteCollection'
+    | 'resolverCollection'
+    | 'afterResolverCollection'
     | 'ready'
     | 'started'
     | 'stopped';
@@ -91,13 +96,21 @@ export abstract class BaseServer {
         });
         this.state = 'setupServer';
         this.setupServer()
-            .then(() => {
+            .then(async () => {
                 this.state = 'routeCollection';
-                this.routeCollection();
+                await this.routeCollection();
             })
-            .then(() => {
+            .then(async () => {
                 this.state = 'afterRouteCollection';
-                this.afterRouteCollection();
+                await this.afterRouteCollection();
+            })
+            .then(async () => {
+                this.state = 'resolverCollection';
+                await this.resolverCollection();
+            })
+            .then(async () => {
+                this.state = 'afterResolverCollection';
+                await this.afterResolverCollection();
             })
             .then(() => (this.state = 'ready'));
     }
@@ -198,19 +211,6 @@ export abstract class BaseServer {
         this.sessionParser = expressSession(sessionConfig);
         this.app.use(this.sessionParser);
 
-        // Setup the API
-        const resolvers: any[] = [];
-        await walk('out/app/server/resolver', (file) => {
-            resolvers.push(require(file).default);
-        });
-        this.app.use(
-            '/api',
-            expressGraphQL({
-                schema: await buildSchema({ resolvers }),
-                graphiql: process.env.NODE_ENV === 'development' ? true : false
-            })
-        );
-
         // Setup the template engine
         nunjucks.configure(resolve(rootPath, configs[4].views), {
             express: this.app,
@@ -241,4 +241,46 @@ export abstract class BaseServer {
      * @memberof BaseServer
      */
     protected async afterRouteCollection(): Promise<void> {}
+
+    /**
+     * 4. collects all available resolvers and initializes them
+     *
+     * @protected
+     * @returns {Promise<void>}
+     * @memberof BaseServer
+     */
+    protected async resolverCollection(): Promise<void> {
+        // Setup the API
+        const pathsConfig = await configManager.get('paths');
+        const resolvers: any[] = [];
+        await walk(pathsConfig.resolvers, (file) => {
+            resolvers.push(require(file).default);
+        });
+        const awaited = await Promise.all([
+            walk(pathsConfig.resolvers, (file) => {
+                resolvers.push(require(file).default);
+            }),
+            redisClientManager.createThirdPartyClient('graphQLSubscriber', {}),
+            redisClientManager.createThirdPartyClient('graphQLPublisher', {})
+        ]);
+        const subscriber = awaited[1];
+        const publisher = awaited[2];
+        const pubSub = new GraphQLRedisPubSub({ publisher, subscriber });
+        this.app.use(
+            pathsConfig.apiEntryPoint,
+            expressGraphQL({
+                schema: await buildSchema({ resolvers, pubSub }),
+                graphiql: process.env.NODE_ENV === 'development' ? true : false
+            })
+        );
+    }
+
+    /**
+     * 5. Usually used for creation of error handling middlewares
+     *
+     * @protected
+     * @returns {Promise<void>}
+     * @memberof BaseServer
+     */
+    protected async afterResolverCollection(): Promise<void> {}
 }

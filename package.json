@@ -93,6 +93,7 @@
         "fast-glob": "^2.2.6",
         "graceful-fs": "^4.1.15",
         "graphql": "^14.2.1",
+        "graphql-redis-subscriptions": "^2.1.0",
         "grunt": "^1.0.4",
         "helmet": "^3.16.0",
         "hpp": "^0.2.2",

@@ -128,7 +128,7 @@ export class ConfigManager extends BDOConfigManager {
     private async getRedis(): Promise<Redis> {
         const clientManager = RedisClientManager.getInstance();
         const configDB = (await (<any>this.load('databases'))).redis.configuration;
-        let client = clientManager.getClient(clientName);
+        let client = <Redis>clientManager.getClient(clientName);
         if (!client) {
             client = await clientManager.createClient(clientName, {
                 db: configDB

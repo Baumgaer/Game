@@ -78,6 +78,7 @@ export class Redis extends IORedis {
      * @inheritdoc
      *
      * @param {IORedis.KeyType} key
+     * @param {((err: Error, res: string | null) => void)} [callback] This callback is for third party compatibility
      * @returns {(Promise<IndexStructure | null>)}
      * @memberof Redis
      */
@@ -103,7 +104,6 @@ export class Redis extends IORedis {
      * @returns {Promise<string>}
      * @memberof Redis
      */
-    // @ts-ignore
     public set(key: IORedis.KeyType, value: IndexStructure): Promise<string> {
         return new Promise<string>(async (resolve) => {
             resolve(await super.set(key, JSON.stringify(value)));

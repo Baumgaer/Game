@@ -14,8 +14,8 @@ class BaseResolver {
      * @memberof BaseResolver
      */
     @Query()
-    public meep(): string {
-        return 'test';
+    public meep(@Arg('hahahaha') id: string): string {
+        return id;
     }
 
     /**
