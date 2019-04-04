@@ -49,7 +49,7 @@ export class BDOMapCache<K, V> extends Map<K, Entity<V>> {
      *
      * @param {K} key
      * @param {V} value
-     * @param {number} [duration] time in seconds to expiration if not given it will be Infinity
+     * @param {number} [duration] time in milliseconds to expiration if not given it will be Infinity
      * @returns {this}
      * @memberof BDOMapCache
      */

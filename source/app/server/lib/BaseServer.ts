@@ -1,4 +1,5 @@
 import ms = require('ms');
+import 'reflect-metadata';
 import * as express from 'express';
 import * as hpp from 'hpp';
 import * as helmet from 'helmet';
@@ -6,7 +7,8 @@ import * as compression from 'compression';
 import * as nunjucks from 'nunjucks';
 import * as expressSession from 'express-session';
 import * as connectRedis from 'connect-redis';
-//import * as expressGraphQL from 'express-graphql';
+import * as expressGraphQL from 'express-graphql';
+import { buildSchema } from 'type-graphql';
 import { resolve } from 'path';
 import { path as rootPath } from 'app-root-path';
 import { createServer, Server } from 'http';
@@ -14,9 +16,12 @@ import { AddressInfo } from 'ws';
 import { createHash } from 'crypto';
 import { ConfigManager } from './ConfigManager';
 import { Logger } from './Logger';
+import { walk } from './../../../utils/projectStructure';
 
 let configManager = ConfigManager.getInstance();
-let logger = new Logger();
+let logger = new Logger({
+    logLevel: 'debug'
+});
 // Later this will hold an array of configurations loaded by configManager
 let configs = null;
 
@@ -150,13 +155,20 @@ export abstract class BaseServer {
         this.app.use(this.sessionParser);
 
         // Setup the API
-        // this.app.use(
-        //     '/api',
-        //     expressGraphQL({
-        //         schema: '',
-        //         graphiql: process.env.NODE_ENV === 'development' ? true : false
-        //     })
-        // );
+        let resolvers: Array<any> = [];
+        await walk('out/app/server/resolver', (file) => {
+            let requiredModule = require(file).default;
+            resolvers.push(requiredModule);
+        });
+        this.app.use(
+            '/api',
+            expressGraphQL({
+                schema: await buildSchema({
+                    resolvers: resolvers
+                }),
+                graphiql: process.env.NODE_ENV === 'development' ? true : false
+            })
+        );
 
         // Setup the template engine
         nunjucks.configure(resolve(rootPath, configs[4].views), {
