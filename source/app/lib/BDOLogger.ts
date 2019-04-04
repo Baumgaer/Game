@@ -57,10 +57,75 @@ export abstract class BDOLogger {
      *
      * @protected
      * @readonly
-     * @type {Array<string>}
+     * @type {string[]}
      * @memberof BDOLogger
      */
-    protected readonly prototypeNames: Array<string> = getPrototypeNamesRecursive(this);
+    protected readonly prototypeNames: string[] = getPrototypeNamesRecursive(this);
+
+    /**
+     * Logs the message to console and file with given log level.
+     * If log level is log or error "preventConsolePrint" will be ignored.
+     * If log level is error "preventFilePrint" will be ignored.
+     *
+     * @param {*} message
+     * @param {logLevels} [loglevel='log']
+     * @memberof BDOLogger
+     */
+    public log(message: any, loglevel: logLevels = 'log', ...args: any[]): void {
+        if (!this.preventConsolePrint && !['log', 'error'].includes(loglevel)) {
+            const header = this.getHeader(loglevel);
+            const newArgs = [header, message].concat(args);
+            (<IndexStructure>console)[loglevel].apply(this, newArgs);
+        }
+        const parsedString = JSON.stringify(args);
+        if (!this.preventFilePrint && loglevel !== 'error') {
+            this.writeToFile(loglevel, message + parsedString.substr(1, parsedString.length - 2));
+        }
+    }
+
+    /**
+     * Prints a nice green debug information
+     *
+     * @param {*} message
+     * @memberof BDOLogger
+     */
+    public debug(message: any, ...args: any): void {
+        const apply = [message, 'debug'].concat(args);
+        if (this.isAllowed('debug')) this.log.apply(this, <[any, logLevels]>apply);
+    }
+
+    /**
+     * Prints a nice cyan info text
+     *
+     * @param {*} message
+     * @memberof BDOLogger
+     */
+    public info(message: any, ...args: any): void {
+        const apply = [message, 'info'].concat(args);
+        if (this.isAllowed('info')) this.log.apply(this, <[any, logLevels]>apply);
+    }
+
+    /**
+     * Prints a barely nice yellow warning :/
+     *
+     * @param {*} message
+     * @memberof BDOLogger
+     */
+    public warn(message: any, ...args: any): void {
+        const apply = [message, 'warn'].concat(args);
+        if (this.isAllowed('warn')) this.log.apply(this, <[any, logLevels]>apply);
+    }
+
+    /**
+     * Prints a very ugly red error :'(
+     *
+     * @param {*} message
+     * @memberof BDOLogger
+     */
+    public error(message: any, ...args: any): void {
+        const apply = [message, 'error'].concat(args);
+        if (this.isAllowed('error')) this.log.apply(this, <[any, logLevels]>apply);
+    }
 
     /**
      * Collects information from pm2 about the current process
@@ -101,7 +166,7 @@ export abstract class BDOLogger {
      * @memberof BDOLogger
      */
     protected isAllowed(logLevel: logLevels): boolean {
-        let logLevelOrder = ['log', 'debug', 'info', 'warn', 'error'];
+        const logLevelOrder = ['log', 'debug', 'info', 'warn', 'error'];
         return logLevelOrder.indexOf(logLevel) >= logLevelOrder.indexOf(<string>this.logLevel);
     }
 
@@ -124,7 +189,7 @@ export abstract class BDOLogger {
      * @memberof Logger
      */
     protected getLogPoint(): string {
-        let stack = (<string>new Error().stack).split('\n');
+        const stack = (<string>new Error().stack).split('\n');
         let callpoint;
         for (const [index, stackpart] of stack.entries()) {
             if (!index) continue;
@@ -139,70 +204,5 @@ export abstract class BDOLogger {
             callpoint = '';
         }
         return callpoint;
-    }
-
-    /**
-     * Logs the message to console and file with given log level.
-     * If log level is log or error "preventConsolePrint" will be ignored.
-     * If log level is error "preventFilePrint" will be ignored.
-     *
-     * @param {*} message
-     * @param {logLevels} [loglevel='log']
-     * @memberof BDOLogger
-     */
-    public log(message: any, loglevel: logLevels = 'log', ...args: Array<any>): void {
-        if (!this.preventConsolePrint && !['log', 'error'].includes(loglevel)) {
-            let header = this.getHeader(loglevel);
-            let newArgs = [header, message].concat(args);
-            (<IndexStructure>console)[loglevel].apply(this, newArgs);
-        }
-        let parsedString = JSON.stringify(args);
-        if (!this.preventFilePrint && loglevel !== 'error') {
-            this.writeToFile(loglevel, message + parsedString.substr(1, parsedString.length - 2));
-        }
-    }
-
-    /**
-     * Prints a nice green debug information
-     *
-     * @param {*} message
-     * @memberof BDOLogger
-     */
-    public debug(message: any, ...args: any): void {
-        let apply = [message, 'debug'].concat(args);
-        if (this.isAllowed('debug')) this.log.apply(this, <[any, logLevels]>apply);
-    }
-
-    /**
-     * Prints a nice cyan info text
-     *
-     * @param {*} message
-     * @memberof BDOLogger
-     */
-    public info(message: any, ...args: any): void {
-        let apply = [message, 'info'].concat(args);
-        if (this.isAllowed('info')) this.log.apply(this, <[any, logLevels]>apply);
-    }
-
-    /**
-     * Prints a barely nice yellow warning :/
-     *
-     * @param {*} message
-     * @memberof BDOLogger
-     */
-    public warn(message: any, ...args: any): void {
-        let apply = [message, 'warn'].concat(args);
-        if (this.isAllowed('warn')) this.log.apply(this, <[any, logLevels]>apply);
-    }
-
-    /**
-     * Prints a very ugly red error :'(
-     *
-     * @param {*} message
-     * @memberof BDOLogger
-     */
-    public error(message: any, ...args: any): void {
-        let apply = [message, 'error'].concat(args);
-        if (this.isAllowed('error')) this.log.apply(this, <[any, logLevels]>apply);
     }
 }

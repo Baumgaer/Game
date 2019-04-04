@@ -30,15 +30,6 @@ export abstract class BDOConfigManager {
     protected cache: BDOMapCache<string, any> = new BDOMapCache();
 
     /**
-     * Loads the config from the requested file on server side or on client side
-     *
-     * @param {string} config The config, which is needed
-     * @returns {object} The configuration variables
-     * @memberof BDOConfigManager
-     */
-    protected abstract load(config: string): Promise<IndexStructure>;
-
-    /**
      * Gets the configuration from cache or calls load to load missing configurations
      *
      * @param {string} config The config, which is needed
@@ -62,6 +53,15 @@ export abstract class BDOConfigManager {
      * @memberof BDOConfigManager
      */
     public abstract set(config: string): object;
+
+    /**
+     * Loads the config from the requested file on server side or on client side
+     *
+     * @param {string} config The config, which is needed
+     * @returns {object} The configuration variables
+     * @memberof BDOConfigManager
+     */
+    protected abstract load(config: string): Promise<IndexStructure>;
 
     /**
      * Loads the config directly from the cache inside this class if not

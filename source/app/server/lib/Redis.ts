@@ -10,6 +10,8 @@ export type messageType = Array<
         [name: string]: keyof any | boolean | messageType;
     }
 >;
+
+// tslint:disable-next-line: no-empty-interface
 interface IMessageType extends messageType {}
 
 /**
@@ -32,10 +34,10 @@ export class Redis extends IORedis {
     /**
      * Contains all subscribed topics with corresponding callback
      *
-     * @type {Map<string, Array<Function>>}
+     * @type {Map<string, Function[]>}
      * @memberof Redis
      */
-    public topics: Map<string, Array<Function>> = new Map();
+    public topics: Map<string, Function[]> = new Map();
 
     /**
      * @inheritdoc
@@ -43,11 +45,11 @@ export class Redis extends IORedis {
      * Subscribes to a topic with callback which should be executed
      * on receiving a message
      *
-     * @param {(Array<string> | string)} topics
+     * @param {(string[] | string)} topics
      * @param {Function} callback
      * @memberof Redis
      */
-    public subscribe(topics: Array<string> | string, callback: Function): void {
+    public subscribe(topics: string[] | string, callback: Function): void {
         if (!Array.isArray(topics)) {
             topics = [topics];
         }
@@ -55,20 +57,6 @@ export class Redis extends IORedis {
             this.insertIntoTopics(topic, callback);
         }
         super.subscribe(topics);
-    }
-    /**
-     * Stores the subscribed topics to execute callbacks on message receive
-     *
-     * @private
-     * @param {string} topic
-     * @param {Function} callback
-     * @memberof Redis
-     */
-    private insertIntoTopics(topic: string, callback: Function) {
-        let savedTopic = this.topics.get(topic);
-        if (!savedTopic) savedTopic = [];
-        savedTopic.push(callback);
-        this.topics.set(topic, savedTopic);
     }
 
     /**
@@ -93,7 +81,7 @@ export class Redis extends IORedis {
      * @returns {(Promise<IndexStructure | null>)}
      * @memberof Redis
      */
-    //@ts-ignore
+    // @ts-ignore
     public get(key: IORedis.KeyType): Promise<IndexStructure | null> {
         return new Promise<IndexStructure | null>((resolve, reject) => {
             super.get(key, (error, response) => {
@@ -115,7 +103,7 @@ export class Redis extends IORedis {
      * @returns {Promise<string>}
      * @memberof Redis
      */
-    //@ts-ignore
+    // @ts-ignore
     public set(key: IORedis.KeyType, value: IndexStructure): Promise<string> {
         return new Promise<string>(async (resolve) => {
             resolve(await super.set(key, JSON.stringify(value)));
@@ -133,9 +121,24 @@ export class Redis extends IORedis {
      */
     public update(key: IORedis.KeyType, value: IndexStructure): Promise<string> {
         return new Promise<string>(async (resolve) => {
-            let propsToRemove = pickBy(value, isUndefined);
+            const propsToRemove = pickBy(value, isUndefined);
             value = omit(merge(await this.get(key), value), Object.keys(propsToRemove));
             resolve(await this.set(key, value));
         });
+    }
+
+    /**
+     * Stores the subscribed topics to execute callbacks on message receive
+     *
+     * @private
+     * @param {string} topic
+     * @param {Function} callback
+     * @memberof Redis
+     */
+    private insertIntoTopics(topic: string, callback: Function) {
+        let savedTopic = this.topics.get(topic);
+        if (!savedTopic) savedTopic = [];
+        savedTopic.push(callback);
+        this.topics.set(topic, savedTopic);
     }
 }

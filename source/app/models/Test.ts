@@ -15,7 +15,7 @@ export class Test {
      * @memberof Test
      */
     @Field((_type) => ID)
-    id: string = '0';
+    public id: string = '0';
 
     /**
      * Test
@@ -23,7 +23,7 @@ export class Test {
      * @type {string}
      * @memberof Test
      */
-    @Field() title: string = 'test';
+    @Field() public title: string = 'test';
 
     /**
      * Test
@@ -32,5 +32,5 @@ export class Test {
      * @memberof Test
      */
     @Field({ nullable: true })
-    description?: string;
+    public description?: string;
 }

@@ -53,15 +53,15 @@ export class Logger extends BDOLogger {
      * @memberof Logger
      */
     protected getHeader(logLevel: logLevels, printEnv: printEnvironments = 'console'): string {
-        let procInfo = this.getProcInfo();
-        let currentTime = this.currentTime();
-        let upperLogLevel = logLevel.toUpperCase();
-        let logPoint = this.getLogPoint();
+        const procInfo = this.getProcInfo();
+        const currentTime = this.currentTime();
+        const upperLogLevel = logLevel.toUpperCase();
+        const logPoint = this.getLogPoint();
         if (printEnv === 'console') {
-            let formattedLogLevel = this.logLevelColors[logLevel](upperLogLevel);
-            let formattedPid = colors.magenta(procInfo);
-            let formattedLogPoint = colors.magenta(logPoint);
-            let formattedTime = colors.cyan(currentTime);
+            const formattedLogLevel = this.logLevelColors[logLevel](upperLogLevel);
+            const formattedPid = colors.magenta(procInfo);
+            const formattedLogPoint = colors.magenta(logPoint);
+            const formattedTime = colors.cyan(currentTime);
             return `[${formattedLogLevel} - ${formattedPid} - ${formattedTime} at ${formattedLogPoint}]`;
         }
         return `[${upperLogLevel} - ${procInfo} - ${currentTime} at ${logPoint}]`;
@@ -76,9 +76,9 @@ export class Logger extends BDOLogger {
      * @memberof Logger
      */
     protected writeToFile(logLevel: logLevels, message: any): void {
-        let path = resolve(rootPath, 'var', 'logs', <string>this.logFile);
-        let data = `${this.getHeader(logLevel, 'file')} ${message}\n`;
-        let stream = createWriteStream(path, {
+        const path = resolve(rootPath, 'var', 'logs', <string>this.logFile);
+        const data = `${this.getHeader(logLevel, 'file')} ${message}\n`;
+        const stream = createWriteStream(path, {
             encoding: 'utf-8',
             flags: 'a',
             autoClose: true

@@ -3,7 +3,7 @@ import { RedisOptions } from 'ioredis';
 import { merge } from 'lodash';
 import { Logger } from './Logger';
 
-let logger = new Logger({
+const logger = new Logger({
     preventConsolePrint: true
 });
 
@@ -77,7 +77,7 @@ export class RedisClientManager {
      * @memberof RedisClientManager
      */
     public createClient(id: string, options: RedisOptions, subscribe?: boolean): Promise<Redis> {
-        let defaults = {
+        const defaults = {
             retryStrategy: this.retryStrategy.bind(this),
             reconnectOnError: this.reconnectOnError.bind(this)
         };
@@ -86,7 +86,7 @@ export class RedisClientManager {
             if (this.clients.has(id)) {
                 return reject(new ClientAlreadyExistsError(`Redis client ${id} already exists`));
             }
-            let client = new Redis(options);
+            const client = new Redis(options);
             client.id = id;
             if (subscribe) {
                 client.on('message', (topic: string, params: string) => {
@@ -110,98 +110,6 @@ export class RedisClientManager {
     }
 
     /**
-     * Manages the retry delay in case of connection lost
-     *
-     * @param {number} times current number of retry
-     * @returns {number} The new delay
-     * @memberof RedisClientManager
-     */
-    retryStrategy(times: number): number {
-        return Math.min(times * 100, 3000);
-    }
-
-    /**
-     * Decides in which case the reconnect should be done
-     *
-     * @param {Error} error occurred error
-     * @returns {boolean} should retry or not
-     * @memberof RedisClientManager
-     */
-    reconnectOnError(error: Error): boolean {
-        let targetError = 'READONLY';
-        if (error.message.slice(0, targetError.length) === targetError) {
-            return true;
-        }
-        return false;
-    }
-
-    /**
-     * Fired when the client is connected to the server
-     *
-     * @param {Redis} client
-     * @memberof RedisClientManager
-     */
-    onClientConnect(client: Redis): void {
-        logger.info(`Redis client ${client.id} is connected`);
-    }
-
-    /**
-     * Fired when the client is reconnecting
-     *
-     * @param {Redis} client
-     * @param {number} times Time duration to reconnect
-     * @memberof RedisClientManager
-     */
-    onClientReconnect(client: Redis, times: number): void {
-        logger.info(`${client.id} is reconnecting in ${times}ms`);
-    }
-
-    /**
-     * Fired when the client is ready to use
-     *
-     * @param {Redis} client
-     * @memberof RedisClientManager
-     */
-    onClientReady(client: Redis): void {
-        logger.info(`Redis client ${client.id} is ready`);
-        this.clients.set(client.id, client);
-    }
-
-    /**
-     * Fired when the client is a subscriber and receives a message
-     *
-     * @param {Redis} client
-     * @param {string} topic
-     * @param {messageType} params
-     * @memberof RedisClientManager
-     */
-    onClientMessage(client: Redis, topic: string, params: messageType): void {
-        if (client.topics.has(topic)) {
-            for (const callback of <Array<Function>>client.topics.get(topic)) {
-                // Call defined Function
-                // In this case, "this" is the callers this...
-                // Which confusion...
-                callback.apply(this, params);
-            }
-        }
-        logger.info(`Redis client ${client.id} received topic ${topic} with params ${params}`);
-    }
-
-    /**
-     * Fired when an error occurred on the client
-     *
-     * @param {Redis} client
-     * @param {Error} error
-     * @returns {Error}
-     * @memberof RedisClientManager
-     */
-    onClientError(client: Redis, error: Error): Error {
-        logger.error(`RedisClientError of ${client.id}: ${error}`);
-        (<any>client).reloadFunction && (<any>client).reloadFunction();
-        return error;
-    }
-
-    /**
      * Returns an existing redis client
      *
      * @param {string} id Name of the client
@@ -221,14 +129,14 @@ export class RedisClientManager {
      */
     public killClient(id: string): Promise<boolean> {
         return new Promise<boolean>((resolve, reject) => {
-            let client = this.getClient(id);
+            const client = this.getClient(id);
             if (!client) {
                 return reject(new ClientNotExistError());
             }
             client.quit();
             client.on('close', () => {
                 logger.info(`Redis Client "${id}" is dead`);
-                client && client.removeAllListeners();
+                if (client) client.removeAllListeners();
                 resolve(this.clients.delete(id));
             });
         });
@@ -242,13 +150,105 @@ export class RedisClientManager {
      */
     public killAllClients(): Promise<boolean> {
         return new Promise<boolean>(async (resolve) => {
-            let clients = this.clients.keys();
-            let promises: Array<Promise<boolean>> = [];
+            const clients = this.clients.keys();
+            const promises: Array<Promise<boolean>> = [];
             for (const client of clients) {
                 promises.push(this.killClient(client));
             }
             await Promise.all(promises);
             resolve(true);
         });
+    }
+
+    /**
+     * Manages the retry delay in case of connection lost
+     *
+     * @param {number} times current number of retry
+     * @returns {number} The new delay
+     * @memberof RedisClientManager
+     */
+    private retryStrategy(times: number): number {
+        return Math.min(times * 100, 3000);
+    }
+
+    /**
+     * Decides in which case the reconnect should be done
+     *
+     * @param {Error} error occurred error
+     * @returns {boolean} should retry or not
+     * @memberof RedisClientManager
+     */
+    private reconnectOnError(error: Error): boolean {
+        const targetError = 'READONLY';
+        if (error.message.slice(0, targetError.length) === targetError) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Fired when the client is connected to the server
+     *
+     * @param {Redis} client
+     * @memberof RedisClientManager
+     */
+    private onClientConnect(client: Redis): void {
+        logger.info(`Redis client ${client.id} is connected`);
+    }
+
+    /**
+     * Fired when the client is reconnecting
+     *
+     * @param {Redis} client
+     * @param {number} times Time duration to reconnect
+     * @memberof RedisClientManager
+     */
+    private onClientReconnect(client: Redis, times: number): void {
+        logger.info(`${client.id} is reconnecting in ${times}ms`);
+    }
+
+    /**
+     * Fired when the client is ready to use
+     *
+     * @param {Redis} client
+     * @memberof RedisClientManager
+     */
+    private onClientReady(client: Redis): void {
+        logger.info(`Redis client ${client.id} is ready`);
+        this.clients.set(client.id, client);
+    }
+
+    /**
+     * Fired when the client is a subscriber and receives a message
+     *
+     * @param {Redis} client
+     * @param {string} topic
+     * @param {messageType} params
+     * @memberof RedisClientManager
+     */
+    private onClientMessage(client: Redis, topic: string, params: messageType): void {
+        if (client.topics.has(topic)) {
+            for (const callback of <Function[]>client.topics.get(topic)) {
+                // Call defined Function
+                // In this case, "this" is the callers this...
+                // Which confusion...
+                callback.apply(this, params);
+            }
+        }
+        logger.info(`Redis client ${client.id} received topic ${topic} with params ${params}`);
+    }
+
+    /**
+     * Fired when an error occurred on the client
+     *
+     * @param {Redis} client
+     * @param {Error} error
+     * @returns {Error}
+     * @memberof RedisClientManager
+     */
+    private onClientError(client: Redis, error: Error): Error {
+        logger.error(`RedisClientError of ${client.id}: ${error}`);
+        if ((<any>client).reloadFunction) (<any>client).reloadFunction();
+        return error;
     }
 }

@@ -14,7 +14,7 @@ class BaseResolver {
      * @memberof BaseResolver
      */
     @Query()
-    meep(): string {
+    public meep(): string {
         return 'test';
     }
 
@@ -25,8 +25,8 @@ class BaseResolver {
      * @returns {Test}
      * @memberof BaseResolver
      */
-    test(@Arg('id') id: string): Test {
-        let test = new Test();
+    public test(@Arg('id') id: string): Test {
+        const test = new Test();
         test.id = 'id';
         test.description = 'joa gä?';
         test.title = 'Voll der titel von' + id;
@@ -50,10 +50,10 @@ export default class TestResolver extends BaseResolver {
      * @memberof TestResolver
      */
     @Query((_returns) => Test)
-    test(@Arg('lol') id: string): Test {
-        let test = new Test();
+    public test(@Arg('lol') id: string): Test {
+        const test = new Test();
         test.id = id;
-        //test.description = 'joa gä?';
+        // test.description = 'joa gä?';
         test.title = 'Voll der titel...';
         return test;
     }

@@ -7,7 +7,7 @@ import { merge } from 'lodash';
 import { RedisClientManager } from './RedisClientManager';
 import { Redis } from './Redis';
 
-let clientName = 'ConfigManager';
+const clientName = 'ConfigManager';
 /**
  * Manages the configuration on server side. See BDOConfigManager for mode
  * information
@@ -42,22 +42,14 @@ export class ConfigManager extends BDOConfigManager {
     }
 
     /**
-     * Creates a new redis client if not exists
+     * @inheritdoc The old value will be overwritten
      *
-     * @private
-     * @returns {Promise<Redis>}
+     * @param {string} _config
+     * @returns {object}
      * @memberof ConfigManager
      */
-    private async getRedis(): Promise<Redis> {
-        let clientManager = RedisClientManager.getInstance();
-        let configDB = (await (<any>this.load('databases'))).redis.configuration;
-        let client = clientManager.getClient(clientName);
-        if (!client) {
-            client = await clientManager.createClient(clientName, {
-                db: configDB
-            });
-        }
-        return Promise.resolve(client);
+    public set(_config: string): object {
+        throw new Error('Method not implemented.');
     }
 
     /**
@@ -69,27 +61,80 @@ export class ConfigManager extends BDOConfigManager {
      * @memberof ConfigManager
      */
     protected async load(config: string): Promise<IndexStructure> {
-        let temp = {};
+        const temp = {};
 
-        let appRoot = resolve(rootPath, 'out', 'app');
-        let bdoDefault = resolve(appRoot, 'config', `${config}.ini`);
-        let bdoEnv = resolve(appRoot, 'config', process.env.NODE_ENV || '', `${config}.ini`);
-        let serverDefault = resolve(appRoot, 'server', 'config', `${config}.ini`);
-        let serverEnv = resolve(appRoot, 'server', 'config', process.env.NODE_ENV || '', `${config}.ini`);
+        const appRoot = resolve(rootPath, 'out', 'app');
+        const bdoDefault = resolve(appRoot, 'config', `${config}.ini`);
+        const bdoEnv = resolve(appRoot, 'config', process.env.NODE_ENV || '', `${config}.ini`);
+        const serverDefault = resolve(appRoot, 'server', 'config', `${config}.ini`);
+        const serverEnv = resolve(appRoot, 'server', 'config', process.env.NODE_ENV || '', `${config}.ini`);
 
-        let configs = await Promise.all([
+        const configs = await Promise.all([
             this.getFile(bdoDefault),
             this.getFile(bdoEnv),
             this.getFile(serverDefault),
             this.getFile(serverEnv)
         ]);
 
-        for (const config of configs) {
-            let parsedConf = parse(config);
+        for (const configString of configs) {
+            const parsedConf = parse(configString);
             this.correctDataTypes(parsedConf);
             merge(temp, parsedConf);
         }
         return Promise.resolve(temp);
+    }
+
+    /**
+     * @inheritdoc
+     *
+     * @protected
+     * @param {string} config
+     * @returns {(Promise<IndexStructure | null>)}
+     * @memberof ConfigManager
+     */
+    protected async getCache(config: string): Promise<IndexStructure | null> {
+        const fromLocalCache = this.cache.get(config);
+        if (fromLocalCache) {
+            return Promise.resolve(fromLocalCache);
+        }
+        const client = await this.getRedis();
+        const conf = await client.get(`${clientName}:${config}`);
+        if (conf !== null) this.cache.set(config, conf);
+        return Promise.resolve(conf);
+    }
+
+    /**
+     * @inheritdoc
+     *
+     * @protected
+     * @param {string} config
+     * @returns {boolean}
+     * @memberof ConfigManager
+     */
+    protected async setCache(config: string, value: IndexStructure): Promise<boolean> {
+        this.cache.set(config, value, 60 * 10);
+        const client = await this.getRedis();
+        client.update(`${clientName}:${config}`, value);
+        return Promise.resolve(true);
+    }
+
+    /**
+     * Creates a new redis client if not exists
+     *
+     * @private
+     * @returns {Promise<Redis>}
+     * @memberof ConfigManager
+     */
+    private async getRedis(): Promise<Redis> {
+        const clientManager = RedisClientManager.getInstance();
+        const configDB = (await (<any>this.load('databases'))).redis.configuration;
+        let client = clientManager.getClient(clientName);
+        if (!client) {
+            client = await clientManager.createClient(clientName, {
+                db: configDB
+            });
+        }
+        return Promise.resolve(client);
     }
 
     /**
@@ -129,61 +174,16 @@ export class ConfigManager extends BDOConfigManager {
      * @memberof ConfigManager
      */
     private getFile(path: string): Promise<string> {
-        return new Promise<string>((resolve, reject) => {
-            access(path, constants.F_OK, (error) => {
-                if (error) {
-                    return resolve('');
+        return new Promise<string>((resolver, reject) => {
+            access(path, constants.F_OK, (accessError) => {
+                if (accessError) {
+                    return resolver('');
                 }
-                readFile(path, 'utf-8', (error, data) => {
-                    if (error) return reject(error);
-                    resolve(data);
+                readFile(path, 'utf-8', (readError, data) => {
+                    if (readError) return reject(readError);
+                    resolver(data);
                 });
             });
         });
-    }
-
-    /**
-     * @inheritdoc The old value will be overwritten
-     *
-     * @param {string} _config
-     * @returns {object}
-     * @memberof ConfigManager
-     */
-    public set(_config: string): object {
-        throw new Error('Method not implemented.');
-    }
-
-    /**
-     * @inheritdoc
-     *
-     * @protected
-     * @param {string} config
-     * @returns {(Promise<IndexStructure | null>)}
-     * @memberof ConfigManager
-     */
-    protected async getCache(config: string): Promise<IndexStructure | null> {
-        let fromLocalCache = this.cache.get(config);
-        if (fromLocalCache) {
-            return Promise.resolve(fromLocalCache);
-        }
-        let client = await this.getRedis();
-        let conf = await client.get(`${clientName}:${config}`);
-        if (conf !== null) this.cache.set(config, conf);
-        return Promise.resolve(conf);
-    }
-
-    /**
-     * @inheritdoc
-     *
-     * @protected
-     * @param {string} config
-     * @returns {boolean}
-     * @memberof ConfigManager
-     */
-    protected async setCache(config: string, value: IndexStructure): Promise<boolean> {
-        this.cache.set(config, value, 60 * 10);
-        let client = await this.getRedis();
-        client.update(`${clientName}:${config}`, value);
-        return Promise.resolve(true);
     }
 }

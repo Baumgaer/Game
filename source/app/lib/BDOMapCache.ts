@@ -10,14 +10,14 @@ class Entity<V> {
      * @type {*}
      * @memberof Entity
      */
-    data: V;
+    public data: V;
     /**
      * Time when the data expires
      *
      * @type {number}
      * @memberof Entity
      */
-    expire: number = Infinity;
+    private expire: number = Infinity;
 
     constructor(data: V, duration?: number) {
         this.data = data;
@@ -53,9 +53,9 @@ export class BDOMapCache<K, V> extends Map<K, Entity<V>> {
      * @returns {this}
      * @memberof BDOMapCache
      */
-    //@ts-ignore
+    // @ts-ignore
     public set(key: K, value: V, duration?: number): this {
-        let entity = new Entity(value, duration);
+        const entity = new Entity(value, duration);
         return super.set(key, entity);
     }
 
@@ -67,7 +67,7 @@ export class BDOMapCache<K, V> extends Map<K, Entity<V>> {
      * @memberof BDOMapCache
      */
     public get(key: K): any {
-        let entity = super.get(key);
+        const entity = super.get(key);
         if (entity === undefined || entity.expired) {
             this.delete(key);
             return undefined;

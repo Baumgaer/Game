@@ -18,8 +18,8 @@ import { ConfigManager } from './ConfigManager';
 import { Logger } from './Logger';
 import { walk } from './../../../utils/projectStructure';
 
-let configManager = ConfigManager.getInstance();
-let logger = new Logger({
+const configManager = ConfigManager.getInstance();
+const logger = new Logger({
     logLevel: 'debug'
 });
 // Later this will hold an array of configurations loaded by configManager
@@ -83,7 +83,7 @@ export abstract class BaseServer {
     constructor() {
         this.server.on('listening', () => {
             this.state = 'started';
-            let addressInfo = <AddressInfo>this.server.address();
+            const addressInfo = <AddressInfo>this.server.address();
             logger.info(`Server started: ${addressInfo.address}:${addressInfo.port}`);
         });
         this.server.on('close', () => {
@@ -100,6 +100,50 @@ export abstract class BaseServer {
                 this.afterRouteCollection();
             })
             .then(() => (this.state = 'ready'));
+    }
+
+    /**
+     * Starts the ready configured server
+     *
+     * @public
+     * @returns {Promise<void>}
+     * @memberof BaseServer
+     */
+    public async start(): Promise<Server> {
+        await new Promise((resolver) => {
+            const interval = setInterval(() => {
+                if (this.state === 'ready') {
+                    clearInterval(interval);
+                    resolver();
+                }
+            });
+        });
+        return new Promise<Server>((resolver) => {
+            try {
+                let port = 8080;
+                if (process.env.PORT) {
+                    port = parseInt(process.env.PORT, 10);
+                }
+                resolver(this.server.listen(port, 'localhost'));
+            } catch (error) {
+                logger.error(error);
+                process.exit(1);
+            }
+        });
+    }
+
+    /**
+     * Shuts down all depending parts of the server, stores temporary data and
+     * closes the server.
+     *
+     * @public
+     * @returns {Promise<void>}
+     * @memberof BaseServer
+     */
+    public async stop(): Promise<void> {
+        await this.server.close();
+        logger.info('Server stopped');
+        process.exit(0);
     }
 
     /**
@@ -126,8 +170,8 @@ export abstract class BaseServer {
         this.app.use(compression());
         this.app.use(helmet());
         this.app.use(hpp());
-        let RedisStore = connectRedis(expressSession);
-        let sessionConfig = Object.assign(
+        const RedisStore = connectRedis(expressSession);
+        const sessionConfig = Object.assign(
             <expressSession.SessionOptions>{
                 secret: createHash(configs[0].session.hashFunction)
                     .update(configs[1].sessionSecretSeed)
@@ -155,17 +199,14 @@ export abstract class BaseServer {
         this.app.use(this.sessionParser);
 
         // Setup the API
-        let resolvers: Array<any> = [];
+        const resolvers: any[] = [];
         await walk('out/app/server/resolver', (file) => {
-            let requiredModule = require(file).default;
-            resolvers.push(requiredModule);
+            resolvers.push(require(file).default);
         });
         this.app.use(
             '/api',
             expressGraphQL({
-                schema: await buildSchema({
-                    resolvers: resolvers
-                }),
+                schema: await buildSchema({ resolvers }),
                 graphiql: process.env.NODE_ENV === 'development' ? true : false
             })
         );
@@ -200,48 +241,4 @@ export abstract class BaseServer {
      * @memberof BaseServer
      */
     protected async afterRouteCollection(): Promise<void> {}
-
-    /**
-     * Starts the ready configured server
-     *
-     * @public
-     * @returns {Promise<void>}
-     * @memberof BaseServer
-     */
-    public async start(): Promise<Server> {
-        await new Promise((resolve) => {
-            let interval = setInterval(() => {
-                if (this.state === 'ready') {
-                    clearInterval(interval);
-                    resolve();
-                }
-            });
-        });
-        return new Promise<Server>((resolve) => {
-            try {
-                let port = 8080;
-                if (process.env.PORT) {
-                    port = parseInt(process.env.PORT, 10);
-                }
-                resolve(this.server.listen(port, 'localhost'));
-            } catch (error) {
-                logger.error(error);
-                process.exit(1);
-            }
-        });
-    }
-
-    /**
-     * Shuts down all depending parts of the server, stores temporary data and
-     * closes the server.
-     *
-     * @public
-     * @returns {Promise<void>}
-     * @memberof BaseServer
-     */
-    public async stop(): Promise<void> {
-        await this.server.close();
-        logger.info('Server stopped');
-        process.exit(0);
-    }
 }
