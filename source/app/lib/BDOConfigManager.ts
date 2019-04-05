@@ -1,4 +1,8 @@
+import ms = require('ms');
 import { BDOMapCache } from './BDOMapCache';
+import { Logger } from '../server/lib/Logger';
+
+const logger = new Logger();
 /**
  * Manages the configuration on client and server side.
  * The order of getting the configuration is the following:
@@ -73,7 +77,13 @@ export abstract class BDOConfigManager {
      * @returns {Promise<IndexStructure | null>}
      * @memberof BDOConfigManager
      */
-    protected abstract getCache(config: string): Promise<IndexStructure | null>;
+    protected getCache(config: string): IndexStructure | null {
+        const fromLocalCache = this.cache.get(config);
+        if (fromLocalCache) {
+            return fromLocalCache;
+        }
+        return null;
+    }
 
     /**
      * Writes the config into the cache which can be the variable inside this
@@ -84,5 +94,14 @@ export abstract class BDOConfigManager {
      * @returns {boolean} true on success, false else
      * @memberof BDOConfigManager
      */
-    protected abstract setCache(config: string, value: any): Promise<boolean>;
+    protected async setCache(config: string, value: any): Promise<void> {
+        let conf = this.cache.get('__ConfigManagerCacheTimeout__');
+        if (!this.cache.has('__ConfigManagerCacheTimeout__')) {
+            conf = (await this.load('config')).timeouts.configCache;
+            if (conf) conf = ms(conf);
+            this.cache.set('__ConfigManagerCacheTimeout__', conf);
+        }
+        logger.debug(conf);
+        this.cache.set(config, value, conf);
+    }
 }

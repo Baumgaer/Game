@@ -2,7 +2,9 @@ import { Redis, messageType } from './Redis';
 import * as IORedis from 'ioredis';
 import { merge } from 'lodash';
 import { Logger } from './Logger';
+import { ConfigManager } from './ConfigManager';
 
+const configManager = ConfigManager.getInstance();
 const logger = new Logger({
     preventConsolePrint: true
 });
@@ -154,17 +156,21 @@ export class RedisClientManager {
      * @returns {(Promise<IORedis.Redis | Redis>)}
      * @memberof RedisClientManager
      */
-    private clientCreation(
+    private async clientCreation(
         id: string,
         options: IORedis.RedisOptions,
         subscribe: boolean,
         thirdParty: boolean
     ): Promise<IORedis.Redis | Redis> {
-        const defaults = {
+        const config = await Promise.all([configManager.get('ports'), configManager.get('databases')]);
+        const defaultClientSettings = {
             retryStrategy: this.retryStrategy.bind(this),
-            reconnectOnError: this.reconnectOnError.bind(this)
+            reconnectOnError: this.reconnectOnError.bind(this),
+            host: 'localhost',
+            port: <number>config[0].redis,
+            db: <number>config[1].redis.default
         };
-        options = merge(defaults, options);
+        options = merge(defaultClientSettings, options);
         return new Promise<IORedis.Redis | Redis>((resolve, reject) => {
             let client: IORedis.Redis | Redis;
             if (thirdParty) {

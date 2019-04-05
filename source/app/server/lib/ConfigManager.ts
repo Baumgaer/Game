@@ -4,10 +4,6 @@ import { path as rootPath } from 'app-root-path';
 import { resolve } from 'path';
 import { parse } from 'ini';
 import { merge } from 'lodash';
-import { RedisClientManager } from './RedisClientManager';
-import { Redis } from './Redis';
-
-const clientName = 'ConfigManager';
 /**
  * Manages the configuration on server side. See BDOConfigManager for mode
  * information
@@ -82,59 +78,6 @@ export class ConfigManager extends BDOConfigManager {
             merge(temp, parsedConf);
         }
         return Promise.resolve(temp);
-    }
-
-    /**
-     * @inheritdoc
-     *
-     * @protected
-     * @param {string} config
-     * @returns {(Promise<IndexStructure | null>)}
-     * @memberof ConfigManager
-     */
-    protected async getCache(config: string): Promise<IndexStructure | null> {
-        const fromLocalCache = this.cache.get(config);
-        if (fromLocalCache) {
-            return Promise.resolve(fromLocalCache);
-        }
-        const client = await this.getRedis();
-        const conf = await client.get(`${clientName}:${config}`);
-        if (conf !== null) this.cache.set(config, conf);
-        return Promise.resolve(conf);
-    }
-
-    /**
-     * @inheritdoc
-     *
-     * @protected
-     * @param {string} config
-     * @returns {boolean}
-     * @memberof ConfigManager
-     */
-    protected async setCache(config: string, value: IndexStructure): Promise<boolean> {
-        this.cache.set(config, value, 60 * 10);
-        const client = await this.getRedis();
-        client.update(`${clientName}:${config}`, value);
-        return Promise.resolve(true);
-    }
-
-    /**
-     * Creates a new redis client if not exists
-     *
-     * @private
-     * @returns {Promise<Redis>}
-     * @memberof ConfigManager
-     */
-    private async getRedis(): Promise<Redis> {
-        const clientManager = RedisClientManager.getInstance();
-        const configDB = (await (<any>this.load('databases'))).redis.configuration;
-        let client = <Redis>clientManager.getClient(clientName);
-        if (!client) {
-            client = await clientManager.createClient(clientName, {
-                db: configDB
-            });
-        }
-        return Promise.resolve(client);
     }
 
     /**
