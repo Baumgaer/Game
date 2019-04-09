@@ -40,7 +40,7 @@ export class Chunk {
      * @type {Array<any>}
      * @memberof Chunk
      */
-    protected grid: Array<Array<Cell>> = [];
+    protected grid: Cell[][] = [];
 
     /**
      * The seed to generate cave values of a cell
@@ -90,13 +90,13 @@ export class Chunk {
      * @memberof Chunk
      */
     protected generateGrid() {
-        for (let row = 0; row < <number>this.size; row++) {
+        for (let row = 0; row < (<number>this.size); row++) {
             if (!this.grid[row]) {
                 this.grid.push([]);
             }
-            for (let col = 0; col < <number>this.size; col++) {
-                let xCoordinate = col + this.x * <number>this.size;
-                let yCoordinate = row + this.y * <number>this.size;
+            for (let col = 0; col < (<number>this.size); col++) {
+                const xCoordinate = col + this.x * <number>this.size;
+                const yCoordinate = row + this.y * <number>this.size;
 
                 this.grid[row].push(
                     new Cell({
