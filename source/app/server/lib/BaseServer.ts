@@ -231,7 +231,7 @@ export abstract class BaseServer {
      * @returns {Promise<void>}
      * @memberof BaseServer
      */
-    protected async routeCollection(): Promise<void> {}
+    protected async routeCollection(): Promise<void> { }
 
     /**
      * 3. Usually used for creation of error handling middlewares
@@ -240,7 +240,7 @@ export abstract class BaseServer {
      * @returns {Promise<void>}
      * @memberof BaseServer
      */
-    protected async afterRouteCollection(): Promise<void> {}
+    protected async afterRouteCollection(): Promise<void> { }
 
     /**
      * 4. collects all available resolvers and initializes them
@@ -260,8 +260,8 @@ export abstract class BaseServer {
             walk(pathsConfig.resolvers, (file) => {
                 resolvers.push(require(file).default);
             }),
-            redisClientManager.createThirdPartyClient('graphQLSubscriber', {}),
-            redisClientManager.createThirdPartyClient('graphQLPublisher', {})
+            redisClientManager.createThirdPartyClient('graphQLSubscriber'),
+            redisClientManager.createThirdPartyClient('graphQLPublisher')
         ]);
         const subscriber = awaited[1];
         const publisher = awaited[2];
@@ -282,5 +282,5 @@ export abstract class BaseServer {
      * @returns {Promise<void>}
      * @memberof BaseServer
      */
-    protected async afterResolverCollection(): Promise<void> {}
+    protected async afterResolverCollection(): Promise<void> { }
 }

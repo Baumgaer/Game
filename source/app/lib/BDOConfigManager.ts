@@ -1,8 +1,5 @@
 import ms = require('ms');
 import { BDOMapCache } from './BDOMapCache';
-import { Logger } from '../server/lib/Logger';
-
-const logger = new Logger();
 /**
  * Manages the configuration on client and server side.
  * The order of getting the configuration is the following:
@@ -101,7 +98,6 @@ export abstract class BDOConfigManager {
             if (conf) conf = ms(conf);
             this.cache.set('__ConfigManagerCacheTimeout__', conf);
         }
-        logger.debug(conf);
         this.cache.set(config, value, conf);
     }
 }
