@@ -41,11 +41,11 @@ class GameServer extends WebSocketServer {
      * @memberof GameServer
      */
     private async serveIndex(_request: Request, reply: Response): Promise<void> {
-        reply.render('index', {
+        reply.render('gameLobby', {
             hello: 'world'
         });
     }
 }
 
-let gameServer = new GameServer();
+const gameServer = new GameServer();
 gameServer.start();
