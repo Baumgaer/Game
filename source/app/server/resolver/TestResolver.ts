@@ -1,5 +1,4 @@
-import { Resolver, Query, Arg } from 'type-graphql';
-import { Test } from './../../models/Test';
+import { Resolver, Query } from 'type-graphql';
 
 /**
  * Test
@@ -14,23 +13,8 @@ class BaseResolver {
      * @memberof BaseResolver
      */
     @Query()
-    public meep(@Arg('hahahaha') id: string): string {
-        return id;
-    }
-
-    /**
-     * Test
-     *
-     * @param {string} id
-     * @returns {Test}
-     * @memberof BaseResolver
-     */
-    public test(@Arg('id') id: string): Test {
-        const test = new Test();
-        test.id = 'id';
-        test.description = 'joa gä?';
-        test.title = 'Voll der titel von' + id;
-        return test;
+    public resolverName(): string {
+        return this.constructor.name;
     }
 }
 /**
@@ -40,21 +24,5 @@ class BaseResolver {
  * @class TestResolver
  * @extends {BaseResolver}
  */
-@Resolver((_of) => Test)
-export default class TestResolver extends BaseResolver {
-    /**
-     * Test
-     *
-     * @param {string} id
-     * @returns {Test}
-     * @memberof TestResolver
-     */
-    @Query((_returns) => Test)
-    public test(@Arg('lol') id: string): Test {
-        const test = new Test();
-        test.id = id;
-        // test.description = 'joa gä?';
-        test.title = 'Voll der titel...';
-        return test;
-    }
-}
+@Resolver()
+export default class TestResolver extends BaseResolver { }
