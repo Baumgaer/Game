@@ -8,14 +8,13 @@ import { BaseComponentFactory } from './BaseComponent';
  * @extends {BaseComponentFactory(HTMLElement)}
  */
 export class TestComponent extends BaseComponentFactory(HTMLElement) {
-
     /**
      * Defines a class attribute...
      *
      * @type {string}
      * @memberof TestComponent
      */
-    public _class: string = "MyBaseClass";
+    public _class: string = 'test';
 
     /**
      * @inheritdoc
@@ -27,4 +26,4 @@ export class TestComponent extends BaseComponentFactory(HTMLElement) {
         super.connectedCallback();
     }
 }
-customElements.define("test-component", TestComponent);
+customElements.define('test-component', TestComponent);

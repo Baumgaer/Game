@@ -26,13 +26,13 @@ To manage all these creatures, the player **builds a dungeon with a core** where
 
 The focus in this game should be on:
 
-- Interaction with the environment and monsters
-- Beauty and pragmatism of the dungeon or caravan
-- Success in instances
-- Alliances with other players, especially for caravans
-- Crafting including the dismantling of resources
-- Trading with other players and even individual monsters
-- Trading among the monsters itself
+-   Interaction with the environment and monsters
+-   Beauty and pragmatism of the dungeon or caravan
+-   Success in instances
+-   Alliances with other players, especially for caravans
+-   Crafting including the dismantling of resources
+-   Trading with other players and even individual monsters
+-   Trading among the monsters itself
 
 and way more which can be read in the WIKI
 
@@ -85,7 +85,7 @@ To persist the data we will use [ArangoDB](https://www.arangodb.com/).
 
     ```bash
     git config --global pull.rebase true
-    git config --global core.autocrlf true
+    git config --global core.autocrlf false
     git config --global user.name "<first name> <last name>"
     git config --global user.email "<email>"
     ```
@@ -150,6 +150,7 @@ To get the best development experience you should install available plugins for 
 1. Should be available in your IDE
 
     - [EditorConfig](https://editorconfig.org/): Everyone should use the same Configuration for the editor
+    - Prettier ([Atom](https://atom.io/packages/prettier-atom) | [VSCode](https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode)): Beautyfies your code on save if configured
     - TSLint ([Atom](https://atom.io/packages/linter-tslint) | [VSCode](https://marketplace.visualstudio.com/items?itemName=ms-vscode.vscode-typescript-tslint-plugin)): Write well formatted code in TypeScript
     - ESLint ([Atom](https://atom.io/packages/linter-eslint) | [VSCode](https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint)): Write well formatted code in JavaScript
     - typescript ([Atom](https://atom.io/packages/atom-typescript)): Better intellisense while writing Typescript and AssemblyScript
@@ -172,6 +173,7 @@ To get the best development experience you should install available plugins for 
 1. Because there is a commit hook which checks every function and property for a doc string, it happens sometimes that a developer writes nonesense in the documentation. This doc strings will later be used for a documentation WIKI so it is very important to write useful and correct documentation especially for newcomers to have a easy introduction to this project.
 
 2. When you create a new directory remember to create a `README.md` which contains documentation for:
+
     - What is contained in there
     - What is the intention of this directory/package
     - Is it hard linked to somewhere
@@ -179,6 +181,7 @@ To get the best development experience you should install available plugins for 
     So everyone can understand the project structure.
 
 3. Remember that there are several root directories
+
     - Project root
     - output root
     - source root
