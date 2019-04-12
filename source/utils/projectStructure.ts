@@ -10,8 +10,8 @@ import { walk as wWalk, WalkStats } from 'walk';
  */
 export function getCorrespondingFile(filePath: string): string {
     if (!isAbsolute(filePath)) filePath = resolve(rootPath, filePath);
-    let sourcePath = resolve(rootPath, 'source');
-    let outPath = resolve(rootPath, 'out');
+    const sourcePath = resolve(rootPath, 'source');
+    const outPath = resolve(rootPath, 'out');
     let correspondingFile = null;
     if (isSourceFile(filePath)) {
         correspondingFile = filePath.replace(sourcePath, outPath).replace('.ts', '.js');
@@ -49,8 +49,8 @@ export function isSourceFile(filePath: string): boolean {
  */
 export function isOnClientSide(filePath: string): boolean {
     if (!isAbsolute(filePath)) filePath = resolve(rootPath, filePath);
-    let sourceClientPath = resolve(rootPath, 'source', 'app', 'client');
-    let outClientPath = resolve(rootPath, 'out', 'app', 'client');
+    const sourceClientPath = resolve(rootPath, 'source', 'app', 'client');
+    const outClientPath = resolve(rootPath, 'out', 'app', 'client');
     if (
         (isSourceFile(filePath) && filePath.includes(sourceClientPath)) ||
         (!isSourceFile(filePath) && filePath.includes(outClientPath))
@@ -69,15 +69,15 @@ export function isOnClientSide(filePath: string): boolean {
  * @param {(path: string, stats: Stats) => void} onFileFound
  * @returns
  */
-export function walk(dir: string, onFile?: (file: string, status: WalkStats) => void): Promise<Array<string>> {
+export function walk(dir: string, onFile?: (file: string, status: WalkStats) => void): Promise<string[]> {
     if (!isAbsolute(dir)) dir = resolve(rootPath, dir);
-    let walker = wWalk(dir);
-    let results: Array<string> = [];
+    const walker = wWalk(dir);
+    const results: string[] = [];
     return new Promise((resolver) => {
         walker.on('file', (root, fileStats, next) => {
-            let path = resolve(root, fileStats.name);
+            const path = resolve(root, fileStats.name);
             results.push(path);
-            onFile && onFile(path, fileStats);
+            if (onFile) onFile(path, fileStats);
             next();
         });
         walker.on('end', () => {

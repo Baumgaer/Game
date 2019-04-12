@@ -1,6 +1,6 @@
 {
     "compilerOptions": {
-        "lib": ["es2018", "webworker", "dom"],
+        "lib": ["es2018", "webworker", "dom", "esnext.asynciterable"],
         "skipLibCheck": true,
         "removeComments": true,
         "importHelpers": true,

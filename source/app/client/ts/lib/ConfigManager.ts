@@ -6,17 +6,6 @@ import { BDOConfigManager } from './../../../lib/BDOConfigManager';
  * @class ConfigManager
  */
 export class ConfigManager extends BDOConfigManager {
-    /**
-     * @inheritdoc
-     *
-     * @protected
-     * @param {string} config
-     * @returns {Promise<any>}
-     * @memberof ConfigManager
-     */
-    protected load(config: string): Promise<any> {
-        throw new Error('Method not implemented.');
-    }
 
     /**
      * @inheritdoc
@@ -25,7 +14,7 @@ export class ConfigManager extends BDOConfigManager {
      * @returns {object}
      * @memberof ConfigManager
      */
-    public set(config: string): object {
+    public set(_config: string): object {
         throw new Error('Method not implemented.');
     }
 
@@ -37,7 +26,19 @@ export class ConfigManager extends BDOConfigManager {
      * @returns {Promise<any>}
      * @memberof ConfigManager
      */
-    protected getCache(config: string): Promise<any> {
+    protected load(_config: string): Promise<any> {
+        throw new Error('Method not implemented.');
+    }
+
+    /**
+     * @inheritdoc
+     *
+     * @protected
+     * @param {string} config
+     * @returns {Promise<any>}
+     * @memberof ConfigManager
+     */
+    protected getCache(_config: string): Promise<any> {
         throw new Error('Method not implemented.');
     }
 
@@ -50,7 +51,7 @@ export class ConfigManager extends BDOConfigManager {
      * @returns {Promise<boolean>}
      * @memberof ConfigManager
      */
-    protected setCache(config: string, value: any): Promise<boolean> {
+    protected setCache(_config: string, _value: any): Promise<void> {
         throw new Error('Method not implemented.');
     }
 }
