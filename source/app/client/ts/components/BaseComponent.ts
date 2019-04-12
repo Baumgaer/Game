@@ -1,4 +1,5 @@
-import { merge } from 'lodash';
+import { merge, isString, isObject } from 'lodash';
+import { Template, renderString } from 'nunjucks';
 /**
  * Creates a new BaseComponent based on the HTMLTypeElement
  *
@@ -22,13 +23,30 @@ export function BaseComponentFactory<TBase extends Constructor<HTMLElement>>(HTM
          */
         public readonly isBaseComponent: boolean = true;
 
-        constructor(...args: any[]) {
-            super(args);
-            merge(this, args[0] || {});
+        /**
+         * Defines the template of the of the component.
+         * Musst have exactly one root node and can be a string or a Template
+         * for e.g. require("./path/to/template.njk")
+         *
+         * @type {(string | Template)}
+         * @memberof BaseComponent
+         */
+        protected templateString: string | Template = '<div><slot></slot></div>';
 
-            // Attach a shadow root to the element.
-            this.attachShadow({ mode: 'open' });
-            // shadowRoot.appendChild("");
+        /**
+         * Contains an object which keys matches the interpolations of the template.
+         * This could be used to define a standard style similar to the default
+         * style of normal HTMLElements or to define a standard content.
+         *
+         * @protected
+         * @type {IndexStructure}
+         * @memberof BaseComponent
+         */
+        protected templateParams: IndexStructure = {};
+
+        constructor(...args: any[]) {
+            super();
+            merge(this, args[0] || {});
         }
 
         /**
@@ -39,8 +57,23 @@ export function BaseComponentFactory<TBase extends Constructor<HTMLElement>>(HTM
          * @memberof BaseComponent
          */
         protected connectedCallback(): void {
+            // Attach a shadow root to the element.
+            let stringToParse = null;
+            if (isString(this.templateString)) {
+                stringToParse = renderString(this.templateString, this.templateParams);
+            }
+            if (isObject(this.templateString)) {
+                stringToParse = (<Template>this.templateString).render(this.templateParams);
+            }
+            if (stringToParse) {
+                const shadowRoot = this.attachShadow({ mode: 'open' });
+                const doc = new DOMParser().parseFromString(stringToParse, 'text/html');
+                shadowRoot.appendChild(<ChildNode>doc.body.firstChild);
+            }
+
+            // Map default _properties to native attributes
             for (const key in this) {
-                if (this.hasOwnProperty(key) && key.startsWith('_')) {
+                if (this.hasOwnProperty(key) && key.startsWith('_') && !this.getAttribute(key.substr(1))) {
                     this.setAttribute(key.substr(1), String(this[key]));
                 }
             }
@@ -53,7 +86,7 @@ export function BaseComponentFactory<TBase extends Constructor<HTMLElement>>(HTM
          * @protected
          * @memberof BaseComponent
          */
-        protected disconnectedCallback(): void { }
+        protected disconnectedCallback(): void {}
 
         /**
          * Called when the component is moved to another document.
@@ -62,7 +95,7 @@ export function BaseComponentFactory<TBase extends Constructor<HTMLElement>>(HTM
          * @protected
          * @memberof BaseComponent
          */
-        protected adoptedCallback(): void { }
+        protected adoptedCallback(): void {}
     }
     return BaseComponent;
 }

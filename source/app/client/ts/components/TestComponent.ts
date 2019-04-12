@@ -22,8 +22,6 @@ export class TestComponent extends BaseComponentFactory(HTMLElement) {
      * @protected
      * @memberof TestComponent
      */
-    protected connectedCallback() {
-        super.connectedCallback();
-    }
+    protected templateString = require('./../../views/testComponent.njk');
 }
 customElements.define('test-component', TestComponent);

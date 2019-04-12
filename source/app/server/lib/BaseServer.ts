@@ -214,7 +214,8 @@ export abstract class BaseServer {
         // Setup the template engine
         nunjucks.configure(resolve(rootPath, configs[4].views), {
             express: this.app,
-            autoescape: configs[0].viewEngine.autoescape
+            autoescape: configs[0].viewEngine.autoescape,
+            noCache: process.env.NODE_ENV === 'development' ? true : false
         });
         this.app.set('view engine', configs[0].viewEngine.extension);
 
@@ -231,7 +232,7 @@ export abstract class BaseServer {
      * @returns {Promise<void>}
      * @memberof BaseServer
      */
-    protected async routeCollection(): Promise<void> { }
+    protected async routeCollection(): Promise<void> {}
 
     /**
      * 3. Usually used for creation of error handling middlewares
@@ -240,7 +241,7 @@ export abstract class BaseServer {
      * @returns {Promise<void>}
      * @memberof BaseServer
      */
-    protected async afterRouteCollection(): Promise<void> { }
+    protected async afterRouteCollection(): Promise<void> {}
 
     /**
      * 4. collects all available resolvers and initializes them
@@ -282,5 +283,5 @@ export abstract class BaseServer {
      * @returns {Promise<void>}
      * @memberof BaseServer
      */
-    protected async afterResolverCollection(): Promise<void> { }
+    protected async afterResolverCollection(): Promise<void> {}
 }

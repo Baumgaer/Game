@@ -50,7 +50,7 @@ module.exports = {
                 {
                     loader: 'cache-loader',
                     options: {
-                        cacheDirectory: path.resolve(arp.path, "var", "buildcache", ".frontend")
+                        cacheDirectory: path.resolve(arp.path, "var", "buildcache", "frontend", "typescript")
                     }
                 },
                 {
@@ -67,6 +67,28 @@ module.exports = {
                     options: {
                         happyPackMode: true // IMPORTANT! use happyPackMode mode to speed-up compilation and reduce errors reported to webpack
                     }
+                }
+            ]
+        }, {
+            test: /\.(njk|nunjucks)$/,
+            use: [
+                {
+                    loader: 'cache-loader',
+                    options: {
+                        cacheDirectory: path.resolve(arp.path, "var", "buildcache", "frontend", "templates")
+                    }
+                },
+                {
+                    loader: 'thread-loader',
+                    options: {
+                        // there should be 1 cpu for the fork-ts-checker-webpack-plugin
+                        workers: Math.floor((os.cpus().length - 1) / 2),
+                        poolRespawn: false,
+                        poolTimeout: Infinity // set this to Infinity in watch mode - see https://github.com/webpack-contrib/thread-loader
+                    }
+                },
+                {
+                    loader: 'nunjucks-loader'
                 }
             ]
         }]
