@@ -2,8 +2,10 @@ const arp = require('app-root-path');
 const path = require('path');
 const os = require('os');
 const webpack = require('webpack');
+const fs = require('graceful-fs');
 const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
 const ForkTsCheckerNotifierWebpackPlugin = require('fork-ts-checker-notifier-webpack-plugin');
+const EventHooksPlugin = require('event-hooks-webpack-plugin');
 const projectStructureUtils = require('./out/utils/projectStructure');
 
 module.exports = {
@@ -25,7 +27,7 @@ module.exports = {
     },
     resolve: {
         // Add `.ts` and `.tsx` as a resolvable extension.
-        extensions: [".ts", ".tsx", ".js"]
+        extensions: [".ts", ".tsx", ".js", ".njk"]
     },
     plugins: [
         new ForkTsCheckerWebpackPlugin({
@@ -38,6 +40,17 @@ module.exports = {
         }),
         new webpack.NormalModuleReplacementPlugin(/type-graphql$/, resource => {
             resource.request = resource.request.replace(/type-graphql/, "type-graphql/dist/browser-shim");
+        }),
+        new EventHooksPlugin({
+            shouldEmit: () => {
+                let shouldEmit = false;
+                try {
+                    fs.accessSync(path.resolve(arp.path, ".git", "index.lock"), fs.constants.F_OK);
+                } catch (error) {
+                    shouldEmit = true;
+                }
+                return shouldEmit;
+            }
         })
     ],
     optimization: {

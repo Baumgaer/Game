@@ -68,6 +68,7 @@
         "chai": "^4.2.0",
         "eslint": "^5.16.0",
         "eslint-plugin-mysticatea": "^4.2.4",
+        "event-hooks-webpack-plugin": "^2.1.1",
         "fork-ts-checker-notifier-webpack-plugin": "^1.0.0",
         "fork-ts-checker-webpack-plugin": "^1.0.2",
         "grunt-contrib-watch-chokidar": "^1.0.0",
