@@ -1,5 +1,5 @@
 import ms = require('ms');
-import { BDOMapCache } from './BDOMapCache';
+import { BDOMapCache } from '~bdo/lib/BDOMapCache';
 /**
  * Manages the configuration on client and server side.
  * The order of getting the configuration is the following:

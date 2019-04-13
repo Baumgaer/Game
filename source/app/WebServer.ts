@@ -1,4 +1,5 @@
-import { BaseServer } from './server/lib/BaseServer';
+import './../utils/requireOverride';
+import { BaseServer } from '~server/lib/BaseServer';
 import { Request, Response } from 'express';
 
 /**
@@ -35,5 +36,5 @@ class WebServer extends BaseServer {
     }
 }
 
-let webServer = new WebServer();
+const webServer = new WebServer();
 webServer.start();

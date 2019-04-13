@@ -1,8 +1,8 @@
-import { BaseServer } from './BaseServer';
+import { BaseServer } from '~server/lib/BaseServer';
 import * as ws from 'ws';
 import { IncomingMessage, ClientRequest } from 'http';
 import { Request, Response } from 'express';
-import { Logger } from './Logger';
+import { Logger } from '~server/lib/Logger';
 
 const logger = new Logger();
 /**
@@ -117,7 +117,7 @@ export abstract class WebSocketServer extends BaseServer {
      * @returns {Promise<void>}
      * @memberof WebSocketServer
      */
-    protected async onWebSocketUnexpectedResponse(_request: ClientRequest, _response: IncomingMessage): Promise<void> {}
+    protected async onWebSocketUnexpectedResponse(_req: ClientRequest, _res: IncomingMessage): Promise<void> {}
 
     /**
      * Fired when an existing connection was closed.

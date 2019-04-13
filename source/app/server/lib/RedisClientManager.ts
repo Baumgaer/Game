@@ -1,8 +1,8 @@
-import { Redis, messageType } from './Redis';
+import { Redis, messageType } from '~server/lib/Redis';
 import * as IORedis from 'ioredis';
 import { merge } from 'lodash';
-import { Logger } from './Logger';
-import { ConfigManager } from './ConfigManager';
+import { Logger } from '~server/lib/Logger';
+import { ConfigManager } from '~server/lib/ConfigManager';
 
 const configManager = ConfigManager.getInstance();
 const logger = new Logger({
@@ -16,7 +16,7 @@ const logger = new Logger({
  * @class ClientNotExistError
  * @extends {Error}
  */
-export class ClientNotExistError extends Error { }
+export class ClientNotExistError extends Error {}
 
 /**
  * Fired when a redis client already exists but tried to create an instance
@@ -25,7 +25,7 @@ export class ClientNotExistError extends Error { }
  * @class ClientAlreadyExistsError
  * @extends {Error}
  */
-export class ClientAlreadyExistsError extends Error { }
+export class ClientAlreadyExistsError extends Error {}
 
 /**
  * Manages the connections of all redis clients especially the subscription
@@ -67,7 +67,7 @@ export class RedisClientManager {
         return RedisClientManager.instance;
     }
 
-    private constructor() { }
+    private constructor() {}
 
     /**
      * Creates a new Redis client if id does not already exist

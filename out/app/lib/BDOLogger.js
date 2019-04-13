@@ -2,7 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const moment = require("moment");
 const path_1 = require("path");
-const environment_1 = require("./../utils/environment");
+const environment_1 = require("~bdo/utils/environment");
 class BDOLogger {
     constructor() {
         this.logFile = 'default.log';

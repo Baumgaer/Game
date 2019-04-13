@@ -23,9 +23,16 @@
         "no-implicit-dependencies": [
             true,
             [
-                "source/app/client/ts/lib"
+                "source/app/client/ts/lib",
+                "~root",
+                "~server",
+                "~client",
+                "~bdo",
+                "chai"
             ]
         ],
+        "no-unused-expression-chai": true,
+        "no-unused-expression": false,
         "completed-docs": true,
         "deprecation": true,
         "ban-types": false,
@@ -95,5 +102,7 @@
             }
         ]
     },
-    "rulesDirectory": []
+    "rulesDirectory": [
+        "tslint-no-unused-expression-chai"
+    ]
 }

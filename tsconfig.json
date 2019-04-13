@@ -6,7 +6,22 @@
         "outDir": "out",
         "rootDir": "source",
         "incremental": true,
-        "tsBuildInfoFile": "var/buildcache/.backend"
+        "tsBuildInfoFile": "var/buildcache/.backend",
+        "baseUrl": ".",
+        "paths": {
+            "~root/*": [
+                "source/*"
+            ],
+            "~client/*": [
+                "source/app/client/*"
+            ],
+            "~bdo/*": [
+                "source/app/*"
+            ],
+            "~server/*": [
+                "source/app/server/*"
+            ]
+        }
     },
     "exclude": [
         "node_modules",

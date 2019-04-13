@@ -1,4 +1,5 @@
-import { WebSocketServer } from './server/lib/WebSocketServer';
+import './../utils/requireOverride';
+import { WebSocketServer } from '~server/lib/WebSocketServer';
 import { Request, Response } from 'express';
 
 /**

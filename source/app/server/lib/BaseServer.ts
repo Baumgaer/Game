@@ -15,10 +15,10 @@ import { createServer, Server } from 'http';
 import { AddressInfo } from 'ws';
 import { createHash } from 'crypto';
 import { RedisPubSub as GraphQLRedisPubSub } from 'graphql-redis-subscriptions';
-import { ConfigManager } from './ConfigManager';
-import { RedisClientManager } from './RedisClientManager';
-import { Logger } from './Logger';
-import { walk } from './../../../utils/projectStructure';
+import { ConfigManager } from '~server/lib/ConfigManager';
+import { RedisClientManager } from '~server/lib/RedisClientManager';
+import { Logger } from '~server/lib/Logger';
+import { walk } from '~root/utils/projectStructure';
 
 const configManager = ConfigManager.getInstance();
 const redisClientManager = RedisClientManager.getInstance();

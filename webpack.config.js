@@ -7,6 +7,7 @@ const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
 const ForkTsCheckerNotifierWebpackPlugin = require('fork-ts-checker-notifier-webpack-plugin');
 const EventHooksPlugin = require('event-hooks-webpack-plugin');
 const LiveReloadPlugin = require('webpack-livereload-plugin');
+const TsconfigPathsPlugin = require('tsconfig-paths-webpack-plugin');
 const projectStructureUtils = require('./out/utils/projectStructure');
 
 module.exports = {
@@ -28,7 +29,12 @@ module.exports = {
     },
     resolve: {
         // Add `.ts` and `.tsx` as a resolvable extension.
-        extensions: [".ts", ".tsx", ".js", ".njk"]
+        extensions: [".ts", ".tsx", ".js", ".njk"],
+        plugins: [
+            new TsconfigPathsPlugin({
+                configFile: "./source/app/client/ts/tsconfig.json"
+            })
+        ]
     },
     plugins: [
         new LiveReloadPlugin(),

@@ -1,21 +1,22 @@
 {
     "compilerOptions": {
-        "lib": ["es2018", "webworker", "dom", "esnext.asynciterable"],
+        "lib": [
+            "es2018",
+            "webworker",
+            "dom",
+            "esnext.asynciterable"
+        ],
         "skipLibCheck": true,
         "removeComments": true,
         "importHelpers": true,
         "isolatedModules": false,
-
         "newLine": "LF",
-
         "strict": true,
-
         "noUnusedLocals": true,
         "noUnusedParameters": true,
         "noImplicitReturns": true,
         "noFallthroughCasesInSwitch": true,
         "allowUnreachableCode": false,
-
         "moduleResolution": "node",
         "typeRoots": [],
         "types": [
@@ -26,9 +27,7 @@
             "open-simplex-noise"
         ],
         "allowSyntheticDefaultImports": false,
-
         "inlineSourceMap": true,
-
         "experimentalDecorators": true,
         "emitDecoratorMetadata": true
     }

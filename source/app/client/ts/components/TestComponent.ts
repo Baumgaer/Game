@@ -1,4 +1,4 @@
-import { BaseComponentFactory } from './BaseComponent';
+import { BaseComponentFactory } from '~client/components/BaseComponent';
 
 /**
  * Test

@@ -1,4 +1,4 @@
-import { BDOConfigManager } from './../../lib/BDOConfigManager';
+import { BDOConfigManager } from '~bdo/lib/BDOConfigManager';
 import { readFile, access, constants } from 'graceful-fs';
 import { path as rootPath } from 'app-root-path';
 import { resolve } from 'path';

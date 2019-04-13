@@ -4,7 +4,7 @@ import { createWriteStream } from 'graceful-fs';
 import { resolve } from 'path';
 import { path as rootPath } from 'app-root-path';
 import { merge } from 'lodash';
-import { BDOLogger, logLevels, printEnvironments } from './../../lib/BDOLogger';
+import { BDOLogger, logLevels, printEnvironments } from '~bdo/lib/BDOLogger';
 
 /**
  * Logs colored console output and writes to files
