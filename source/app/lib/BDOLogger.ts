@@ -72,6 +72,7 @@ export abstract class BDOLogger {
      * @memberof BDOLogger
      */
     public log(message: any, loglevel: logLevels = 'log', ...args: any[]): void {
+        if (loglevel !== 'log' && !this.isAllowed(loglevel)) return;
         if (!this.preventConsolePrint || ['log', 'error'].includes(loglevel)) {
             const header = this.getHeader(loglevel);
             let newArgs: string[] = [];
@@ -96,7 +97,7 @@ export abstract class BDOLogger {
      */
     public debug(message: any, ...args: any): void {
         const apply = [message, 'debug'].concat(args);
-        if (this.isAllowed('debug')) this.log.apply(this, <[any, logLevels]>apply);
+        this.log.apply(this, <[any, logLevels]>apply);
     }
 
     /**
@@ -107,7 +108,7 @@ export abstract class BDOLogger {
      */
     public info(message: any, ...args: any): void {
         const apply = [message, 'info'].concat(args);
-        if (this.isAllowed('info')) this.log.apply(this, <[any, logLevels]>apply);
+        this.log.apply(this, <[any, logLevels]>apply);
     }
 
     /**
@@ -118,7 +119,7 @@ export abstract class BDOLogger {
      */
     public warn(message: any, ...args: any): void {
         const apply = [message, 'warn'].concat(args);
-        if (this.isAllowed('warn')) this.log.apply(this, <[any, logLevels]>apply);
+        this.log.apply(this, <[any, logLevels]>apply);
     }
 
     /**
@@ -129,7 +130,7 @@ export abstract class BDOLogger {
      */
     public error(message: any, ...args: any): void {
         const apply = [message, 'error'].concat(args);
-        if (this.isAllowed('error')) this.log.apply(this, <[any, logLevels]>apply);
+        this.log.apply(this, <[any, logLevels]>apply);
     }
 
     /**
