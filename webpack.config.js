@@ -31,6 +31,7 @@ module.exports = {
         extensions: [".ts", ".tsx", ".js", ".njk"]
     },
     plugins: [
+        new LiveReloadPlugin(),
         new ForkTsCheckerWebpackPlugin({
             useTypescriptIncrementalApi: true,
             tsconfig: path.resolve(arp.path, "source", "app", "client", "ts", "tsconfig.json")
@@ -42,7 +43,6 @@ module.exports = {
         new webpack.NormalModuleReplacementPlugin(/type-graphql$/, resource => {
             resource.request = resource.request.replace(/type-graphql/, "type-graphql/dist/browser-shim");
         }),
-        new LiveReloadPlugin(),
         new EventHooksPlugin({
             shouldEmit: () => {
                 let shouldEmit = false;

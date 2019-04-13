@@ -10,7 +10,7 @@ import { Request, Response } from 'express';
  */
 class GameServer extends WebSocketServer {
     /**
-     * Test
+     * @inheritdoc
      *
      * @protected
      * @param {Request} request
@@ -22,7 +22,7 @@ class GameServer extends WebSocketServer {
     }
 
     /**
-     * Test
+     * @inheritdoc
      *
      * @protected
      * @returns {Promise<void>}

@@ -15,7 +15,7 @@ const logger = new Logger();
  */
 export abstract class WebSocketServer extends BaseServer {
     /**
-     * Test
+     * The websocket server instance
      *
      * @protected
      * @type {ws.Server}
@@ -46,7 +46,7 @@ export abstract class WebSocketServer extends BaseServer {
     }
 
     /**
-     * Test
+     * Determines wether a client has rights to access the websocket server
      *
      * @protected
      * @param {Request} _request
@@ -58,7 +58,7 @@ export abstract class WebSocketServer extends BaseServer {
     }
 
     /**
-     * Test
+     * Fired when a client established a new connection to this server
      *
      * @protected
      * @param {ws} socket
@@ -69,7 +69,7 @@ export abstract class WebSocketServer extends BaseServer {
     protected async onWebSocketConnection(_socket: ws, _request: IncomingMessage): Promise<void> {}
 
     /**
-     * Test
+     * Fired when a client send a message to the server
      *
      * @param {string} message
      * @param {ws} socket
@@ -78,7 +78,7 @@ export abstract class WebSocketServer extends BaseServer {
     protected async onIncomingWebSocketMessage(_message: string, _socket: ws): Promise<void> {}
 
     /**
-     * Test
+     * Fired when an existing client opens a new websocket connection to this server
      *
      * @protected
      * @param {ws} socket
@@ -87,7 +87,7 @@ export abstract class WebSocketServer extends BaseServer {
     protected async onWebSocketOpen(_socket: ws): Promise<void> {}
 
     /**
-     * Test
+     * Fired when an error occurs on server side in conjunction with an existing client
      *
      * @protected
      * @param {ws} socket
@@ -97,7 +97,8 @@ export abstract class WebSocketServer extends BaseServer {
     protected async onWebSocketError(_socket: ws, _error: Error): Promise<void> {}
 
     /**
-     * Test
+     * Fired when the used protocol of an established connection is changed
+     * for example from ws:// to wss://.
      *
      * @protected
      * @param {IncomingMessage} request
@@ -107,7 +108,8 @@ export abstract class WebSocketServer extends BaseServer {
     protected async onWebSocketUpgrade(_request: IncomingMessage): Promise<void> {}
 
     /**
-     * Test
+     * Fired when the server respond with an status code which is not typically
+     * for the sent content.
      *
      * @protected
      * @param {ClientRequest} request
@@ -118,7 +120,7 @@ export abstract class WebSocketServer extends BaseServer {
     protected async onWebSocketUnexpectedResponse(_request: ClientRequest, _response: IncomingMessage): Promise<void> {}
 
     /**
-     * Test
+     * Fired when an existing connection was closed.
      *
      * @protected
      * @param {number} code
@@ -129,7 +131,7 @@ export abstract class WebSocketServer extends BaseServer {
     protected async onWebSocketClose(_code: number, _reason: string): Promise<void> {}
 
     /**
-     * Test
+     * Fired when a ping from client was received
      *
      * @protected
      * @param {Buffer} data
@@ -139,7 +141,7 @@ export abstract class WebSocketServer extends BaseServer {
     protected async onWebSocketPing(_data: Buffer): Promise<void> {}
 
     /**
-     * Test
+     * Fired when the received ping was successful and answered
      *
      * @protected
      * @param {Buffer} data

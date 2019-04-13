@@ -72,13 +72,18 @@ export abstract class BDOLogger {
      * @memberof BDOLogger
      */
     public log(message: any, loglevel: logLevels = 'log', ...args: any[]): void {
-        if (!this.preventConsolePrint && !['log', 'error'].includes(loglevel)) {
+        if (!this.preventConsolePrint || ['log', 'error'].includes(loglevel)) {
             const header = this.getHeader(loglevel);
-            const newArgs = [header, message].concat(args);
+            let newArgs: string[] = [];
+            if (header instanceof Array) {
+                newArgs = newArgs.concat(header);
+            } else newArgs.push(header);
+            newArgs.push(message);
+            newArgs = newArgs.concat(args);
             (<IndexStructure>console)[loglevel].apply(this, newArgs);
         }
         const parsedString = JSON.stringify(args);
-        if (!this.preventFilePrint && loglevel !== 'error') {
+        if (!this.preventFilePrint || loglevel === 'error') {
             this.writeToFile(loglevel, message + parsedString.substr(1, parsedString.length - 2));
         }
     }
@@ -145,7 +150,7 @@ export abstract class BDOLogger {
      * @returns {string}
      * @memberof BDOLogger
      */
-    protected abstract getHeader(logLevel: logLevels, printEnv?: printEnvironments): string;
+    protected abstract getHeader(logLevel: logLevels, printEnv?: printEnvironments): string | string[];
 
     /**
      * Writes the message to configured log file
