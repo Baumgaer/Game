@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import { resolve } from 'path';
 import { path as rootPath } from 'app-root-path';
-import { isSourceFile, isOnClientSide, getCorrespondingFile } from './../utils/projectStructure';
+import { isSourceFile, isOnClientSide, getCorrespondingFile, walk } from './../utils/projectStructure';
 
 describe('Tests for utils/projectStructure', function describe() {
     const sourceNotClientFilePath = './source/app/server/test.ts';
@@ -26,5 +26,17 @@ describe('Tests for utils/projectStructure', function describe() {
 
     it('should return the corresponding file path of a not source file', function test() {
         expect(getCorrespondingFile(outClientFilePath)).to.equal(resolve(rootPath, sourceClientFilePath));
+    });
+
+    it('should walk the deep path test asset with all files', function test(done) {
+        const files: string[] = [];
+        walk(resolve(rootPath, 'source', 'specs', 'testAssets', 'deepPath'), (file) => {
+            files.push(file);
+        }).then((paths) => {
+            expect(files).to.be.not.empty;
+            expect(paths).to.be.not.empty;
+            expect(paths).members(files);
+            done();
+        });
     });
 });

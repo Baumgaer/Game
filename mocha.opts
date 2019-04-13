@@ -2,3 +2,4 @@
 --retries 3
 --slow 10000
 --require source-map-support/register
+--require ./out/specs/mocha.env.js
