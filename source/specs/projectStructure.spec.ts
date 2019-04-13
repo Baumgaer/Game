@@ -1,7 +1,14 @@
 import { expect } from 'chai';
-import { resolve } from 'path';
+import { resolve, dirname } from 'path';
 import { path as rootPath } from 'app-root-path';
-import { isSourceFile, isOnClientSide, getCorrespondingFile, walk } from './../utils/projectStructure';
+import { existsSync, mkdirSync } from 'graceful-fs';
+import {
+    isSourceFile,
+    isOnClientSide,
+    getCorrespondingFile,
+    walk,
+    cleanEmptyFoldersRecursively
+} from './../utils/projectStructure';
 
 describe('Tests for utils/projectStructure', function describe() {
     const sourceNotClientFilePath = './source/app/server/test.ts';
@@ -38,5 +45,19 @@ describe('Tests for utils/projectStructure', function describe() {
             expect(paths).members(files);
             done();
         });
+    });
+
+    it('should delete empty folders', function test() {
+        // Setup test
+        const testFolder = resolve(rootPath, 'source', 'specs', 'testAssets', 'myEmptyFolder');
+        if (!existsSync(testFolder)) mkdirSync(testFolder);
+
+        // Test
+        let callbackWasExecuted = '';
+        cleanEmptyFoldersRecursively(resolve(dirname(testFolder)), (folder) => {
+            callbackWasExecuted = folder;
+        });
+        expect(existsSync(testFolder)).to.be.false;
+        expect(callbackWasExecuted).to.equal(testFolder);
     });
 });

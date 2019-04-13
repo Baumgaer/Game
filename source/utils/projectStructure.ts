@@ -1,6 +1,7 @@
 import { resolve, isAbsolute, sep } from 'path';
 import { path as rootPath } from 'app-root-path';
-import { walk as wWalk, WalkStats } from 'walk';
+import { walk as wWalk } from 'walk';
+import { readdirSync, statSync, rmdirSync } from 'graceful-fs';
 
 /**
  * Returns the corresponding path of the other target
@@ -69,19 +70,63 @@ export function isOnClientSide(filePath: string): boolean {
  * @param {(path: string, stats: Stats) => void} onFileFound
  * @returns
  */
-export function walk(dir: string, onFile?: (file: string, status: WalkStats) => void): Promise<string[]> {
+/**
+ * Iterates over the structure of a given directory recursive and executes the
+ * onFile function on every found file and onDir on every found directory.
+ * resolves to a List of found files.
+ *
+ * @export
+ * @param {string} dir absolute or relative by project root path to dir
+ * @param {walkEventFunc} [onFile]
+ * @param {walkEventFunc} [onDir]
+ * @returns {Promise<string[]>}
+ */
+export function walk(dir: string, onFile?: walkEventFunc, onDir?: walkEventFunc): Promise<string[]> {
     if (!isAbsolute(dir)) dir = resolve(rootPath, dir);
     const walker = wWalk(dir);
     const results: string[] = [];
     return new Promise((resolver) => {
-        walker.on('file', (root, fileStats, next) => {
+        walker.on('file', async (root, fileStats, next) => {
             const path = resolve(root, fileStats.name);
             results.push(path);
-            if (onFile) onFile(path, fileStats);
+            if (onFile) await onFile(path, fileStats);
+            next();
+        });
+        walker.on('directory', async (base, dirStats, next) => {
+            const path = resolve(base);
+            if (onDir) await onDir(path, dirStats);
             next();
         });
         walker.on('end', () => {
             resolver(results);
         });
     });
+}
+
+/**
+ * Removes all empty folders started with given folder recursively and executes
+ * onRemove if an empty folder was found.
+ *
+ * @export
+ * @param {string} folder
+ * @param {(folder: string) => void} [onRemove]
+ * @returns
+ */
+export function cleanEmptyFoldersRecursively(folder: string, onRemove?: (folder: string) => void): void {
+    const isDir = statSync(folder).isDirectory();
+    if (!isDir) {
+        return;
+    }
+    let files = readdirSync(folder);
+    if (files.length) {
+        for (const file of files) {
+            const fullPath = resolve(folder, file);
+            cleanEmptyFoldersRecursively(fullPath, onRemove);
+        }
+        files = readdirSync(folder);
+    } else {
+        if (onRemove) onRemove(folder);
+        rmdirSync(folder);
+        return;
+    }
 }

@@ -2,7 +2,13 @@ import { resolve } from 'path';
 import { path as rootPath } from 'app-root-path';
 import { existsSync, unlinkSync } from 'graceful-fs';
 import * as colors from 'colors';
-import { getCorrespondingFile, isSourceFile } from './../utils/projectStructure';
+import {
+    getCorrespondingFile,
+    isSourceFile,
+    isOnClientSide,
+    cleanEmptyFoldersRecursively
+} from './../utils/projectStructure';
+import { dirname } from 'path';
 
 module.exports = (grunt: IGrunt): void => {
     grunt.config.merge({
@@ -17,19 +23,47 @@ module.exports = (grunt: IGrunt): void => {
         grunt.config(`${target}.src`, filePath);
     });
 
-    grunt.registerMultiTask('cleanup', 'Cleans up the project on several events', function() {
+    grunt.registerMultiTask('cleanup', 'Cleans up the project on several events', function task() {
         let realSrc = this.filesSrc;
         if (!realSrc.length) realSrc = [grunt.task.current.data.src];
         for (const file of realSrc) {
-            let currentFile = resolve(rootPath, file);
-            let correspondingFile = getCorrespondingFile(currentFile);
+            const currentFile = resolve(rootPath, file);
+            const correspondingFile = getCorrespondingFile(currentFile);
+            const exists = existsSync(correspondingFile);
+            const isSource = isSourceFile(currentFile);
 
             let fileToDelete = null;
-            if (isSourceFile(currentFile) && existsSync(correspondingFile)) fileToDelete = correspondingFile;
-            if (!isSourceFile(currentFile) && !existsSync(correspondingFile)) fileToDelete = currentFile;
+            if (isSource && exists) fileToDelete = correspondingFile;
+            if (!isSource && !exists) fileToDelete = currentFile;
+            if (isOnClientSide(currentFile)) fileToDelete = null;
             if (fileToDelete) {
                 grunt.log.ok(`${colors.cyan.bold('Cleanup')}: ${currentFile} ${colors.cyan('=>')} ${fileToDelete}`);
                 unlinkSync(fileToDelete);
+            }
+        }
+
+        // Delete empty folders upwards and recursively until out dir is reached
+        const deletedFolders: string[] = [];
+        for (let file of realSrc) {
+            const currentFile = resolve(rootPath, file);
+            const correspondingFile = getCorrespondingFile(currentFile);
+            if (isSourceFile(currentFile)) {
+                if (existsSync(correspondingFile)) {
+                    file = correspondingFile;
+                } else continue;
+            }
+            let myDir = resolve(dirname(file));
+            if (!deletedFolders.includes(myDir)) {
+                while (myDir) {
+                    deletedFolders.push(myDir);
+                    cleanEmptyFoldersRecursively(myDir, (folder) => {
+                        grunt.log.ok(`${colors.cyan.bold('Cleanup')}: ${folder} `);
+                    });
+                    if (resolve(rootPath, 'out') === myDir) {
+                        break;
+                    }
+                    myDir = resolve(dirname(myDir));
+                }
             }
         }
     });

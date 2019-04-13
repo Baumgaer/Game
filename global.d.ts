@@ -14,6 +14,8 @@ type wsVerifyClientDone = (
     headers?: OutgoingHttpHeaders | undefined
 ) => void;
 
+type walkEventFunc = (fileOrDir: string, status: import('walk').WalkStats) => void;
+
 // A general type for JSON
 declare interface IndexStructure {
     [member: string]: any
