@@ -6,6 +6,7 @@ const fs = require('graceful-fs');
 const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
 const ForkTsCheckerNotifierWebpackPlugin = require('fork-ts-checker-notifier-webpack-plugin');
 const EventHooksPlugin = require('event-hooks-webpack-plugin');
+const LiveReloadPlugin = require('webpack-livereload-plugin');
 const projectStructureUtils = require('./out/utils/projectStructure');
 
 module.exports = {
@@ -41,6 +42,7 @@ module.exports = {
         new webpack.NormalModuleReplacementPlugin(/type-graphql$/, resource => {
             resource.request = resource.request.replace(/type-graphql/, "type-graphql/dist/browser-shim");
         }),
+        new LiveReloadPlugin(),
         new EventHooksPlugin({
             shouldEmit: () => {
                 let shouldEmit = false;
@@ -105,5 +107,8 @@ module.exports = {
                 }
             ]
         }]
+    },
+    watchOptions: {
+        ignored: ["node_modules"]
     }
 };

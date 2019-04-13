@@ -42,7 +42,8 @@ class GameServer extends WebSocketServer {
      */
     private async serveIndex(_request: Request, reply: Response): Promise<void> {
         reply.render('gameLobby', {
-            hello: 'world'
+            hello: 'world',
+            process
         });
     }
 }
