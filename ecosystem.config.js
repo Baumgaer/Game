@@ -19,6 +19,7 @@ let defaults = {
 module.exports = {
     apps: [lodash.merge({}, defaults, {
         name: 'GameServer',
+        "node_args": ["--inspect=7000"],
         script: 'out/app/GameServer.js',
         pid_file: "var/pids/gameServer.pid",
         error: "var/logs/gameServerError.log",
@@ -32,6 +33,7 @@ module.exports = {
         }
     }), lodash.merge({}, defaults, {
         name: 'WebServer',
+        "node_args": ["--inspect=7001"],
         script: 'out/app/WebServer.js',
         pid_file: "var/pids/webServer.pid",
         error: "var/logs/webServerError.log",

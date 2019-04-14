@@ -12,7 +12,9 @@ const projectStructureUtils = require('./out/utils/projectStructure');
 
 module.exports = {
     entry: () => new Promise((resolve) => {
-        const entryPoints = [];
+        const entryPoints = [
+            path.resolve(arp.path, "node_modules/@webcomponents/webcomponentsjs/webcomponents-bundle.js")
+        ];
         const appDir = path.resolve(arp.path, "source", "app");
         const notStartWith = path.resolve(appDir, "server");
         projectStructureUtils.walk(path.resolve(arp.path, "source", "app"), (file) => {
@@ -35,6 +37,13 @@ module.exports = {
                 configFile: "./source/app/client/ts/tsconfig.json"
             })
         ]
+    },
+    devtool: 'source-map',
+    optimization: {
+        noEmitOnErrors: true
+    },
+    watchOptions: {
+        ignored: ["node_modules"]
     },
     plugins: [
         new LiveReloadPlugin(),
@@ -61,9 +70,6 @@ module.exports = {
             }
         })
     ],
-    optimization: {
-        noEmitOnErrors: true
-    },
     module: {
         rules: [{
             test: /\.tsx?$/,
@@ -113,8 +119,5 @@ module.exports = {
                 }
             ]
         }]
-    },
-    watchOptions: {
-        ignored: ["node_modules"]
     }
 };

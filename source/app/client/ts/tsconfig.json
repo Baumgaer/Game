@@ -5,6 +5,9 @@
         "module": "commonjs",
         "rootDir": "./../../",
         "outDir": "./../../../../out/app/client/js",
+        "sourceMap": true,
+        "incremental": true,
+        "tsBuildInfoFile": "./../../../../var/buildcache/.frontend",
         "baseUrl": ".",
         "paths": {
             "~root/*": [

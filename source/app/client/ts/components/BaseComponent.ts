@@ -1,5 +1,7 @@
 import { merge, isString, isObject } from 'lodash';
 import { Template, renderString } from 'nunjucks';
+import { Logger } from '~client/lib/Logger';
+const logger = new Logger();
 /**
  * Creates a new BaseComponent based on the HTMLTypeElement
  *
@@ -47,6 +49,7 @@ export function BaseComponentFactory<TBase extends Constructor<HTMLElement>>(HTM
         constructor(...args: any[]) {
             super();
             merge(this, args[0] || {});
+            logger.log('lalala');
         }
 
         /**
