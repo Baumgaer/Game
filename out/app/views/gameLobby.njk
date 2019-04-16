@@ -18,7 +18,7 @@
 
 <script>
     console.log(location.host);
-    let webSocket = new WebSocket(`ws://${location.host}`);
+    let webSocket = new WebSocket(`ws://${location.host}/api`);
     webSocket.onopen = function () {
         console.log("Client is connected");
         this.send(JSON.stringify({

@@ -1,16 +1,16 @@
 import { BaseServer } from '~server/lib/BaseServer';
 import * as ws from 'ws';
-import { IncomingMessage, ClientRequest } from 'http';
+import { IncomingMessage } from 'http';
 import { Request, Response } from 'express';
 import { Logger } from '~server/lib/Logger';
 import { RedisClientManager } from '~server/lib/RedisClientManager';
 import { Redis } from '~server/lib/Redis';
-
 const logger = new Logger();
 const redisClientManager = RedisClientManager.getInstance();
 
 // Created in constructor
 let pub: Redis;
+let sub: Redis;
 
 /**
  * Test
@@ -28,36 +28,37 @@ export abstract class WebSocketServer extends BaseServer {
      * @type {ws.Server}
      * @memberof WebSocketServer
      */
-    protected readonly webSocketServer: ws.Server;
+    protected readonly webSocketServer: ws.Server = new ws.Server({
+        server: this.server,
+        verifyClient: this.verifyClient.bind(this),
+        clientTracking: true
+    });
 
-    constructor() {
-        super();
+    /**
+     * @inheritdoc
+     *
+     * @protected
+     * @returns {Promise<void>}
+     * @memberof WebSocketServer
+     */
+    protected async setupServer(): Promise<void> {
+        super.setupServer();
 
-        redisClientManager.createClient('websocketPublisher').then((client) => {
-            pub = client;
-        });
+        [pub, sub] = await Promise.all([
+            redisClientManager.createClient('websocketPublisher'),
+            redisClientManager.createClient('websocketSubscriber', undefined, true)
+        ]);
 
-        redisClientManager.createClient('websocketSubscriber', undefined, true).then((client) => {
-            client.subscribe('WebsocketServer:message', (message: string, serverID: string) => {
-                if (serverID === <string>process.env.pm_id) return;
-                this.onIncomingWebSocketMessage(message);
-            });
-        });
-
-        this.webSocketServer = new ws.Server({
-            server: this.server,
-            verifyClient: this.verifyClient.bind(this),
-            clientTracking: true
+        sub.subscribe('WebsocketServer:message', (message: string, serverID: string) => {
+            if (serverID === <string>process.env.pm_id) return;
+            this.onIncomingWebSocketMessage(message);
         });
 
         this.webSocketServer.on('connection', (socket: ws, request: IncomingMessage) => {
             this.onWebSocketConnection(socket, request);
-            socket.on('open', this.onWebSocketOpen.bind(this));
-            socket.on('upgrade', this.onWebSocketUpgrade.bind(this));
             socket.on('ping', this.onWebSocketPing.bind(this));
             socket.on('pong', this.onWebSocketPong.bind(this));
             socket.on('message', (message: string) => this.onIncomingWebSocketMessage(message, socket));
-            socket.on('unexpected-response', this.onWebSocketUnexpectedResponse.bind(this));
             socket.on('error', this.onWebSocketError.bind(this));
             socket.on('close', this.onWebSocketClose.bind(this));
         });
@@ -105,15 +106,6 @@ export abstract class WebSocketServer extends BaseServer {
     }
 
     /**
-     * Fired when an existing client opens a new websocket connection to this server
-     *
-     * @protected
-     * @param {ws} socket
-     * @memberof WebSocketServer
-     */
-    protected async onWebSocketOpen(_socket: ws): Promise<void> {}
-
-    /**
      * Fired when an error occurs on server side in conjunction with an existing client
      *
      * @protected
@@ -124,29 +116,6 @@ export abstract class WebSocketServer extends BaseServer {
     protected async onWebSocketError(_socket: ws, _error: Error): Promise<void> {}
 
     /**
-     * Fired when the used protocol of an established connection is changed
-     * for example from ws:// to wss://.
-     *
-     * @protected
-     * @param {IncomingMessage} request
-     * @returns {Promise<void>}
-     * @memberof WebSocketServer
-     */
-    protected async onWebSocketUpgrade(_request: IncomingMessage): Promise<void> {}
-
-    /**
-     * Fired when the server respond with an status code which is not typically
-     * for the sent content.
-     *
-     * @protected
-     * @param {ClientRequest} request
-     * @param {IncomingMessage} response
-     * @returns {Promise<void>}
-     * @memberof WebSocketServer
-     */
-    protected async onWebSocketUnexpectedResponse(_req: ClientRequest, _res: IncomingMessage): Promise<void> {}
-
-    /**
      * Fired when an existing connection was closed.
      *
      * @protected
@@ -155,7 +124,9 @@ export abstract class WebSocketServer extends BaseServer {
      * @returns {Promise<void>}
      * @memberof WebSocketServer
      */
-    protected async onWebSocketClose(_code: number, _reason: string): Promise<void> {}
+    protected async onWebSocketClose(_code: number, _reason: string): Promise<void> {
+        logger.debug('Websocket closed');
+    }
 
     /**
      * Fired when a ping from client was received

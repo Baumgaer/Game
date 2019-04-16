@@ -32,9 +32,7 @@ declare type states =
     | 'loadConfig'
     | 'setupServer'
     | 'routeCollection'
-    | 'afterRouteCollection'
     | 'resolverCollection'
-    | 'afterResolverCollection'
     | 'ready'
     | 'started'
     | 'stopped';
@@ -101,16 +99,8 @@ export abstract class BaseServer {
                 await this.routeCollection();
             })
             .then(async () => {
-                this.state = 'afterRouteCollection';
-                await this.afterRouteCollection();
-            })
-            .then(async () => {
                 this.state = 'resolverCollection';
                 await this.resolverCollection();
-            })
-            .then(async () => {
-                this.state = 'afterResolverCollection';
-                await this.afterResolverCollection();
             })
             .then(() => (this.state = 'ready'));
     }
@@ -156,7 +146,6 @@ export abstract class BaseServer {
     public async stop(): Promise<void> {
         await this.server.close();
         logger.info('Server stopped');
-        process.exit(0);
     }
 
     /**
@@ -223,8 +212,6 @@ export abstract class BaseServer {
         this.app.use(express.static(resolve(rootPath, configs[4].staticFiles)));
     }
 
-    // protected async getApiSchemas() {}
-
     /**
      * 2. collects all available routes and initializes them
      *
@@ -235,16 +222,7 @@ export abstract class BaseServer {
     protected async routeCollection(): Promise<void> {}
 
     /**
-     * 3. Usually used for creation of error handling middlewares
-     *
-     * @protected
-     * @returns {Promise<void>}
-     * @memberof BaseServer
-     */
-    protected async afterRouteCollection(): Promise<void> {}
-
-    /**
-     * 4. collects all available resolvers and initializes them
+     * 3. collects all available resolvers and initializes them
      *
      * @protected
      * @returns {Promise<void>}
@@ -253,10 +231,7 @@ export abstract class BaseServer {
     protected async resolverCollection(): Promise<void> {
         // Setup the API
         const pathsConfig = await configManager.get('paths');
-        const resolvers: any[] = [];
-        await walk(pathsConfig.resolvers, (file) => {
-            resolvers.push(require(file).default);
-        });
+        const resolvers: Array<Function | string> = [];
         const awaited = await Promise.all([
             walk(pathsConfig.resolvers, (file) => {
                 resolvers.push(require(file).default);
@@ -275,13 +250,4 @@ export abstract class BaseServer {
             })
         );
     }
-
-    /**
-     * 5. Usually used for creation of error handling middlewares
-     *
-     * @protected
-     * @returns {Promise<void>}
-     * @memberof BaseServer
-     */
-    protected async afterResolverCollection(): Promise<void> {}
 }

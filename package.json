@@ -103,7 +103,6 @@
         "express": "^4.16.4",
         "express-graphql": "^0.8.0",
         "express-session": "^1.16.1",
-        "fast-glob": "^2.2.6",
         "graceful-fs": "^4.1.15",
         "graphql": "^14.2.1",
         "graphql-redis-subscriptions": "^2.1.0",
