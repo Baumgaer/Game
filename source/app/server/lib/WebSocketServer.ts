@@ -5,6 +5,8 @@ import { Request, Response } from 'express';
 import { Logger } from '~server/lib/Logger';
 import { RedisClientManager } from '~server/lib/RedisClientManager';
 import { Redis } from '~server/lib/Redis';
+import { graphql, GraphQLSchema } from 'graphql';
+
 const logger = new Logger();
 const redisClientManager = RedisClientManager.getInstance();
 
@@ -102,6 +104,10 @@ export abstract class WebSocketServer extends BaseServer {
             if (client !== socket && client.readyState === ws.OPEN) {
                 client.send(message);
             }
+        }
+        if (socket) {
+            const result = await graphql(<GraphQLSchema>this.apiSchema, message);
+            socket.send(JSON.stringify(result));
         }
     }
 

@@ -19,6 +19,7 @@ import { ConfigManager } from '~server/lib/ConfigManager';
 import { RedisClientManager } from '~server/lib/RedisClientManager';
 import { Logger } from '~server/lib/Logger';
 import { walk } from '~root/utils/projectStructure';
+import { GraphQLSchema } from 'graphql';
 
 const configManager = ConfigManager.getInstance();
 const redisClientManager = RedisClientManager.getInstance();
@@ -82,6 +83,15 @@ export abstract class BaseServer {
      * @memberof BaseServer
      */
     protected state: states = 'stopped';
+
+    /**
+     * Holds the parsed schema from type graphql with corresponding resolvers
+     *
+     * @protected
+     * @type {(GraphQLSchema | null)}
+     * @memberof BaseServer
+     */
+    protected apiSchema: GraphQLSchema | null = null;
 
     constructor() {
         this.server.on('listening', () => {
@@ -242,10 +252,12 @@ export abstract class BaseServer {
         const subscriber = awaited[1];
         const publisher = awaited[2];
         const pubSub = new GraphQLRedisPubSub({ publisher, subscriber });
+
+        this.apiSchema = await buildSchema({ resolvers, pubSub });
         this.app.use(
             pathsConfig.apiEntryPoint,
             expressGraphQL({
-                schema: await buildSchema({ resolvers, pubSub }),
+                schema: this.apiSchema,
                 graphiql: process.env.NODE_ENV === 'development' ? true : false
             })
         );
