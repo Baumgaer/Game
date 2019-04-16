@@ -38,7 +38,7 @@ module.exports = {
             })
         ]
     },
-    devtool: 'source-map',
+    devtool: 'inline-source-map',
     optimization: {
         noEmitOnErrors: true
     },

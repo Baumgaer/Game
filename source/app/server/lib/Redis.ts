@@ -7,8 +7,8 @@ export type messageType = Array<
     | boolean
     | IMessageType
     | {
-        [name: string]: keyof any | boolean | messageType;
-    }
+          [name: string]: keyof any | boolean | messageType;
+      }
 >;
 
 // tslint:disable-next-line: no-empty-interface
@@ -70,8 +70,8 @@ export class Redis extends IORedis {
      * @memberof Redis
      */
     // @ts-ignore
-    public publish(topic: string, params: messageType, callback?: callbackType): void {
-        super.publish(topic, params.toString(), callback || ((_error: Error, _res: number) => {}));
+    public publish(topic: string, params: messageType): void {
+        super.publish(topic, JSON.stringify(params));
     }
 
     /**

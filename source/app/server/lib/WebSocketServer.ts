@@ -3,8 +3,15 @@ import * as ws from 'ws';
 import { IncomingMessage, ClientRequest } from 'http';
 import { Request, Response } from 'express';
 import { Logger } from '~server/lib/Logger';
+import { RedisClientManager } from '~server/lib/RedisClientManager';
+import { Redis } from '~server/lib/Redis';
 
 const logger = new Logger();
+const redisClientManager = RedisClientManager.getInstance();
+
+// Created in constructor
+let pub: Redis;
+
 /**
  * Test
  *
@@ -26,13 +33,24 @@ export abstract class WebSocketServer extends BaseServer {
     constructor() {
         super();
 
+        redisClientManager.createClient('websocketPublisher').then((client) => {
+            pub = client;
+        });
+
+        redisClientManager.createClient('websocketSubscriber', undefined, true).then((client) => {
+            client.subscribe('WebsocketServer:message', (message: string, serverID: string) => {
+                if (serverID === <string>process.env.pm_id) return;
+                this.onIncomingWebSocketMessage(message);
+            });
+        });
+
         this.webSocketServer = new ws.Server({
             server: this.server,
-            verifyClient: this.verifyClient.bind(this)
+            verifyClient: this.verifyClient.bind(this),
+            clientTracking: true
         });
 
         this.webSocketServer.on('connection', (socket: ws, request: IncomingMessage) => {
-            logger.info(`New connection:`, request.connection.address());
             this.onWebSocketConnection(socket, request);
             socket.on('open', this.onWebSocketOpen.bind(this));
             socket.on('upgrade', this.onWebSocketUpgrade.bind(this));
@@ -66,7 +84,9 @@ export abstract class WebSocketServer extends BaseServer {
      * @returns {Promise<void>}
      * @memberof WebSocketServer
      */
-    protected async onWebSocketConnection(_socket: ws, _request: IncomingMessage): Promise<void> {}
+    protected async onWebSocketConnection(_socket: ws, request: IncomingMessage): Promise<void> {
+        logger.info(`New connection:`, request.connection.address());
+    }
 
     /**
      * Fired when a client send a message to the server
@@ -75,7 +95,14 @@ export abstract class WebSocketServer extends BaseServer {
      * @param {ws} socket
      * @memberof WebSocketServer
      */
-    protected async onIncomingWebSocketMessage(_message: string, _socket: ws): Promise<void> {}
+    protected async onIncomingWebSocketMessage(message: string, socket?: ws): Promise<void> {
+        if (socket) pub.publish('WebsocketServer:message', [message, <string>process.env.pm_id]);
+        for (const client of this.webSocketServer.clients) {
+            if (client !== socket && client.readyState === ws.OPEN) {
+                client.send(message);
+            }
+        }
+    }
 
     /**
      * Fired when an existing client opens a new websocket connection to this server
