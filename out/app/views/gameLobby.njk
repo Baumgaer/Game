@@ -22,7 +22,7 @@
     webSocket.onopen = function () {
         console.log("Client is connected");
         this.send(JSON.stringify({
-            type: "message",
+            type: "broadcast",
             data: "looool"
         }));
     };

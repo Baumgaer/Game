@@ -15,6 +15,29 @@ let pub: Redis;
 let sub: Redis;
 
 /**
+ * The structure of how a message to the WebSocketServer should look like
+ *
+ * @export
+ * @interface IWSCall
+ */
+export interface IWSCall {
+    /**
+     * Used to call the corresponding method
+     *
+     * @type {string}
+     * @memberof IwsCall
+     */
+    type: 'api' | 'broadcast';
+
+    /**
+     * The Arguments passed to the method
+     *
+     * @type {string}
+     * @memberof IwsCall
+     */
+    data: string;
+}
+/**
  * Test
  *
  * @export
@@ -51,9 +74,9 @@ export abstract class WebSocketServer extends BaseServer {
             redisClientManager.createClient('websocketSubscriber', undefined, true)
         ]);
 
-        sub.subscribe('WebsocketServer:message', (message: string, serverID: string) => {
+        sub.subscribe('WebsocketServer:broadcast', (message: string, serverID: string) => {
             if (serverID === <string>process.env.pm_id) return;
-            this.onIncomingWebSocketMessage(message);
+            this.broadcast(message);
         });
 
         this.webSocketServer.on('connection', (socket: ws, request: IncomingMessage) => {
@@ -79,6 +102,65 @@ export abstract class WebSocketServer extends BaseServer {
     }
 
     /**
+     * Sends a message to all other clients than the socket. If there is no socket
+     * given it could only be a server instance where the client is not registered.
+     *
+     * @protected
+     * @param {string} message
+     * @param {ws} [socket]
+     * @memberof WebSocketServer
+     */
+    protected broadcast(message: string, socket?: ws): void {
+        for (const client of this.webSocketServer.clients) {
+            if (client !== socket && client.readyState === ws.OPEN) {
+                client.send(
+                    JSON.stringify({
+                        data: message
+                    })
+                );
+            }
+        }
+    }
+
+    /**
+     * Calls the graphQL api and sends the result to the asking client
+     *
+     * @protected
+     * @param {string} query
+     * @param {ws} socket
+     * @memberof WebSocketServer
+     */
+    protected async fetchAPI(query: string, socket: ws): Promise<void> {
+        const result = await graphql(<GraphQLSchema>this.apiSchema, query);
+        socket.send(JSON.stringify(result));
+    }
+
+    /**
+     * Sends an error to the given socket client
+     *
+     * @protected
+     * @param {Error} error
+     * @param {ws} socket
+     * @memberof WebSocketServer
+     */
+    protected sendError(error: Error, socket: ws): void {
+        logger.error(error);
+        socket.send(
+            JSON.stringify({
+                data: {
+                    errors: [
+                        {
+                            message: error.message,
+                            name: error.name,
+                            stack: error.stack
+                        }
+                    ]
+                }
+            })
+        );
+    }
+
+    /**
      * Fired when a client established a new connection to this server
      *
      * @protected
@@ -98,16 +180,36 @@ export abstract class WebSocketServer extends BaseServer {
      * @param {ws} socket
      * @memberof WebSocketServer
      */
-    protected async onIncomingWebSocketMessage(message: string, socket?: ws): Promise<void> {
-        if (socket) pub.publish('WebsocketServer:message', [message, <string>process.env.pm_id]);
-        for (const client of this.webSocketServer.clients) {
-            if (client !== socket && client.readyState === ws.OPEN) {
-                client.send(message);
-            }
+    protected async onIncomingWebSocketMessage(message: string, socket: ws): Promise<void> {
+        let data: IWSCall;
+        try {
+            data = JSON.parse(message);
+        } catch (error) {
+            return this.sendError(error, socket);
         }
-        if (socket) {
-            const result = await graphql(<GraphQLSchema>this.apiSchema, message);
-            socket.send(JSON.stringify(result));
+        if (!('type' in data) || !('data' in data)) {
+            const wrongFormatError = new Error(`Message was not an instance of IwsCall`);
+            return this.sendError(wrongFormatError, socket);
+        }
+        switch ((<string>data.type).toLowerCase()) {
+            case 'broadcast':
+                pub.publish('WebsocketServer:broadcast', [data.data, <string>process.env.pm_id]);
+                this.broadcast(data.data, socket);
+                break;
+            case 'api':
+                if (!data.hasOwnProperty('data') || !data.data) {
+                    return this.sendError(new Error(`No field "query" provided but called api`), socket);
+                }
+                this.fetchAPI(data.data, socket);
+                break;
+            default:
+                if (typeof (<IndexStructure>this)[data.type] === 'function') {
+                    try {
+                        (<IndexStructure>this)[data.type](JSON.parse(data.data));
+                    } catch (error) {
+                        this.sendError(error, socket);
+                    }
+                } else this.sendError(new Error(`Type "${data.type}" does not exist`), socket);
         }
     }
 
