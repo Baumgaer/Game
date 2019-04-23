@@ -2,8 +2,9 @@ import './../utils/requireOverride';
 import { expect } from 'chai';
 import { ConfigManager } from '~server/lib/ConfigManager';
 import { performance } from 'perf_hooks';
+import { merge } from 'lodash';
 
-describe('Tests for utils/projectStructure', function describe() {
+describe('Tests for app/server/lib/ConfigManager', function describe() {
     const expectedObject = {
         shouldBeOriginal: 'should be original',
         shouldBeOverwrittenWithServer: 'Server',
@@ -32,5 +33,17 @@ describe('Tests for utils/projectStructure', function describe() {
     it('should throw an error', function test() {
         const configManager = ConfigManager.getInstance();
         expect(configManager.set.bind('test')).to.throw(Error, 'Method not implemented.');
+    });
+
+    it('should load the clients spec config', function test(done) {
+        const configManager = ConfigManager.getInstance();
+        const clientExpectedObject = {};
+        merge(clientExpectedObject, expectedObject, {
+            shouldBeOverwrittenWithServer: 'Nop, client!'
+        });
+        configManager.getForClient('spec').then((result) => {
+            expect(result).to.deep.eq(clientExpectedObject);
+            done();
+        });
     });
 });
