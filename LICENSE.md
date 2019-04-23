@@ -1,8 +1,8 @@
 All files of this project except the dependencies, devDependencies and optionalDependencies in the package.json are part of this project and not allowed to modify, merge, publish, distribute, sublicense and/or sell copies of the Software by third people.
 
-It is also not allowed to wrap this project as a part of the own project to create a new game with this as base.
-
 The usage of this project is allowed for an amount of 5 users in a none commercial way when this license and a link to this project is unequivocally placed on the website which uses this project and when the game is unchanged.
+
+Contributors are allowed to use this project for an amount of 100 users on a public server and unlimited users on a none over the internet reachable machine.
 
 Changes are allowed when they are necessary for a pull requests as a bug fix or feature extension.
 
