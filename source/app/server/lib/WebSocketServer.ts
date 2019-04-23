@@ -6,9 +6,11 @@ import { Logger } from '~server/lib/Logger';
 import { RedisClientManager } from '~server/lib/RedisClientManager';
 import { Redis } from '~server/lib/Redis';
 import { graphql, GraphQLSchema } from 'graphql';
+import { ConfigManager } from '~server/lib/ConfigManager';
 
 const logger = new Logger();
 const redisClientManager = RedisClientManager.getInstance();
+const configManager = ConfigManager.getInstance();
 
 // Created in constructor
 let pub: Redis;
@@ -113,11 +115,9 @@ export abstract class WebSocketServer extends BaseServer {
     protected broadcast(message: string, socket?: ws): void {
         for (const client of this.webSocketServer.clients) {
             if (client !== socket && client.readyState === ws.OPEN) {
-                client.send(
-                    JSON.stringify({
-                        data: message
-                    })
-                );
+                client.send(JSON.stringify({
+                    data: message
+                }));
             }
         }
     }
@@ -145,19 +145,15 @@ export abstract class WebSocketServer extends BaseServer {
      */
     protected sendError(error: Error, socket: ws): void {
         logger.error(error);
-        socket.send(
-            JSON.stringify({
-                data: {
-                    errors: [
-                        {
-                            message: error.message,
-                            name: error.name,
-                            stack: error.stack
-                        }
-                    ]
-                }
-            })
-        );
+        socket.send(JSON.stringify({
+            data: {
+                errors: [{
+                    message: error.message,
+                    name: error.name,
+                    stack: error.stack
+                }]
+            }
+        }));
     }
 
     /**
@@ -181,7 +177,7 @@ export abstract class WebSocketServer extends BaseServer {
      * @param {Error} error
      * @memberof WebSocketServer
      */
-    protected async onWebSocketError(_socket: ws, _error: Error): Promise<void> {}
+    protected async onWebSocketError(_socket: ws, _error: Error): Promise<void> { }
 
     /**
      * Fired when an existing connection was closed.
@@ -204,7 +200,7 @@ export abstract class WebSocketServer extends BaseServer {
      * @returns {Promise<void>}
      * @memberof WebSocketServer
      */
-    protected async onWebSocketPing(_data: Buffer): Promise<void> {}
+    protected async onWebSocketPing(_data: Buffer): Promise<void> { }
 
     /**
      * Fired when the received ping was successful and answered
@@ -214,7 +210,7 @@ export abstract class WebSocketServer extends BaseServer {
      * @returns {Promise<void>}
      * @memberof WebSocketServer
      */
-    protected async onWebSocketPong(_data: Buffer): Promise<void> {}
+    protected async onWebSocketPong(_data: Buffer): Promise<void> { }
 
     /**
      * Fired when a client send a message to the server
@@ -245,16 +241,19 @@ export abstract class WebSocketServer extends BaseServer {
                 }
                 this.fetchAPI(data.data, socket);
                 break;
+            case 'config':
+                const config = await configManager.getForClient(data.data);
+                socket.send(JSON.stringify({
+                    data: config
+                }));
+                break;
             default:
-                const bigLetter = data.type
-                    .toLowerCase()
-                    .charAt(0)
-                    .toUpperCase();
+                const bigLetter = data.type.charAt(0).toUpperCase();
                 const restLetter = data.type.slice(1);
                 const funcName = `on${bigLetter}${restLetter}`;
                 if (typeof (<IndexStructure>this)[funcName] === 'function') {
                     try {
-                        (<IndexStructure>this)[funcName](JSON.parse(data.data));
+                        (<IndexStructure>this)[funcName](JSON.parse(data.data), socket);
                     } catch (error) {
                         this.sendError(error, socket);
                     }

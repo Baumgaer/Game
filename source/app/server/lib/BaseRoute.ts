@@ -1,9 +1,6 @@
 import { Request, Response, NextFunction, Router } from 'express';
 import { renderString } from 'nunjucks';
 import { merge } from 'lodash';
-import { Logger } from '~server/lib/Logger';
-
-const logger = new Logger();
 
 /**
  * Provides basic functionality of a route for the express router and encapsulates
@@ -24,13 +21,14 @@ export abstract class BaseRoute {
     public routerNameSpace: string = `/${this.constructor.name.toLowerCase()}`;
 
     /**
-     * The name of the template file in views or a string which is already template
+     * The name of the template file in views or a string which is already template.
+     * If this is null, the pure JSON from templateParams will be sent to the client.
      *
      * @protected
      * @type {string}
      * @memberof BaseRoute
      */
-    protected templateString: string = this.constructor.name.toLowerCase();
+    protected templateString: string | null = this.constructor.name.toLowerCase();
 
     /**
      * The express router to mount all routes dynamically to the server
@@ -96,15 +94,20 @@ export abstract class BaseRoute {
     private async handleGet(request: Request, response: Response, next: NextFunction): Promise<void> {
         let templateParams: IndexStructure;
         try {
-            templateParams = merge({ process }, await this.templateParams(request, response));
+            templateParams = await this.templateParams(request, response);
         } catch (error) {
             return next(error);
         }
-        response.render(this.templateString, templateParams, async (error, template) => {
+
+        if (this.templateString === null) {
+            response.json(templateParams);
+            return;
+        }
+        const tplParamsForTpl = merge({ process }, templateParams);
+        response.render(this.templateString, tplParamsForTpl, async (error, template) => {
             if (error) {
-                logger.debug(error);
                 try {
-                    template = await renderString(this.templateString, templateParams);
+                    template = await renderString(<string>this.templateString, tplParamsForTpl);
                 } catch (error) {
                     return next(error);
                 }
@@ -124,7 +127,7 @@ export abstract class BaseRoute {
      * @param {NextFunction} _next
      * @memberof BaseRoute
      */
-    private async handlePost(_request: Request, _response: Response, _next: NextFunction): Promise<void> {}
+    private async handlePost(_request: Request, _response: Response, _next: NextFunction): Promise<void> { }
 
     /**
      * Handles HTTP put requests
@@ -135,7 +138,7 @@ export abstract class BaseRoute {
      * @param {NextFunction} _next
      * @memberof BaseRoute
      */
-    private async handlePut(_request: Request, _response: Response, _next: NextFunction): Promise<void> {}
+    private async handlePut(_request: Request, _response: Response, _next: NextFunction): Promise<void> { }
 
     /**
      * Handles HTTP Patch requests
@@ -146,7 +149,7 @@ export abstract class BaseRoute {
      * @param {NextFunction} _next
      * @memberof BaseRoute
      */
-    private async handlePatch(_request: Request, _response: Response, _next: NextFunction): Promise<void> {}
+    private async handlePatch(_request: Request, _response: Response, _next: NextFunction): Promise<void> { }
 
     /**
      * Handles HTTP delete requests
@@ -157,5 +160,5 @@ export abstract class BaseRoute {
      * @param {NextFunction} _next
      * @memberof BaseRoute
      */
-    private async handleDelete(_request: Request, _response: Response, _next: NextFunction): Promise<void> {}
+    private async handleDelete(_request: Request, _response: Response, _next: NextFunction): Promise<void> { }
 }

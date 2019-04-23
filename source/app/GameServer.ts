@@ -37,6 +37,7 @@ class GameServer extends WebSocketServer {
     protected async routeCollection(): Promise<void> {
         const config = await configManager.get('paths');
         this.singleRouteCollection(resolve(rootPath, config.routes, 'GameLobby.js'));
+        this.singleRouteCollection(resolve(rootPath, config.routes, 'Config.js'));
     }
 }
 

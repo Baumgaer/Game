@@ -194,8 +194,7 @@ export abstract class BaseServer {
                     httpOnly: config.session.httpOnly,
                     maxAge: parseInt(ms(config.session.maxAge), 10)
                 }
-            },
-            {
+            }, {
                 store: new RedisStore({
                     host: 'localhost',
                     port: ports.redis,
@@ -277,12 +276,9 @@ export abstract class BaseServer {
         const pubSub = new GraphQLRedisPubSub({ publisher, subscriber });
 
         this.apiSchema = await buildSchema({ resolvers, pubSub });
-        this.app.use(
-            pathsConfig.apiEntryPoint,
-            expressGraphQL({
-                schema: this.apiSchema,
-                graphiql: process.env.NODE_ENV === 'development' ? true : false
-            })
-        );
+        this.app.use(pathsConfig.apiEntryPoint, expressGraphQL({
+            schema: this.apiSchema,
+            graphiql: process.env.NODE_ENV === 'development' ? true : false
+        }));
     }
 }

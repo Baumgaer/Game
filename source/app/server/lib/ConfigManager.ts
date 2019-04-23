@@ -38,6 +38,19 @@ export class ConfigManager extends BDOConfigManager {
     }
 
     /**
+     * Redirects the config manager to client environment and loads the
+     * corresponding config file.
+     *
+     * @param {string} config
+     * @returns
+     * @memberof ConfigManager
+     */
+    public getForClient(config: string) {
+        config = config.replace(/\/{0,1}\.\.\/{0,1}/g, "");
+        return this.get(`client/${config}`);
+    }
+
+    /**
      * @inheritdoc The old value will be overwritten
      *
      * @param {string} _config
@@ -59,11 +72,14 @@ export class ConfigManager extends BDOConfigManager {
     protected async load(config: string): Promise<IndexStructure> {
         const temp = {};
 
+        let environment = 'server';
+        if (config.includes("/")) [environment, config] = config.split("/");
+
         const appRoot = resolve(rootPath, 'out', 'app');
         const bdoDefault = resolve(appRoot, 'config', `${config}.ini`);
         const bdoEnv = resolve(appRoot, 'config', process.env.NODE_ENV || '', `${config}.ini`);
-        const serverDefault = resolve(appRoot, 'server', 'config', `${config}.ini`);
-        const serverEnv = resolve(appRoot, 'server', 'config', process.env.NODE_ENV || '', `${config}.ini`);
+        const serverDefault = resolve(appRoot, environment, 'config', `${config}.ini`);
+        const serverEnv = resolve(appRoot, environment, 'config', process.env.NODE_ENV || '', `${config}.ini`);
 
         const configs = await Promise.all([
             this.getFile(bdoDefault),
@@ -119,9 +135,7 @@ export class ConfigManager extends BDOConfigManager {
     private getFile(path: string): Promise<string> {
         return new Promise<string>((resolver, reject) => {
             access(path, constants.F_OK, (accessError) => {
-                if (accessError) {
-                    return resolver('');
-                }
+                if (accessError) return resolver('');
                 readFile(path, 'utf-8', (readError, data) => {
                     if (readError) return reject(readError);
                     resolver(data);
