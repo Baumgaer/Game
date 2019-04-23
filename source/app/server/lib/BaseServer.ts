@@ -15,19 +15,18 @@ import { createServer, Server } from 'http';
 import { AddressInfo } from 'ws';
 import { createHash } from 'crypto';
 import { RedisPubSub as GraphQLRedisPubSub } from 'graphql-redis-subscriptions';
+import { GraphQLSchema } from 'graphql';
 import { ConfigManager } from '~server/lib/ConfigManager';
 import { RedisClientManager } from '~server/lib/RedisClientManager';
 import { Logger } from '~server/lib/Logger';
 import { walk } from '~root/utils/projectStructure';
-import { GraphQLSchema } from 'graphql';
+import { BaseRoute } from '~server/lib/BaseRoute';
 
 const configManager = ConfigManager.getInstance();
 const redisClientManager = RedisClientManager.getInstance();
 const logger = new Logger({
     logLevel: 'debug'
 });
-// Later this will hold an array of configurations loaded by configManager
-let configs = null;
 
 declare type states =
     | 'loadConfig'
@@ -166,7 +165,7 @@ export abstract class BaseServer {
      * @memberof BaseServer
      */
     protected async setupServer(): Promise<void> {
-        configs = await Promise.all([
+        const [config, passwords, databases, ports, paths] = await Promise.all([
             configManager.get('config'),
             configManager.get('passwords'),
             configManager.get('databases'),
@@ -185,25 +184,25 @@ export abstract class BaseServer {
         const RedisStore = connectRedis(expressSession);
         const sessionConfig = Object.assign(
             <expressSession.SessionOptions>{
-                secret: createHash(configs[0].session.hashFunction)
-                    .update(configs[1].sessionSecretSeed)
-                    .digest(configs[0].session.digest),
-                resave: configs[0].session.resave,
-                saveUninitialized: configs[0].session.saveUninitialized,
+                secret: createHash(config.session.hashFunction)
+                    .update(passwords.sessionSecretSeed)
+                    .digest(config.session.digest),
+                resave: config.session.resave,
+                saveUninitialized: config.session.saveUninitialized,
                 cookie: {
-                    secure: configs[0].session.secureCookie,
-                    httpOnly: configs[0].session.httpOnly,
-                    maxAge: parseInt(ms(configs[0].session.maxAge), 10)
+                    secure: config.session.secureCookie,
+                    httpOnly: config.session.httpOnly,
+                    maxAge: parseInt(ms(config.session.maxAge), 10)
                 }
             },
             {
                 store: new RedisStore({
                     host: 'localhost',
-                    port: configs[3].redis,
-                    prefix: `${configs[0].session.prefix}:`,
-                    disableTTL: configs[0].session.disableTTL,
-                    logErrors: configs[0].session.logErrors,
-                    db: configs[2].redis.sessions
+                    port: ports.redis,
+                    prefix: `${config.session.prefix}:`,
+                    disableTTL: config.session.disableTTL,
+                    logErrors: config.session.logErrors,
+                    db: databases.redis.sessions
                 })
             }
         );
@@ -211,15 +210,15 @@ export abstract class BaseServer {
         this.app.use(this.sessionParser);
 
         // Setup the template engine
-        nunjucks.configure(resolve(rootPath, configs[4].views), {
+        nunjucks.configure(resolve(rootPath, paths.views), {
             express: this.app,
-            autoescape: configs[0].viewEngine.autoescape,
+            autoescape: config.viewEngine.autoescape,
             noCache: process.env.NODE_ENV === 'development' ? true : false
         });
-        this.app.set('view engine', configs[0].viewEngine.extension);
+        this.app.set('view engine', config.viewEngine.extension);
 
         // Setup static files directory
-        this.app.use(express.static(resolve(rootPath, configs[4].staticFiles)));
+        this.app.use(express.static(resolve(rootPath, paths.staticFiles)));
     }
 
     /**
@@ -229,7 +228,33 @@ export abstract class BaseServer {
      * @returns {Promise<void>}
      * @memberof BaseServer
      */
-    protected async routeCollection(): Promise<void> {}
+    protected async routeCollection(): Promise<void> {
+        const config = await configManager.get('paths');
+        walk(resolve(rootPath, config.routes), this.singleRouteCollection.bind(this));
+    }
+
+    /**
+     * Initializes a single route based on its file
+     *
+     * @protected
+     * @param {string} file
+     * @returns {Promise<void>}
+     * @memberof BaseServer
+     */
+    protected async singleRouteCollection(file: string): Promise<void> {
+        try {
+            const Route = require(file).default;
+            const RouteClass = new Route();
+            if (!(RouteClass instanceof BaseRoute)) {
+                throw new Error(file + ' is not instance of class BaseRoute');
+            }
+            if (RouteClass.routerNameSpace && RouteClass.routes) {
+                this.app.use(RouteClass.routerNameSpace, <express.Router>RouteClass.routes);
+            }
+        } catch (error) {
+            throw error;
+        }
+    }
 
     /**
      * 3. collects all available resolvers and initializes them
@@ -242,15 +267,13 @@ export abstract class BaseServer {
         // Setup the API
         const pathsConfig = await configManager.get('paths');
         const resolvers: Array<Function | string> = [];
-        const awaited = await Promise.all([
+        const [subscriber, publisher] = await Promise.all([
+            redisClientManager.createThirdPartyClient('graphQLSubscriber'),
+            redisClientManager.createThirdPartyClient('graphQLPublisher'),
             walk(pathsConfig.resolvers, (file) => {
                 resolvers.push(require(file).default);
-            }),
-            redisClientManager.createThirdPartyClient('graphQLSubscriber'),
-            redisClientManager.createThirdPartyClient('graphQLPublisher')
+            })
         ]);
-        const subscriber = awaited[1];
-        const publisher = awaited[2];
         const pubSub = new GraphQLRedisPubSub({ publisher, subscriber });
 
         this.apiSchema = await buildSchema({ resolvers, pubSub });

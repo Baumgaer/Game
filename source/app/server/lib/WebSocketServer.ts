@@ -174,46 +174,6 @@ export abstract class WebSocketServer extends BaseServer {
     }
 
     /**
-     * Fired when a client send a message to the server
-     *
-     * @param {string} message
-     * @param {ws} socket
-     * @memberof WebSocketServer
-     */
-    protected async onIncomingWebSocketMessage(message: string, socket: ws): Promise<void> {
-        let data: IWSCall;
-        try {
-            data = JSON.parse(message);
-        } catch (error) {
-            return this.sendError(error, socket);
-        }
-        if (!('type' in data) || !('data' in data)) {
-            const wrongFormatError = new Error(`Message was not an instance of IwsCall`);
-            return this.sendError(wrongFormatError, socket);
-        }
-        switch ((<string>data.type).toLowerCase()) {
-            case 'broadcast':
-                pub.publish('WebsocketServer:broadcast', [data.data, <string>process.env.pm_id]);
-                this.broadcast(data.data, socket);
-                break;
-            case 'api':
-                if (!data.hasOwnProperty('data') || !data.data) {
-                    return this.sendError(new Error(`No field "query" provided but called api`), socket);
-                }
-                this.fetchAPI(data.data, socket);
-                break;
-            default:
-                if (typeof (<IndexStructure>this)[data.type] === 'function') {
-                    try {
-                        (<IndexStructure>this)[data.type](JSON.parse(data.data));
-                    } catch (error) {
-                        this.sendError(error, socket);
-                    }
-                } else this.sendError(new Error(`Type "${data.type}" does not exist`), socket);
-        }
-    }
-
-    /**
      * Fired when an error occurs on server side in conjunction with an existing client
      *
      * @protected
@@ -255,6 +215,52 @@ export abstract class WebSocketServer extends BaseServer {
      * @memberof WebSocketServer
      */
     protected async onWebSocketPong(_data: Buffer): Promise<void> {}
+
+    /**
+     * Fired when a client send a message to the server
+     *
+     * @param {string} message
+     * @param {ws} socket
+     * @memberof WebSocketServer
+     */
+    private async onIncomingWebSocketMessage(message: string, socket: ws): Promise<void> {
+        let data: IWSCall;
+        try {
+            data = JSON.parse(message);
+        } catch (error) {
+            return this.sendError(error, socket);
+        }
+        if (!('type' in data) || !('data' in data)) {
+            const wrongFormatError = new Error(`Message was not an instance of IwsCall`);
+            return this.sendError(wrongFormatError, socket);
+        }
+        switch ((<string>data.type).toLowerCase()) {
+            case 'broadcast':
+                pub.publish('WebsocketServer:broadcast', [data.data, <string>process.env.pm_id]);
+                this.broadcast(data.data, socket);
+                break;
+            case 'api':
+                if (!data.hasOwnProperty('data') || !data.data) {
+                    return this.sendError(new Error(`No field "query" provided but called api`), socket);
+                }
+                this.fetchAPI(data.data, socket);
+                break;
+            default:
+                const bigLetter = data.type
+                    .toLowerCase()
+                    .charAt(0)
+                    .toUpperCase();
+                const restLetter = data.type.slice(1);
+                const funcName = `on${bigLetter}${restLetter}`;
+                if (typeof (<IndexStructure>this)[funcName] === 'function') {
+                    try {
+                        (<IndexStructure>this)[funcName](JSON.parse(data.data));
+                    } catch (error) {
+                        this.sendError(error, socket);
+                    }
+                } else this.sendError(new Error(`Type "${data.type}" does not exist`), socket);
+        }
+    }
 
     /**
      * Maps the express session on the web socket server and provides a hook

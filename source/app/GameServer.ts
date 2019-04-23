@@ -1,6 +1,11 @@
 import './../utils/requireOverride';
 import { WebSocketServer } from '~server/lib/WebSocketServer';
-import { Request, Response } from 'express';
+import { ConfigManager } from '~server/lib/ConfigManager';
+import { Request } from 'express';
+import { resolve } from 'path';
+import { path as rootPath } from 'app-root-path';
+
+const configManager = ConfigManager.getInstance();
 
 /**
  * This server serves a static html page to the client which initializes
@@ -30,22 +35,8 @@ class GameServer extends WebSocketServer {
      * @memberof GameServer
      */
     protected async routeCollection(): Promise<void> {
-        this.app.get('/', this.serveIndex.bind(this));
-    }
-
-    /**
-     * Serves the static html page
-     *
-     * @private
-     * @param {Request} request
-     * @param {Response} reply
-     * @memberof GameServer
-     */
-    private async serveIndex(_request: Request, reply: Response): Promise<void> {
-        reply.render('gameLobby', {
-            hello: 'world',
-            process
-        });
+        const config = await configManager.get('paths');
+        this.singleRouteCollection(resolve(rootPath, config.routes, 'GameLobby.js'));
     }
 }
 
