@@ -27,7 +27,8 @@ module.exports = {
     }),
     output: {
         filename: "bundle.js",
-        path: path.resolve(__dirname, "out", "app", "client", "js")
+        path: path.resolve(__dirname, "out", "app", "client", "js"),
+        library: 'GameLibrary'
     },
     resolve: {
         // Add `.ts` and `.tsx` as a resolvable extension.

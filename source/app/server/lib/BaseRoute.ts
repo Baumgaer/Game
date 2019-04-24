@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction, Router } from 'express';
 import { renderString } from 'nunjucks';
 import { merge } from 'lodash';
+import { globalTemplateVars } from '~server/utils/environment';
 
 /**
  * Provides basic functionality of a route for the express router and encapsulates
@@ -11,6 +12,18 @@ import { merge } from 'lodash';
  * @class BaseRoute
  */
 export abstract class BaseRoute {
+
+    /**
+     * Defines which servers have to use this route.
+     * "*" means that all servers should use this route.
+     * If only a specific number of server should use this route, define their
+     * names in the array.
+     *
+     * @static
+     * @type {string[]}
+     * @memberof BaseRoute
+     */
+    public static attachToServers: string[] = ['*'];
     /**
      * Namespace for the express router as entry point
      *
@@ -103,7 +116,7 @@ export abstract class BaseRoute {
             response.json(templateParams);
             return;
         }
-        const tplParamsForTpl = merge({ process }, templateParams);
+        const tplParamsForTpl = merge({}, globalTemplateVars, templateParams);
         response.render(this.templateString, tplParamsForTpl, async (error, template) => {
             if (error) {
                 try {

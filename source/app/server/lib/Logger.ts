@@ -36,17 +36,6 @@ export class Logger extends BDOLogger {
      * @inheritdoc
      *
      * @protected
-     * @returns {Promise<string>}
-     * @memberof Logger
-     */
-    protected getProcInfo(): string {
-        return `${process.env.name || ''} ${process.env.pm_id || ''} ${process.pid}`;
-    }
-
-    /**
-     * @inheritdoc
-     *
-     * @protected
      * @param {string} logLevel
      * @param {('console' | 'file')} [printEnv='console']
      * @returns {string}

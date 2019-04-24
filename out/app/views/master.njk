@@ -11,6 +11,9 @@
 </head>
 
 <body>
+    <script>
+        window.process = {{ process | safe }};
+    </script>
     {% block body %}{% endblock %}
     <script src="/js/bundle.js"></script>
 </body>

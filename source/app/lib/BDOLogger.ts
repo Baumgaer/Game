@@ -140,7 +140,9 @@ export abstract class BDOLogger {
      * @returns {string}
      * @memberof BDOLogger
      */
-    protected abstract getProcInfo(): string;
+    protected getProcInfo(): string {
+        return `${global.process.env.name || ''} ${global.process.env.pm_id || ''} ${global.process.pid}`;
+    }
 
     /**
      * Creates the information added header for every log

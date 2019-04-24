@@ -47,7 +47,7 @@ export function getPrototypeNamesRecursive(object: any): string[] {
  * @param {Array<any>} list
  * @returns {boolean}
  */
-export function includesMemberOfList(search: string, list: string[], extension: string = ''): boolean {
+export function includesMemberOfList(search: string | string[], list: string[], extension: string = ''): boolean {
     for (const member of list) {
         if (search.includes(`${member}${extension}`)) {
             return true;

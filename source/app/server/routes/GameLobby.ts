@@ -8,6 +8,16 @@ import { BaseRoute } from '~server/lib/BaseRoute';
  * @extends {BaseRoute}
  */
 export default class GameLobby extends BaseRoute {
+
+    /**
+     * @inheritdoc
+     *
+     * @static
+     * @type {string[]}
+     * @memberof GameLobby
+     */
+    public static attachToServers: string[] = ["GameServer"];
+
     /**
      * @inheritdoc
      *

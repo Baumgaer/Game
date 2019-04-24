@@ -21,6 +21,7 @@ import { RedisClientManager } from '~server/lib/RedisClientManager';
 import { Logger } from '~server/lib/Logger';
 import { walk } from '~root/utils/projectStructure';
 import { BaseRoute } from '~server/lib/BaseRoute';
+import { includesMemberOfList } from '~bdo/utils/environment';
 
 const configManager = ConfigManager.getInstance();
 const redisClientManager = RedisClientManager.getInstance();
@@ -243,6 +244,7 @@ export abstract class BaseServer {
     protected async singleRouteCollection(file: string): Promise<void> {
         try {
             const Route = require(file).default;
+            if (!includesMemberOfList(<string[]>Route.attachToServers, [<string>process.env.name, '*'])) return;
             const RouteClass = new Route();
             if (!(RouteClass instanceof BaseRoute)) {
                 throw new Error(file + ' is not instance of class BaseRoute');

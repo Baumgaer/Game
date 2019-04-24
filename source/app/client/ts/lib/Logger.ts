@@ -26,23 +26,13 @@ export class Logger extends BDOLogger {
      * @inheritdoc
      *
      * @protected
-     * @returns {string}
-     * @memberof Logger
-     */
-    protected getProcInfo(): string {
-        return '';
-    }
-
-    /**
-     * @inheritdoc
-     *
-     * @protected
      * @param {logLevels} logLevel
      * @param {printEnvironments} [printEnv='console']
      * @returns {(string | string[])}
      * @memberof Logger
      */
     protected getHeader(logLevel: logLevels, printEnv: printEnvironments = 'console'): string | string[] {
+        const procInfo = this.getProcInfo();
         const currentTime = this.currentTime();
         const upperLogLevel = logLevel.toUpperCase();
         const logPoint = this.getLogPoint();
@@ -53,10 +43,13 @@ export class Logger extends BDOLogger {
             const formattedLogLevel = this.logLevelColors[logLevel];
             const formattedLogPoint = magenta;
             const formattedTime = cyan;
+            const formattedProcInfo = magenta;
             return [
-                `%c[%c${upperLogLevel} %c- %c${currentTime} %cat %c${logPoint}%c]`,
+                `%c[%c${upperLogLevel} %c- %c${procInfo} %c- %c${currentTime} %cat %c${logPoint}%c]`,
                 resetStyle,
                 formattedLogLevel,
+                resetStyle,
+                formattedProcInfo,
                 resetStyle,
                 formattedTime,
                 resetStyle,
@@ -64,7 +57,7 @@ export class Logger extends BDOLogger {
                 resetStyle
             ];
         }
-        return `[${upperLogLevel} - ${currentTime} - ${logPoint}]`;
+        return `[${upperLogLevel} - ${procInfo} - ${currentTime} - ${logPoint}]`;
     }
 
     /**
