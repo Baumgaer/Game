@@ -2,6 +2,7 @@
 import Module = require('module');
 import { resolve } from 'path';
 import { path as rootPath } from 'app-root-path';
+import { readFileSync } from 'graceful-fs';
 const originalRequire = Module.prototype.require;
 
 /**
@@ -9,7 +10,7 @@ const originalRequire = Module.prototype.require;
  * mapping.
  */
 // @ts-ignore
-Module.prototype.require = function(path: string): NodeRequire {
+Module.prototype.require = function (path: string): NodeRequire | string {
     if (path.startsWith('~')) {
         const compilerOptions = originalRequire(resolve(rootPath, 'tsconfig.json')).compilerOptions;
         const pathKey: string = path.split('/')[0];
@@ -19,6 +20,9 @@ Module.prototype.require = function(path: string): NodeRequire {
             `${compilerOptions.outDir}${pathValue.substring(compilerOptions.rootDir.length, pathValue.length - 2)}`
         );
         path = resolve(rootPath, path);
+    }
+    if (path.endsWith(".njk")) {
+        return readFileSync(path).toString();
     }
     // @ts-ignore
     return originalRequire.apply(this, [path]);

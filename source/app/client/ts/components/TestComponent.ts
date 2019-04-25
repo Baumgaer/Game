@@ -22,6 +22,6 @@ export class TestComponent extends BaseComponentFactory(HTMLElement) {
      * @protected
      * @memberof TestComponent
      */
-    protected templateString = require('./../../views/testComponent.njk');
+    protected templateString = require('~static/views/testComponent.njk');
 }
 customElements.define('test-component', TestComponent);

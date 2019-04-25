@@ -1,3 +1,5 @@
+import { Environment, LoaderSource, runtime } from 'nunjucks';
+
 /**
  * Checks if a script is running on server side or not
  *
@@ -55,3 +57,20 @@ export function includesMemberOfList(search: string | string[], list: string[], 
     }
     return false;
 }
+
+export const templateEnvironment = (() => {
+    const noCache = process.env.NODE_ENV === 'development' ? true : false;
+    const env = new Environment({
+        getSource: (path: string): LoaderSource => {
+            return { src: require(path), path, noCache };
+        }
+    }, { noCache });
+
+    env.addFilter('json', (value, spaces) => {
+        if (value instanceof runtime.SafeString) {
+            value = value.toString();
+        }
+        return new runtime.SafeString(JSON.stringify(value, null, spaces));
+    });
+    return env;
+})();

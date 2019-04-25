@@ -18,8 +18,9 @@ export function BaseComponentFactory<TBase extends Constructor<HTMLElement>>(HTM
      * @extends {HTMLTypeElement}
      */
     abstract class BaseComponent extends HTMLTypeElement {
+
         /**
-         * This is just an identifier to determine if a component is a BaseComponent
+         * This is for better identification of base components and instance check
          *
          * @type {boolean}
          */
@@ -89,7 +90,7 @@ export function BaseComponentFactory<TBase extends Constructor<HTMLElement>>(HTM
          * @protected
          * @memberof BaseComponent
          */
-        protected disconnectedCallback(): void {}
+        protected disconnectedCallback(): void { }
 
         /**
          * Called when the component is moved to another document.
@@ -98,7 +99,7 @@ export function BaseComponentFactory<TBase extends Constructor<HTMLElement>>(HTM
          * @protected
          * @memberof BaseComponent
          */
-        protected adoptedCallback(): void {}
+        protected adoptedCallback(): void { }
     }
     return BaseComponent;
 }

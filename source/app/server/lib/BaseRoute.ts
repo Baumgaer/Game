@@ -1,177 +1,126 @@
 import { Request, Response, NextFunction, Router } from 'express';
-import { renderString } from 'nunjucks';
 import { merge } from 'lodash';
 import { globalTemplateVars } from '~server/utils/environment';
+import { BDORoute } from '~bdo/lib/BDORoute';
 
 /**
- * Provides basic functionality of a route for the express router and encapsulates
- * this framework.
+ * Test
  *
  * @export
- * @abstract
- * @class BaseRoute
+ * @template TBase
+ * @param {TBase} RouteType
+ * @returns
  */
-export abstract class BaseRoute {
+export function BaseRouteFactory<TBase extends AbstractConstructor<BDORoute>>(RouteType: TBase) {
 
     /**
-     * Defines which servers have to use this route.
-     * "*" means that all servers should use this route.
-     * If only a specific number of server should use this route, define their
-     * names in the array.
+     * Provides basic functionality of a route for the express router and encapsulates
+     * this framework.
      *
-     * @static
-     * @type {string[]}
-     * @memberof BaseRoute
+     * @export
+     * @abstract
+     * @class BaseRoute
      */
-    public static attachToServers: string[] = ['*'];
-    /**
-     * Namespace for the express router as entry point
-     *
-     * @public
-     * @type {string}
-     * @memberof BaseRoute
-     */
-    public routerNameSpace: string = `/${this.constructor.name.toLowerCase()}`;
+    abstract class BaseRoute extends (RouteType as unknown as Constructor<BDORoute>) {
 
-    /**
-     * The name of the template file in views or a string which is already template.
-     * If this is null, the pure JSON from templateParams will be sent to the client.
-     *
-     * @protected
-     * @type {string}
-     * @memberof BaseRoute
-     */
-    protected templateString: string | null = this.constructor.name.toLowerCase();
+        /**
+         * This is for better identification of server routes and instance check
+         *
+         * @memberof BaseRoute
+         */
+        public readonly isServerRoute: boolean = true;
 
-    /**
-     * The express router to mount all routes dynamically to the server
-     *
-     * @private
-     * @type {Router}
-     * @memberof BaseRoute
-     */
-    private router: Router = Router();
-
-    constructor() {
-        this.routes = ['/'];
-    }
-
-    /**
-     * Creates rest routes depending on all routes given in a page
-     *
-     * @param  routes Array of route strings
-     */
-    set routes(routes: string[] | Router) {
-        if (routes instanceof Array) {
-            for (const route of routes) {
-                this.router.get(route, this.handleGet.bind(this));
-                this.router.post(route, this.handlePost.bind(this));
-                this.router.put(route, this.handlePut.bind(this));
-                this.router.delete(route, this.handleDelete.bind(this));
-                this.router.patch(route, this.handlePatch.bind(this));
+        /**
+         * Returns the processed routes
+         *
+         * @return express router object
+         */
+        get router(): Router {
+            const expressRouter = Router();
+            for (const route of this.routes) {
+                expressRouter.get(route, this.handleGet.bind(this));
+                expressRouter.post(route, this.handlePost.bind(this));
+                expressRouter.put(route, this.handlePut.bind(this));
+                expressRouter.delete(route, this.handleDelete.bind(this));
+                expressRouter.patch(route, this.handlePatch.bind(this));
             }
-        }
-    }
-
-    /**
-     * Returns the processed routes
-     *
-     * @return express router object
-     */
-    get routes(): Router | string[] {
-        return this.router;
-    }
-
-    /**
-     * Returns an object which keys matches the interpolations of the template.
-     *
-     * @protected
-     * @param {Request} _req
-     * @param {Response} _resp
-     * @returns {Promise<IndexStructure>}
-     * @memberof BaseRoute
-     */
-    protected async templateParams(_req: Request, _resp: Response): Promise<IndexStructure> {
-        return {};
-    }
-
-    /**
-     * Handles the get requests with access checking, template params and response type determination
-     *
-     * @private
-     * @param {Request} request
-     * @param {Response} response
-     * @param {NextFunction} next
-     * @memberof BaseRoute
-     */
-    private async handleGet(request: Request, response: Response, next: NextFunction): Promise<void> {
-        let templateParams: IndexStructure;
-        try {
-            templateParams = await this.templateParams(request, response);
-        } catch (error) {
-            return next(error);
+            return expressRouter;
         }
 
-        if (this.templateString === null) {
-            response.json(templateParams);
-            return;
-        }
-        const tplParamsForTpl = merge({}, globalTemplateVars, templateParams);
-        response.render(this.templateString, tplParamsForTpl, async (error, template) => {
-            if (error) {
-                try {
-                    template = await renderString(<string>this.templateString, tplParamsForTpl);
-                } catch (error) {
-                    return next(error);
-                }
+        /**
+         * @inheritdoc
+         *
+         * @private
+         * @param {Request} request
+         * @param {Response} response
+         * @param {NextFunction} next
+         * @memberof BaseRoute
+         */
+        protected async handleGet(request: Request, response: Response, next: NextFunction): Promise<void> {
+            let templateParams: IndexStructure;
+            let content: string | null = null;
+
+            try {
+                templateParams = await this.templateParams(request);
+                merge(templateParams, globalTemplateVars);
+            } catch (error) {
+                return next(error);
             }
-            // Send to client
+
+            if (!this.jsonOnly) content = this.renderTemplate(templateParams);
+            if (request.header("X-Game-As-JSON") || !content || this.jsonOnly) {
+                response.setHeader('Content-Type', 'Application/json');
+                response.json(templateParams);
+                return;
+            }
             response.setHeader('Content-Type', 'text/html');
-            response.send(template);
-        });
+            response.send(content);
+        }
+
+        /**
+         * Handles the HTTP post requests
+         *
+         * @private
+         * @param {Request} _request
+         * @param {Response} _response
+         * @param {NextFunction} _next
+         * @memberof BaseRoute
+         */
+        private async handlePost(_request: Request, _response: Response, _next: NextFunction): Promise<void> { }
+
+        /**
+         * Handles HTTP put requests
+         *
+         * @private
+         * @param {Request} _request
+         * @param {Response} _response
+         * @param {NextFunction} _next
+         * @memberof BaseRoute
+         */
+        private async handlePut(_request: Request, _response: Response, _next: NextFunction): Promise<void> { }
+
+        /**
+         * Handles HTTP Patch requests
+         *
+         * @private
+         * @param {Request} _request
+         * @param {Response} _response
+         * @param {NextFunction} _next
+         * @memberof BaseRoute
+         */
+        private async handlePatch(_request: Request, _response: Response, _next: NextFunction): Promise<void> { }
+
+        /**
+         * Handles HTTP delete requests
+         *
+         * @private
+         * @param {Request} _request
+         * @param {Response} _response
+         * @param {NextFunction} _next
+         * @memberof BaseRoute
+         */
+        private async handleDelete(_request: Request, _response: Response, _next: NextFunction): Promise<void> { }
     }
 
-    /**
-     * Handles the HTTP post requests
-     *
-     * @private
-     * @param {Request} _request
-     * @param {Response} _response
-     * @param {NextFunction} _next
-     * @memberof BaseRoute
-     */
-    private async handlePost(_request: Request, _response: Response, _next: NextFunction): Promise<void> { }
-
-    /**
-     * Handles HTTP put requests
-     *
-     * @private
-     * @param {Request} _request
-     * @param {Response} _response
-     * @param {NextFunction} _next
-     * @memberof BaseRoute
-     */
-    private async handlePut(_request: Request, _response: Response, _next: NextFunction): Promise<void> { }
-
-    /**
-     * Handles HTTP Patch requests
-     *
-     * @private
-     * @param {Request} _request
-     * @param {Response} _response
-     * @param {NextFunction} _next
-     * @memberof BaseRoute
-     */
-    private async handlePatch(_request: Request, _response: Response, _next: NextFunction): Promise<void> { }
-
-    /**
-     * Handles HTTP delete requests
-     *
-     * @private
-     * @param {Request} _request
-     * @param {Response} _response
-     * @param {NextFunction} _next
-     * @memberof BaseRoute
-     */
-    private async handleDelete(_request: Request, _response: Response, _next: NextFunction): Promise<void> { }
+    return BaseRoute;
 }

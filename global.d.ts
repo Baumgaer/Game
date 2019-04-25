@@ -1,5 +1,6 @@
 // Constructor type
 declare type Constructor<T = {}> = new (...args: any[]) => T;
+declare type AbstractConstructor<T = {}> = Function & { prototype: T };
 
 // Collects all properties of a class except native functions and wraps them in an object with their types
 declare type NonFunctionPropertyNames<T> = { [K in keyof T]: T[K] extends (...args: any) => any ? never : K }[keyof T];

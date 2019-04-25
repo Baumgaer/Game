@@ -14,6 +14,7 @@ source/app/client/css/**/*
 source/app/client/images/**/*
 source/app/client/locales/**/*
 source/app/client/videos/**/*
+source/app/client/views/**/*
 
 # Hardlinks BDO section
 source/app/config/**/*

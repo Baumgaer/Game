@@ -1,4 +1,5 @@
-import { BaseRoute } from '~server/lib/BaseRoute';
+import { BaseRouteFactory } from '~server/lib/BaseRoute';
+import { BDOConfig } from '~bdo/routes/BDOConfig';
 import { ConfigManager } from '~server/lib/ConfigManager';
 import { Request } from 'express';
 
@@ -10,22 +11,7 @@ const configManager = ConfigManager.getInstance();
  * @class Config
  * @extends {BaseRoute}
  */
-export default class Config extends BaseRoute {
-
-    /**
-     * @inheritdoc
-     *
-     * @memberof Config
-     */
-    public templateString = null;
-
-    /**
-     * @inheritdoc
-     *
-     * @type {string[]}
-     * @memberof Config
-     */
-    public routes: string[] = ["/:name"];
+export default class Config extends BaseRouteFactory(BDOConfig) {
 
     /**
      * @inheritdoc

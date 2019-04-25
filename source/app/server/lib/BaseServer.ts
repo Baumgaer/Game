@@ -4,7 +4,6 @@ import * as express from 'express';
 import * as hpp from 'hpp';
 import * as helmet from 'helmet';
 import * as compression from 'compression';
-import * as nunjucks from 'nunjucks';
 import * as expressSession from 'express-session';
 import * as connectRedis from 'connect-redis';
 import * as expressGraphQL from 'express-graphql';
@@ -20,7 +19,6 @@ import { ConfigManager } from '~server/lib/ConfigManager';
 import { RedisClientManager } from '~server/lib/RedisClientManager';
 import { Logger } from '~server/lib/Logger';
 import { walk } from '~root/utils/projectStructure';
-import { BaseRoute } from '~server/lib/BaseRoute';
 import { includesMemberOfList } from '~bdo/utils/environment';
 
 const configManager = ConfigManager.getInstance();
@@ -209,14 +207,6 @@ export abstract class BaseServer {
         this.sessionParser = expressSession(sessionConfig);
         this.app.use(this.sessionParser);
 
-        // Setup the template engine
-        nunjucks.configure(resolve(rootPath, paths.views), {
-            express: this.app,
-            autoescape: config.viewEngine.autoescape,
-            noCache: process.env.NODE_ENV === 'development' ? true : false
-        });
-        this.app.set('view engine', config.viewEngine.extension);
-
         // Setup static files directory
         this.app.use(express.static(resolve(rootPath, paths.staticFiles)));
     }
@@ -246,11 +236,11 @@ export abstract class BaseServer {
             const Route = require(file).default;
             if (!includesMemberOfList(<string[]>Route.attachToServers, [<string>process.env.name, '*'])) return;
             const RouteClass = new Route();
-            if (!(RouteClass instanceof BaseRoute)) {
-                throw new Error(file + ' is not instance of class BaseRoute');
+            if (!RouteClass.isServerRoute) {
+                throw new Error(`${file} is not instance of ~server/lib/BaseRoute`);
             }
             if (RouteClass.routerNameSpace && RouteClass.routes) {
-                this.app.use(RouteClass.routerNameSpace, <express.Router>RouteClass.routes);
+                this.app.use(RouteClass.routerNameSpace, <express.Router>RouteClass.router);
             }
         } catch (error) {
             throw error;

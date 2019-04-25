@@ -16,5 +16,5 @@ export const proc = {
  * side variables so that all files can access them via the global object.
  */
 export const globalTemplateVars = {
-    process: JSON.stringify(proc)
+    process: proc
 };
