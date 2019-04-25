@@ -58,6 +58,9 @@ export function includesMemberOfList(search: string | string[], list: string[], 
     return false;
 }
 
+/**
+ * Provides the basic template environment of nunjucks and defines several extensions
+ */
 export const templateEnvironment = (() => {
     const noCache = process.env.NODE_ENV === 'development' ? true : false;
     const env = new Environment({

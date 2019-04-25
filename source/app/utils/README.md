@@ -1,3 +1,5 @@
-# Application utils
+# Utils
 
-Here are all utils for the app only stored which should not be imported without thinking because they can be for server/client only. so choose carefully what to import.
+here are all utils stored which can be used by client and server without problems.
+
+Side specific utils should be stored in the corresponding utils folder of the side.

@@ -23,6 +23,7 @@ source/app/views/**/*
 
 # Hardlinks server section
 source/app/server/config/**/*
+source/app/server/views/**/*
 
 # Third-Party created stuff
 .nyc_output
