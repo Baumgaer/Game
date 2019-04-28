@@ -1,4 +1,4 @@
-import { Environment, LoaderSource, runtime } from 'nunjucks';
+import { Environment, runtime } from 'nunjucks';
 
 /**
  * Checks if a script is running on server side or not
@@ -64,7 +64,7 @@ export function includesMemberOfList(search: string | string[], list: string[], 
 export const templateEnvironment = (() => {
     const noCache = process.env.NODE_ENV === 'development' ? true : false;
     const env = new Environment({
-        getSource: (path: string): LoaderSource => {
+        getSource: (path: string) => {
             return { src: require(path), path, noCache };
         }
     }, { noCache });

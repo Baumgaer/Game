@@ -7,7 +7,7 @@ import { BaseComponentFactory } from '~client/components/BaseComponent';
  * @class TestComponent
  * @extends {BaseComponentFactory(HTMLElement)}
  */
-export class TestComponent extends BaseComponentFactory(HTMLElement) {
+export default class TestComponent extends BaseComponentFactory(HTMLElement) {
     /**
      * Defines a class attribute...
      *
@@ -23,5 +23,6 @@ export class TestComponent extends BaseComponentFactory(HTMLElement) {
      * @memberof TestComponent
      */
     protected templateString = require('~static/views/testComponent.njk');
+
 }
 customElements.define('test-component', TestComponent);

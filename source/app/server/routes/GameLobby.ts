@@ -1,4 +1,4 @@
-import { BDOGameLobby } from '~root/app/routes/BDOGameLobby';
+import { BDOGameLobby } from '~bdo/routes/BDOGameLobby';
 import { BaseRouteFactory } from '~server/lib/BaseRoute';
 
 /**

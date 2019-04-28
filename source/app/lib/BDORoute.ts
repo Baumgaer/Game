@@ -1,4 +1,4 @@
-import { Request, Response, NextFunction } from 'express';
+import { Request, Response, NextFunction, Router } from 'express';
 import { Template } from 'nunjucks';
 import { isString, isObject } from 'lodash';
 import { templateEnvironment } from '~bdo/utils/environment';
@@ -38,6 +38,14 @@ export abstract class BDORoute {
      * @memberof BDORoute
      */
     public routes: string[] = ['/'];
+
+    /**
+     * The routes combined with the routerNameSpace and the corresponding route function
+     *
+     * @abstract
+     * @memberof BDORoute
+     */
+    public abstract get router(): IndexStructure<string, (params: IndexStructure) => void> | Router;
 
     /**
      * The name of the template file in views or a string which is already template.
@@ -84,11 +92,11 @@ export abstract class BDORoute {
      *
      * @protected
      * @abstract
-     * @param {Request} request
+     * @param {(Request | IndexStructure)} [_requestOrParams]
      * @returns {Promise<IndexStructure>}
      * @memberof BDORoute
      */
-    protected async templateParams(_request?: Request): Promise<IndexStructure> {
+    protected async templateParams(_requestOrParams: Request | IndexStructure): Promise<IndexStructure> {
         return {};
     }
 
@@ -103,5 +111,9 @@ export abstract class BDORoute {
      * @returns {Promise<void>}
      * @memberof BDORoute
      */
-    protected abstract handleGet(request?: Request, response?: Response, next?: NextFunction): Promise<void>;
+    protected abstract handleGet(
+        requestOrParams: Request | IndexStructure,
+        response: Response,
+        next: NextFunction
+    ): Promise<void>;
 }

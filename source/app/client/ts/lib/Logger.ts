@@ -1,4 +1,4 @@
-import { BDOLogger, logLevels, printEnvironments } from './../../../lib/BDOLogger';
+import { BDOLogger, logLevels, printEnvironments } from '~bdo/lib/BDOLogger';
 
 /**
  * Logs colored console output
@@ -64,11 +64,11 @@ export class Logger extends BDOLogger {
      * @inheritdoc
      *
      * @protected
-     * @param {import("../../../lib/BDOLogger").logLevels} logLevel
+     * @param {logLevels} logLevel
      * @param {*} message
      * @memberof Logger
      */
-    protected writeToFile(_logLevel: import('../../../lib/BDOLogger').logLevels, _message: any): void {
+    protected writeToFile(_logLevel: logLevels, _message: any): void {
         // Just do nothing for the first time. Later this function will send the logging to the server
     }
 }

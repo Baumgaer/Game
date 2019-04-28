@@ -3,32 +3,56 @@ const path = require('path');
 const os = require('os');
 const webpack = require('webpack');
 const fs = require('graceful-fs');
+const crypto = require('crypto');
+
 const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
 const ForkTsCheckerNotifierWebpackPlugin = require('fork-ts-checker-notifier-webpack-plugin');
 const EventHooksPlugin = require('event-hooks-webpack-plugin');
 const LiveReloadPlugin = require('webpack-livereload-plugin');
 const TsconfigPathsPlugin = require('tsconfig-paths-webpack-plugin');
+
 const projectStructureUtils = require('./out/utils/projectStructure');
+
+const appDir = path.resolve(arp.path, "source", "app");
+const routesDir = path.resolve(arp.path, "source", "app", "client", "routes");
+const notStartWith = path.resolve(appDir, "server");
+const virtualEntryPointFilePath = path.resolve(arp.path, "var", "tmp", "virtualEntryPoint.ts");
+
+let lastVirtualEntryPointHash = '';
 
 module.exports = {
     entry: () => new Promise((resolve) => {
+        const md5 = crypto.createHash("md5");
         const entryPoints = [
-            path.resolve(arp.path, "node_modules/@webcomponents/webcomponentsjs/webcomponents-bundle.js")
+            path.resolve(arp.path, "node_modules/@webcomponents/webcomponentsjs/webcomponents-bundle.js"),
+            virtualEntryPointFilePath
         ];
-        const appDir = path.resolve(arp.path, "source", "app");
-        const notStartWith = path.resolve(appDir, "server");
-        projectStructureUtils.walk(path.resolve(arp.path, "source", "app"), (file) => {
-            if (file.endsWith(".ts") && !file.endsWith(".d.ts") && !file.startsWith(notStartWith) && path.dirname(file) !== appDir) {
+        const virtualEntryPoints = [];
+        projectStructureUtils.walk(appDir, (file) => {
+            if (file.endsWith(".ts") &&
+                !file.endsWith(".d.ts") &&
+                !file.startsWith(notStartWith) &&
+                path.dirname(file) !== appDir &&
+                path.dirname(file) !== routesDir
+            ) {
                 entryPoints.push(file);
+                if (file.startsWith(path.resolve(appDir, "client", "ts", "routes"))) {
+                    virtualEntryPoints.push(path.basename(file).replace(".ts", ""));
+                }
             }
         }).then(() => {
+            const fileContent = `(<any>window).virtualRoutes = ${JSON.stringify(virtualEntryPoints)};\n`;
+            const currentVirtualEntryPointHash = md5.update(fileContent).digest('hex');
+            if (currentVirtualEntryPointHash != lastVirtualEntryPointHash) {
+                lastVirtualEntryPointHash = currentVirtualEntryPointHash;
+                fs.writeFileSync(virtualEntryPointFilePath, fileContent);
+            }
             resolve(entryPoints);
         });
     }),
     output: {
         filename: "bundle.js",
-        path: path.resolve(__dirname, "out", "app", "client", "js"),
-        library: 'GameLibrary'
+        path: path.resolve(__dirname, "out", "app", "client", "js")
     },
     resolve: {
         // Add `.ts` and `.tsx` as a resolvable extension.
@@ -44,7 +68,7 @@ module.exports = {
         noEmitOnErrors: true
     },
     watchOptions: {
-        ignored: ["node_modules"]
+        ignored: ["node_modules", "var/**/*"]
     },
     plugins: [
         new LiveReloadPlugin(),
@@ -59,6 +83,7 @@ module.exports = {
         new webpack.NormalModuleReplacementPlugin(/type-graphql$/, resource => {
             resource.request = resource.request.replace(/type-graphql/, "type-graphql/dist/browser-shim");
         }),
+        new webpack.WatchIgnorePlugin([path.basename(virtualEntryPointFilePath)]),
         new EventHooksPlugin({
             shouldEmit: () => {
                 let shouldEmit = false;

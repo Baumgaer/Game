@@ -1,4 +1,4 @@
-import { BDOConfigManager } from './../../../lib/BDOConfigManager';
+import { BDOConfigManager } from '~bdo/lib/BDOConfigManager';
 /**
  * Test
  *

@@ -8,4 +8,19 @@ import { BDOGameLobby } from '~bdo/routes/BDOGameLobby';
  * @class GameLobby
  * @extends {BaseRouteFactory(RouteType)}
  */
-export class GameLobby extends BaseRouteFactory(BDOGameLobby) { }
+export default class GameLobby extends BaseRouteFactory(BDOGameLobby) {
+
+    /**
+     * @inheritdoc
+     *
+     * @protected
+     * @param {IndexStructure} params
+     * @returns {Promise<IndexStructure>}
+     * @memberof GameLobby
+     */
+    protected async templateParams(): Promise<IndexStructure> {
+        return {
+            test: 'lol'
+        };
+    }
+}

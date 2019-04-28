@@ -6,6 +6,13 @@ declare type AbstractConstructor<T = {}> = Function & { prototype: T };
 declare type NonFunctionPropertyNames<T> = { [K in keyof T]: T[K] extends (...args: any) => any ? never : K }[keyof T];
 declare type ConstParams<T> = Pick<T, NonFunctionPropertyNames<T>>;
 
+declare type ComponentProperties = {
+    length: number;
+    values: any[];
+    keys: string[];
+    definedProperties: IndexStructure;
+}
+
 // WebSocket types
 type wsVerifyClientInfo = { origin: string; secure: boolean; req: IncomingMessage };
 type wsVerifyClientDone = (
@@ -18,8 +25,11 @@ type wsVerifyClientDone = (
 type walkEventFunc = (fileOrDir: string, status: import('walk').WalkStats) => void;
 
 // A general type for JSON
-declare interface IndexStructure {
+declare interface IndexStructure<> {
     [member: string]: any
+}
+declare interface IndexStructure<K = string, V = any> {
+    [member: K]: V
 }
 
 // ExpressJS overwrites
@@ -30,4 +40,9 @@ namespace Express {
         session: Express.Session;
         sessionID: string;
     }
+}
+
+interface Window {
+    virtualRoutes: string[];
+    router: import('navigo');
 }

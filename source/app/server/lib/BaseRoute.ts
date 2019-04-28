@@ -31,9 +31,11 @@ export function BaseRouteFactory<TBase extends AbstractConstructor<BDORoute>>(Ro
         public readonly isServerRoute: boolean = true;
 
         /**
-         * Returns the processed routes
+         * @inheritdoc
          *
-         * @return express router object
+         * @readonly
+         * @type {Router}
+         * @memberof BaseRoute
          */
         get router(): Router {
             const expressRouter = Router();
@@ -45,6 +47,19 @@ export function BaseRouteFactory<TBase extends AbstractConstructor<BDORoute>>(Ro
                 expressRouter.patch(route, this.handlePatch.bind(this));
             }
             return expressRouter;
+        }
+
+        /**
+         * @inheritdoc
+         *
+         * @protected
+         * @abstract
+         * @param {Request} _request
+         * @returns {Promise<IndexStructure>}
+         * @memberof BaseRoute
+         */
+        protected async templateParams(request: Request): Promise<IndexStructure> {
+            return super.templateParams(request);
         }
 
         /**

@@ -14,7 +14,10 @@
     <script>
         window.process = {{ process | json | safe }};
     </script>
-    {% block body %}{% endblock %}
+    <a href="/" is="view-link">GO HOME</a>
+    <a href="/config/config" is="view-link">GO CONFIG!!!</a>
+
+    <view-router>{% block body %}{% endblock %}</view-router>
     <script src="/js/bundle.js"></script>
 </body>
 

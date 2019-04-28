@@ -16,7 +16,7 @@ const logger = new Logger({
  * @class ClientNotExistError
  * @extends {Error}
  */
-export class ClientNotExistError extends Error {}
+export class ClientNotExistError extends Error { }
 
 /**
  * Fired when a redis client already exists but tried to create an instance
@@ -25,7 +25,7 @@ export class ClientNotExistError extends Error {}
  * @class ClientAlreadyExistsError
  * @extends {Error}
  */
-export class ClientAlreadyExistsError extends Error {}
+export class ClientAlreadyExistsError extends Error { }
 
 /**
  * Manages the connections of all redis clients especially the subscription
@@ -67,7 +67,7 @@ export class RedisClientManager {
         return RedisClientManager.instance;
     }
 
-    private constructor() {}
+    private constructor() { }
 
     /**
      * Creates a new Redis client if id does not already exist
