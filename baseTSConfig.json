@@ -24,7 +24,15 @@
             "grunt",
             "mocha",
             "express",
-            "open-simplex-noise"
+            "open-simplex-noise",
+            "babylonjs",
+            "babylonjs-gui",
+            "babylonjs-loaders",
+            "babylonjs-materials",
+            "babylonjs-post-process",
+            "babylonjs-procedural-textures",
+            "babylonjs-gltf2interface",
+            "babylonjs-inspector"
         ],
         "allowSyntheticDefaultImports": false,
         "experimentalDecorators": true,
