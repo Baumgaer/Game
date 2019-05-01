@@ -80,9 +80,8 @@ export function BaseRouteFactory<TBase extends AbstractConstructor<BDORoute>>(Ro
         private async templateParamsFromServer(): Promise<IndexStructure> {
             let urlToAskFor = location.pathname;
             if (!urlToAskFor) urlToAskFor = `/`;
-            return (await fetch(urlToAskFor, {
-                headers: { 'X-Game-As-JSON': 'true' }
-            })).json();
+            const headers = new Headers({ 'X-Game-As-JSON': 'true' });
+            return (await fetch(urlToAskFor, { headers })).json();
         }
     }
 

@@ -6,7 +6,6 @@ let defaults = {
     autostart: true,
     watch: "out/app",
     ignore_watch: [
-        "out/app/views",
         "out/app/client",
         "out/app/config",
         "out/app/server/config"

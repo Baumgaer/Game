@@ -23,13 +23,14 @@
         "no-implicit-dependencies": [
             true,
             [
-                "source/app/client/ts/lib",
                 "~root",
                 "~static",
                 "~server",
                 "~client",
                 "~bdo",
-                "chai"
+                "chai",
+                "less",
+                "less-plugin-clean-css"
             ]
         ],
         "no-unused-expression-chai": true,

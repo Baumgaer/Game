@@ -14,7 +14,7 @@ export default class TestComponent extends BaseComponentFactory(HTMLElement) {
      * @type {string}
      * @memberof TestComponent
      */
-    public _class: string = 'test';
+    public className: string = 'test';
 
     /**
      * @inheritdoc

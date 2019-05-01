@@ -8,15 +8,13 @@
     <script src="/js/browser-source-map-support.js"></script>
     <script>sourceMapSupport.install();</script>
     {% endif %}
+    <link rel="stylesheet" href="/css/bundle.css">
 </head>
 
 <body>
     <script>
         window.process = {{ process | json | safe }};
     </script>
-    <a href="/" is="view-link">GO HOME</a>
-    <a href="/config/config" is="view-link">GO CONFIG!!!</a>
-
     <view-router>{% block body %}{% endblock %}</view-router>
     <script src="/js/bundle.js"></script>
 </body>

@@ -1,21 +1,7 @@
 {% extends "~bdo/views/master.njk" %}
 {% block body %}
-<img src="/images/helloWorld.jpg" alt="test">
-<test-component>
-    <ul>
-        <li> Ein listenpunkt</li>
-        <li>Noch ein Listenpunkt</li>
-    </ul>
-    <ol>
-        <li>hahaha</li>
-        <li>looool</li>
-        <li>{{ oha }}</li>
-    </ol>
-    <test-component>
-        <test-component></test-component>
-    </test-component>
-</test-component>
 
+<canvas is="game-window"></canvas>
 <script>
     console.log(location.host);
     let webSocket = new WebSocket(`ws://${location.host}/api`);

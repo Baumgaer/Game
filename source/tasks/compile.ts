@@ -2,7 +2,7 @@ import { render } from 'less';
 import { path as rootPath } from 'app-root-path';
 import { resolve as resolvePath } from 'path';
 import { readFileSync, writeFileSync } from 'graceful-fs';
-//@ts-ignore
+// @ts-ignore
 import * as lessPluginCleanCSS from 'less-plugin-clean-css';
 
 /**
@@ -21,15 +21,15 @@ module.exports = (grunt: IGrunt): void => {
         }
     });
 
-    grunt.event.on('watchChokidar', function(_action: string, filePath: string, target: string) {
+    grunt.event.on('watchChokidar', function watchChokidar(_action: string, filePath: string, target: string) {
         grunt.config(`${target}.src`, filePath);
         grunt.config(`${target}.program`, target.split('.').pop());
     });
 
-    grunt.registerMultiTask('compile', 'Compiles Less', function() {
-        let done = this.async();
+    grunt.registerMultiTask('compile', 'Compiles Less', function task() {
+        const done = this.async();
 
-        let promises: Array<Promise<any>> = [];
+        const promises: Array<Promise<any>> = [];
         for (const _file of this.filesSrc) {
             if (grunt.task.current.data.program === 'less') {
                 promises.push(compileLess());
@@ -48,17 +48,17 @@ module.exports = (grunt: IGrunt): void => {
  */
 function compileLess(): Promise<any> {
     return new Promise<any>((resolve: Function) => {
-        let src = resolvePath(rootPath, 'source', 'app', 'client', 'less', 'index.less');
-        render(readFileSync(src).toString(), {
-            filename: src,
+        const sourcePath = resolvePath(rootPath, 'source', 'app', 'client', 'less', 'index.less');
+        render(readFileSync(sourcePath).toString(), {
+            filename: sourcePath,
             plugins: [
                 new lessPluginCleanCSS({
                     advanced: true
                 })
             ]
         }).then((output) => {
-            let src = resolvePath(rootPath, 'out', 'app', 'client', 'css', 'bundle.css');
-            writeFileSync(src, output.css, {
+            const outPath = resolvePath(rootPath, 'out', 'app', 'client', 'css', 'bundle.css');
+            writeFileSync(outPath, output.css, {
                 encoding: 'utf-8'
             });
             resolve();

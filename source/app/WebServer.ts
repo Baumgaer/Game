@@ -8,33 +8,7 @@ import { Request, Response } from 'express';
  * @class WebServer
  * @extends {BaseServer}
  */
-class WebServer extends BaseServer {
-    /**
-     * Test
-     *
-     * @protected
-     * @returns {Promise<void>}
-     * @memberof GameServer
-     */
-    protected async routeCollection(): Promise<void> {
-        this.app.get('/', this.serveIndex.bind(this));
-    }
-
-    /**
-     * Serves the static html page
-     *
-     * @private
-     * @param {Request} request
-     * @param {Response} reply
-     * @memberof GameServer
-     */
-    private async serveIndex(_request: Request, reply: Response): Promise<void> {
-        if (_request.session) _request.session.name = 'huch?';
-        reply.render('index', {
-            hello: 'world'
-        });
-    }
-}
+class WebServer extends BaseServer { }
 
 const webServer = new WebServer();
 webServer.start();
