@@ -1,4 +1,4 @@
-import { Environment, runtime } from 'nunjucks';
+import * as nunjucks from 'nunjucks';
 
 /**
  * Checks if a script is running on server side or not
@@ -30,12 +30,11 @@ export function isBrowser(): boolean {
  * @param {*} object
  * @returns {Array<string>}
  */
-export function getPrototypeNamesRecursive(object: any): string[] {
-    const prototypes: string[] = [];
+export function getPrototypeNamesRecursive(object: any, prototypes: string[] = []): string[] {
     const prototype = Object.getPrototypeOf(object);
     if (prototype) {
         prototypes.push(prototype.constructor.name);
-        prototypes.concat(getPrototypeNamesRecursive(prototype));
+        getPrototypeNamesRecursive(prototype, prototypes);
     }
     return prototypes;
 }
@@ -63,17 +62,17 @@ export function includesMemberOfList(search: string | string[], list: string[], 
  */
 export const templateEnvironment = (() => {
     const noCache = global.process.env.NODE_ENV === 'development' ? true : false;
-    const env = new Environment({
+    const env = new nunjucks.Environment({
         getSource: (path: string) => {
             return { src: require(path), path, noCache };
         }
     }, { noCache });
 
     env.addFilter('json', (value, spaces) => {
-        if (value instanceof runtime.SafeString) {
+        if (value instanceof nunjucks.runtime.SafeString) {
             value = value.toString();
         }
-        return new runtime.SafeString(JSON.stringify(value, null, spaces));
+        return new nunjucks.runtime.SafeString(JSON.stringify(value, null, spaces));
     });
     return env;
 })();

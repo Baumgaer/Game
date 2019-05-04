@@ -10,6 +10,7 @@ const ForkTsCheckerNotifierWebpackPlugin = require('fork-ts-checker-notifier-web
 const EventHooksPlugin = require('event-hooks-webpack-plugin');
 const LiveReloadPlugin = require('webpack-livereload-plugin');
 const TsconfigPathsPlugin = require('tsconfig-paths-webpack-plugin');
+const FilterWarningsPlugin = require('webpack-filter-warnings-plugin');
 
 const projectStructureUtils = require('./out/utils/projectStructure');
 
@@ -65,13 +66,28 @@ module.exports = {
     },
     devtool: 'inline-source-map',
     optimization: {
-        noEmitOnErrors: true
+        noEmitOnErrors: true,
+        splitChunks: {
+            cacheGroups: {
+                vendor: {
+                    test: /[\\/]node_modules[\\/]/,
+                    name: "vendor",
+                    chunks: "initial"
+                },
+                templates: {
+                    test: /\.njk/,
+                    name: "templates",
+                    chunks: "initial"
+                }
+            }
+        }
     },
     watchOptions: {
         ignored: ["node_modules", "var/**/*"]
     },
     plugins: [
         new LiveReloadPlugin(),
+        new webpack.WatchIgnorePlugin([path.basename(virtualEntryPointFilePath)]),
         new ForkTsCheckerWebpackPlugin({
             useTypescriptIncrementalApi: true,
             tsconfig: path.resolve(arp.path, "source", "app", "client", "ts", "tsconfig.json")
@@ -83,7 +99,9 @@ module.exports = {
         new webpack.NormalModuleReplacementPlugin(/type-graphql$/, resource => {
             resource.request = resource.request.replace(/type-graphql/, "type-graphql/dist/browser-shim");
         }),
-        new webpack.WatchIgnorePlugin([path.basename(virtualEntryPointFilePath)]),
+        new FilterWarningsPlugin({
+            exclude: /Critical dependency: the request of a dependency is an expression/
+        }),
         new EventHooksPlugin({
             shouldEmit: () => {
                 let shouldEmit = false;
@@ -110,7 +128,7 @@ module.exports = {
                     loader: 'thread-loader',
                     options: {
                         // there should be 1 cpu for the fork-ts-checker-webpack-plugin
-                        workers: Math.floor((os.cpus().length - 1) / 2),
+                        workers: (os.cpus().length - 1),
                         poolRespawn: false,
                         poolTimeout: Infinity // set this to Infinity in watch mode - see https://github.com/webpack-contrib/thread-loader
                     }

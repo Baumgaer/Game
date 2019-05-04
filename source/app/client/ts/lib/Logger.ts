@@ -1,4 +1,5 @@
 import { BDOLogger, logLevels, printEnvironments } from '~bdo/lib/BDOLogger';
+import { baseConstructor } from '~bdo/utils/decorators';
 
 /**
  * Logs colored console output
@@ -7,6 +8,7 @@ import { BDOLogger, logLevels, printEnvironments } from '~bdo/lib/BDOLogger';
  * @class Logger
  * @extends {BDOLogger}
  */
+@baseConstructor()
 export class Logger extends BDOLogger {
     /**
      * Colors to indicate current log level
@@ -21,6 +23,10 @@ export class Logger extends BDOLogger {
         warn: 'color: #808000; font-weight: bold;',
         error: 'color: red; font-weight: bold;'
     };
+
+    constructor(params?: ConstParams<Logger>) {
+        super(params);
+    }
 
     /**
      * @inheritdoc

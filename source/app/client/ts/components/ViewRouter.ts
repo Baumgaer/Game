@@ -1,7 +1,6 @@
-import { BaseComponentFactory } from '~client/components/BaseComponent';
+import { BaseComponentFactory } from '~client/lib/BaseComponent';
 import { includesMemberOfList } from '~bdo/utils/environment';
-// import { property } from '~client/utils/component';
-import { watched } from '~bdo/utils/watch';
+import { watched } from '~bdo/utils/decorators';
 import Navigo = require('navigo');
 import { Logger } from '~client/lib/Logger';
 
@@ -22,7 +21,7 @@ export default class ViewRouter extends BaseComponentFactory(HTMLElement) {
      * @type {string}
      * @memberof ViewRouter
      */
-    @watched() public title: string = "lolol";
+    @watched() public test: string = "Testen123";
 
     /**
      * Test

@@ -3,7 +3,7 @@ import * as colors from 'colors';
 import { createWriteStream } from 'graceful-fs';
 import { resolve } from 'path';
 import { path as rootPath } from 'app-root-path';
-import { merge } from 'lodash';
+import { baseConstructor } from '~bdo/utils/decorators';
 import { BDOLogger, logLevels, printEnvironments } from '~bdo/lib/BDOLogger';
 
 /**
@@ -12,6 +12,7 @@ import { BDOLogger, logLevels, printEnvironments } from '~bdo/lib/BDOLogger';
  * @export
  * @class Logger
  */
+@baseConstructor()
 export class Logger extends BDOLogger {
     /**
      * Colors to indicate current log level
@@ -28,8 +29,7 @@ export class Logger extends BDOLogger {
     };
 
     constructor(params?: ConstParams<Logger>) {
-        super();
-        merge(this, params);
+        super(params);
     }
 
     /**

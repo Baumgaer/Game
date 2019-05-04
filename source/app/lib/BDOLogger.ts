@@ -62,6 +62,8 @@ export abstract class BDOLogger {
      */
     protected readonly prototypeNames: string[] = getPrototypeNamesRecursive(this);
 
+    constructor(_params?: ConstParams<BDOLogger>) { }
+
     /**
      * Logs the message to console and file with given log level.
      * If log level is log or error "preventConsolePrint" will be ignored.
