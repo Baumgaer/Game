@@ -1,4 +1,5 @@
 import { BaseComponentFactory } from '~client/lib/BaseComponent';
+import { baseConstructor } from '~bdo/utils/decorators';
 
 /**
  * Test
@@ -7,6 +8,7 @@ import { BaseComponentFactory } from '~client/lib/BaseComponent';
  * @class TestComponent
  * @extends {BaseComponentFactory(HTMLElement)}
  */
+@baseConstructor()
 export default class TestComponent extends BaseComponentFactory(HTMLElement) {
     /**
      * Defines a class attribute...

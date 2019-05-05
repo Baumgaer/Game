@@ -1,18 +1,7 @@
+import 'reflect-metadata';
 import { isString, isObject } from 'lodash';
 import { Template, renderString } from 'nunjucks';
-
-/**
- * Builds an object similar to element.attributes
- *
- * @param {IndexStructure} definedProperties
- * @returns {ComponentProperties}
- */
-function properties(definedProperties: IndexStructure): ComponentProperties {
-    const keys = Object.keys(definedProperties);
-    const length = keys.length;
-    const values = Object.values(definedProperties);
-    return { length, keys, values, definedProperties };
-}
+import { BDOBaseModel } from '~bdo/lib/BDOBaseModel';
 
 /**
  * Creates a new BaseComponent based on the HTMLTypeElement
@@ -23,6 +12,7 @@ function properties(definedProperties: IndexStructure): ComponentProperties {
  * @returns The BaseComponent
  */
 export function BaseComponentFactory<TBase extends Constructor<HTMLElement>>(HTMLTypeElement: TBase) {
+
     /**
      * Provides pase functionality for every component, manages and registers them
      *
@@ -43,16 +33,6 @@ export function BaseComponentFactory<TBase extends Constructor<HTMLElement>>(HTM
         public static readonly extends: string | null = null;
 
         /**
-         * Holds with a @properties() decorator marked properties with values
-         * which will be maintained by this decorator.
-         *
-         * @static
-         * @type {IndexStructure}
-         * @memberof BaseComponent
-         */
-        public static readonly definedProperties: IndexStructure = {};
-
-        /**
          * This is for better identification of base components and instance check
          *
          * @type {boolean}
@@ -65,7 +45,15 @@ export function BaseComponentFactory<TBase extends Constructor<HTMLElement>>(HTM
          * @type {IndexStructure}
          * @memberof BaseComponent
          */
-        public readonly properties: ComponentProperties = properties((<any>this.constructor).definedProperties);
+        public readonly properties?: Map<string, any> = Reflect.getMetadata("definedProperties", this);
+
+        /**
+         * Model which should be used by this Component
+         *
+         * @type {(BDOBaseModel | null)}
+         * @memberof BaseComponent
+         */
+        public model: BDOBaseModel | null = null;
 
         /**
          * Defines the template of the of the component.
@@ -88,21 +76,8 @@ export function BaseComponentFactory<TBase extends Constructor<HTMLElement>>(HTM
          */
         protected templateParams: IndexStructure = {};
 
-        /**
-         * Holds the attributes with their values which are defined in DOM so
-         * that attributes which are defined in the object are just defaults.
-         *
-         * @private
-         * @type {IndexStructure}
-         * @memberof BaseComponent
-         */
-        private readonly definedAttributes: IndexStructure<string, Attr> = {};
-
-        constructor(..._args: any[]) {
-            super();
-            for (const attribute of Array.from(this.attributes)) {
-                this.definedAttributes[attribute.name] = this.getAttribute(attribute.name);
-            }
+        constructor(...args: any[]) {
+            super(...args);
         }
 
         /**
@@ -114,7 +89,7 @@ export function BaseComponentFactory<TBase extends Constructor<HTMLElement>>(HTM
          * @memberof BaseComponent
          */
         public setAttribute(qualifiedName: string, value: string): void {
-            if (qualifiedName in (<any>this.constructor).definedProperties) {
+            if (this.properties && this.properties.has(qualifiedName)) {
                 throw new Error(`"${qualifiedName}" can't be set as attribute because it is a defined property`);
             }
             (<any>this)[qualifiedName] = value;
@@ -128,6 +103,9 @@ export function BaseComponentFactory<TBase extends Constructor<HTMLElement>>(HTM
          * @memberof BaseComponent
          */
         public removeAttribute(qualifiedName: string): void {
+            if (this.properties && this.properties.has(qualifiedName)) {
+                throw new Error(`"${qualifiedName}" can't be removed as attribute because it is a defined property`);
+            }
             super.removeAttribute(qualifiedName);
             (<any>this)[qualifiedName] = undefined;
         }
@@ -156,13 +134,6 @@ export function BaseComponentFactory<TBase extends Constructor<HTMLElement>>(HTM
                     shadowRoot.appendChild(<ChildNode>doc.body.firstChild);
                 }
             }
-
-            // Set attributes defined in DOM
-            for (const key in this.definedAttributes) {
-                if (this.definedAttributes.hasOwnProperty(key)) {
-                    this.setAttribute(key, this.definedAttributes[key]);
-                }
-            }
         }
 
         /**
@@ -183,5 +154,6 @@ export function BaseComponentFactory<TBase extends Constructor<HTMLElement>>(HTM
          */
         protected adoptedCallback(): void { }
     }
+
     return BaseComponent;
 }

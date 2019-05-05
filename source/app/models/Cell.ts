@@ -1,5 +1,5 @@
 import { Chunk } from './Chunk';
-import { merge } from 'lodash';
+import { baseConstructor } from '~bdo/utils/decorators';
 
 /**
  * Test
@@ -7,6 +7,7 @@ import { merge } from 'lodash';
  * @export
  * @class Cell
  */
+@baseConstructor()
 export class Cell {
     /**
      * The absolute x coordinate of the cell
@@ -64,7 +65,5 @@ export class Cell {
      */
     public chunk: Chunk = new Chunk();
 
-    constructor(params?: ConstParams<Cell>) {
-        merge(this, params);
-    }
+    constructor(_params?: ConstParams<Cell>) { }
 }

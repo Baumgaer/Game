@@ -1,4 +1,5 @@
 import { ObjectType, Field, ID } from 'type-graphql';
+import { baseConstructor } from '~bdo/utils/decorators';
 
 /**
  * Test
@@ -7,6 +8,7 @@ import { ObjectType, Field, ID } from 'type-graphql';
  * @class Test
  */
 @ObjectType()
+@baseConstructor()
 export class Test {
     /**
      * Test
@@ -14,8 +16,7 @@ export class Test {
      * @type {string}
      * @memberof Test
      */
-    @Field((_type) => ID)
-    public id: string = '0';
+    @Field((_type) => ID) public id: string = '0';
 
     /**
      * Test
@@ -31,6 +32,7 @@ export class Test {
      * @type {string}
      * @memberof Test
      */
-    @Field({ nullable: true })
-    public description?: string;
+    @Field({ nullable: true }) public description?: string;
+
+    constructor(_params: ConstParams<Test>) { }
 }

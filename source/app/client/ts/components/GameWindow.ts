@@ -1,4 +1,5 @@
 import { BaseComponentFactory } from '~client/lib/BaseComponent';
+import { baseConstructor } from '~bdo/utils/decorators';
 import * as BABYLON from 'babylonjs';
 
 /**
@@ -8,6 +9,7 @@ import * as BABYLON from 'babylonjs';
  * @class GameWindow
  * @extends {BaseComponentFactory(HTMLCanvasElement)}
  */
+@baseConstructor()
 export default class GameWindow extends BaseComponentFactory(HTMLCanvasElement) {
 
     /**

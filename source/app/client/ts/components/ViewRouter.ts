@@ -1,11 +1,8 @@
 import { BaseComponentFactory } from '~client/lib/BaseComponent';
 import { includesMemberOfList } from '~bdo/utils/environment';
-import { watched } from '~bdo/utils/decorators';
+import { baseConstructor } from '~bdo/utils/decorators';
 import Navigo = require('navigo');
-import { Logger } from '~client/lib/Logger';
 
-const logger = new Logger();
-logger.debug("");
 /**
  * Test
  *
@@ -13,15 +10,8 @@ logger.debug("");
  * @class GameView
  * @extends {BaseComponentFactory(HTMLElement)}
  */
+@baseConstructor()
 export default class ViewRouter extends BaseComponentFactory(HTMLElement) {
-
-    /**
-     * @inheritdoc
-     *
-     * @type {string}
-     * @memberof ViewRouter
-     */
-    @watched() public test: string = "Testen123";
 
     /**
      * Test
@@ -30,10 +20,6 @@ export default class ViewRouter extends BaseComponentFactory(HTMLElement) {
      * @memberof ViewRouter
      */
     private readonly router = new Navigo();
-
-    constructor() {
-        super();
-    }
 
     /**
      * @inheritdoc

@@ -135,7 +135,7 @@ export abstract class BaseServer {
                 if (process.env.PORT) {
                     port = parseInt(process.env.PORT, 10);
                 }
-                resolver(this.server.listen(port, 'localhost'));
+                resolver(this.server.listen(port, "0.0.0.0"));
             } catch (error) {
                 logger.error(error);
                 process.exit(1);

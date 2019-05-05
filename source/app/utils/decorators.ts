@@ -7,7 +7,7 @@ interface IWatchedParams {
      *
      * @memberof IWatchedParams
      */
-    onChange?: (oldValue: any, newValue: any) => void;
+    onChange?: (newValue: any, oldValue: any) => void;
 
     /**
      * Test
@@ -43,7 +43,7 @@ interface IWatchedParams {
      * @type {*}
      * @memberof IWatchedParams
      */
-    model?: any;
+    attachTo?: string;
 }
 /**
  * Test
@@ -53,29 +53,21 @@ interface IWatchedParams {
  * @returns {PropertyDecorator}
  */
 export function watched(_params?: IWatchedParams): PropertyDecorator {
-    return (target: any, key: string | Symbol) => {
-        key = key.toString();
-        // @ts-ignore
-        let value = this[key];
+    return (target: any, key: string | symbol) => {
+        const propDesc = Reflect.getOwnPropertyDescriptor(target, key);
         // Create new property with getter and setter
         Reflect.defineProperty(target, key, {
-            get() {
-                return value;
+            get: function get() {
+                return this.value;
             },
-            set(newVal: any) {
-                if (newVal === value) return;
-                value = newVal;
-                key = key.toString();
-                // Reflect property changes to attribute
-                if (target instanceof HTMLElement &&
-                    !(key in (<any>target.constructor).definedProperties) &&
-                    (<HTMLElement>this).getAttribute(key) !== newVal
-                ) (<HTMLElement>this).setAttribute(key, value);
+            set: function set(newVal: any) {
+                if (newVal === this.value) return;
+                if (propDesc && propDesc.set) propDesc.set.call(this, newVal);
+                this.value = newVal;
             },
             enumerable: true,
             configurable: true
         });
-        return target;
     };
 }
 
@@ -98,7 +90,9 @@ export function baseConstructor(constParamsIndex: number = 0) {
         class BaseConstructor extends ctor {
             constructor(...args: any[]) {
                 super(...args);
-                merge(this, args[constParamsIndex]);
+                let constParams = args[constParamsIndex];
+                if (!(constParams instanceof Object)) constParams = {};
+                merge(this, constParams[constParamsIndex]);
                 if ("constructedCallback" in this) (<any>this).constructedCallback();
             }
         }

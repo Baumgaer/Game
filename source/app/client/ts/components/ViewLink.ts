@@ -1,4 +1,7 @@
 import { BaseComponentFactory } from '~client/lib/BaseComponent';
+import { attribute, property } from '~client/utils/decorators';
+// import { watched } from '~bdo/utils/decorators';
+import { baseConstructor } from '~bdo/utils/decorators';
 
 /**
  * Test
@@ -7,6 +10,7 @@ import { BaseComponentFactory } from '~client/lib/BaseComponent';
  * @class ViewLink
  * @extends {BaseComponentFactory(HTMLAnchorElement)}
  */
+@baseConstructor()
 export default class ViewLink extends BaseComponentFactory(HTMLAnchorElement) {
 
     /**
@@ -16,6 +20,22 @@ export default class ViewLink extends BaseComponentFactory(HTMLAnchorElement) {
      * @memberof ViewLink
      */
     public static readonly extends = 'a';
+
+    /**
+     * Test
+     *
+     * @type {string}
+     * @memberof ViewLink
+     */
+    @attribute() public test: string = "lol";
+
+    /**
+     * Test
+     *
+     * @type {string}
+     * @memberof ViewLink
+     */
+    @property() public tester: string = "haha";
 
     /**
      * @inheritdoc
