@@ -45,8 +45,10 @@ interface IWatchedParams {
      */
     attachTo?: string;
 }
+
 /**
- * Test
+ * Propergates the assigned value to the assigned model and receives property
+ * changes from the model.
  *
  * @export
  * @param {IndexStructure} params
@@ -56,14 +58,16 @@ export function watched(_params?: IWatchedParams): PropertyDecorator {
     return (target: any, key: string | symbol) => {
         const propDesc = Reflect.getOwnPropertyDescriptor(target, key);
         // Create new property with getter and setter
+        Reflect.deleteProperty(target, key);
         Reflect.defineProperty(target, key, {
             get: function get() {
-                return this.value;
+                return Reflect.getMetadata(key, this);
             },
             set: function set(newVal: any) {
-                if (newVal === this.value) return;
-                if (propDesc && propDesc.set) propDesc.set.call(this, newVal);
-                this.value = newVal;
+                if (newVal === Reflect.getMetadata(key, this)) return;
+                if (propDesc && propDesc.set) {
+                    propDesc.set.call(this, newVal);
+                } else Reflect.defineMetadata(key, newVal, this);
             },
             enumerable: true,
             configurable: true

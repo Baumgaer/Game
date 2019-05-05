@@ -1,6 +1,6 @@
 import { BaseComponentFactory } from '~client/lib/BaseComponent';
 import { attribute, property } from '~client/utils/decorators';
-// import { watched } from '~bdo/utils/decorators';
+import { watched } from '~bdo/utils/decorators';
 import { baseConstructor } from '~bdo/utils/decorators';
 
 /**
@@ -27,7 +27,7 @@ export default class ViewLink extends BaseComponentFactory(HTMLAnchorElement) {
      * @type {string}
      * @memberof ViewLink
      */
-    @attribute() public test: string = "lol";
+    @watched() @attribute() public test: string = "lol";
 
     /**
      * Test
