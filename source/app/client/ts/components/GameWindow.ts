@@ -1,5 +1,6 @@
 import { BaseComponentFactory } from '~client/lib/BaseComponent';
 import { baseConstructor } from '~bdo/utils/decorators';
+import { property } from '~client/utils/decorators';
 import * as BABYLON from 'babylonjs';
 
 /**
@@ -28,7 +29,7 @@ export default class GameWindow extends BaseComponentFactory(HTMLCanvasElement) 
      * @type {BABYLON.Engine}
      * @memberof GameWindow
      */
-    protected engine: BABYLON.Engine = new BABYLON.Engine(this, true, {
+    @property() protected engine: BABYLON.Engine = new BABYLON.Engine(this, true, {
         audioEngine: true
     });
 
@@ -39,7 +40,7 @@ export default class GameWindow extends BaseComponentFactory(HTMLCanvasElement) 
      * @type {BABYLON.Scene}
      * @memberof GameWindow
      */
-    protected scene: BABYLON.Scene = this.createScene();
+    @property() protected scene: BABYLON.Scene = this.createScene();
 
     /**
      * @inheritdoc
@@ -47,6 +48,7 @@ export default class GameWindow extends BaseComponentFactory(HTMLCanvasElement) 
      * @memberof GameWindow
      */
     public connectedCallback() {
+        super.connectedCallback();
         this.style.height = `100%`;
         this.style.width = `100%`;
         this.engine.runRenderLoop(() => {

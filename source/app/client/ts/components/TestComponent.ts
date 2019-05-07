@@ -1,5 +1,6 @@
 import { BaseComponentFactory } from '~client/lib/BaseComponent';
 import { baseConstructor } from '~bdo/utils/decorators';
+import { property, attribute } from '~client/utils/decorators';
 
 /**
  * Test
@@ -16,7 +17,7 @@ export default class TestComponent extends BaseComponentFactory(HTMLElement) {
      * @type {string}
      * @memberof TestComponent
      */
-    public className: string = 'test';
+    @attribute() public className: string = 'test';
 
     /**
      * @inheritdoc
@@ -24,7 +25,7 @@ export default class TestComponent extends BaseComponentFactory(HTMLElement) {
      * @protected
      * @memberof TestComponent
      */
-    protected templateString = require('~static/views/testComponent.njk');
+    @property() protected templateString = require('~static/views/testComponent.njk');
 
 }
 customElements.define('test-component', TestComponent);

@@ -1,6 +1,7 @@
 import { BaseComponentFactory } from '~client/lib/BaseComponent';
 import { includesMemberOfList } from '~bdo/utils/environment';
 import { baseConstructor } from '~bdo/utils/decorators';
+import { property } from '~client/utils/decorators';
 import Navigo = require('navigo');
 
 /**
@@ -19,7 +20,7 @@ export default class ViewRouter extends BaseComponentFactory(HTMLElement) {
      * @private
      * @memberof ViewRouter
      */
-    private readonly router = new Navigo();
+    @property() private readonly router = new Navigo();
 
     /**
      * @inheritdoc

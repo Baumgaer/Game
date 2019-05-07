@@ -1,7 +1,8 @@
 import 'reflect-metadata';
 import { isString, isObject } from 'lodash';
 import { Template, renderString } from 'nunjucks';
-import { BDOBaseModel } from '~bdo/lib/BDOBaseModel';
+import { BDOModel } from '~bdo/lib/BDOModel';
+import { property } from '~client/utils/decorators';
 
 /**
  * Creates a new BaseComponent based on the HTMLTypeElement
@@ -30,14 +31,14 @@ export function BaseComponentFactory<TBase extends Constructor<HTMLElement>>(HTM
          * @type {(string | null)}
          * @memberof BaseComponent
          */
-        public static readonly extends: string | null = null;
+        public static readonly extends?: string;
 
         /**
          * This is for better identification of base components and instance check
          *
          * @type {boolean}
          */
-        public readonly isBaseComponent: boolean = true;
+        @property() public readonly isBaseComponent?: boolean = true;
 
         /**
          * Gives access to the properties similar to element.attributes
@@ -45,7 +46,7 @@ export function BaseComponentFactory<TBase extends Constructor<HTMLElement>>(HTM
          * @type {IndexStructure}
          * @memberof BaseComponent
          */
-        public readonly properties?: Map<string, any> = Reflect.getMetadata("definedProperties", this);
+        @property() public readonly properties?: Map<string, any> = Reflect.getMetadata("definedProperties", this);
 
         /**
          * Model which should be used by this Component
@@ -53,7 +54,7 @@ export function BaseComponentFactory<TBase extends Constructor<HTMLElement>>(HTM
          * @type {(BDOBaseModel | null)}
          * @memberof BaseComponent
          */
-        public model: BDOBaseModel | null = null;
+        @property() public model?: BDOModel;
 
         /**
          * Defines the template of the of the component.
@@ -63,7 +64,7 @@ export function BaseComponentFactory<TBase extends Constructor<HTMLElement>>(HTM
          * @type {(string | Template)}
          * @memberof BaseComponent
          */
-        protected readonly templateString: string | Template = '<div><slot></slot></div>';
+        @property() protected readonly templateString: string | Template = '<div><slot></slot></div>';
 
         /**
          * Contains an object which keys matches the interpolations of the template.
@@ -74,7 +75,7 @@ export function BaseComponentFactory<TBase extends Constructor<HTMLElement>>(HTM
          * @type {IndexStructure}
          * @memberof BaseComponent
          */
-        protected templateParams: IndexStructure = {};
+        @property() protected templateParams: IndexStructure = {};
 
         constructor(...args: any[]) {
             super(...args);
@@ -119,7 +120,7 @@ export function BaseComponentFactory<TBase extends Constructor<HTMLElement>>(HTM
          */
         protected connectedCallback(): void {
             // Render template only if this component doesn't extend a native one
-            if ((<any>this.constructor).extends === null) {
+            if (!(<any>this.constructor).extends) {
                 // Attach a shadow root to the element.
                 let stringToParse = null;
                 if (isString(this.templateString)) {

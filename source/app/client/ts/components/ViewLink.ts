@@ -19,7 +19,7 @@ export default class ViewLink extends BaseComponentFactory(HTMLAnchorElement) {
      * @static
      * @memberof ViewLink
      */
-    public static readonly extends = 'a';
+    public static readonly extends?: string = 'a';
 
     /**
      * Test
@@ -36,6 +36,10 @@ export default class ViewLink extends BaseComponentFactory(HTMLAnchorElement) {
      * @memberof ViewLink
      */
     @property() public tester: string = "haha";
+
+    constructor(_params?: ConstParams<ViewLink>) {
+        super();
+    }
 
     /**
      * @inheritdoc

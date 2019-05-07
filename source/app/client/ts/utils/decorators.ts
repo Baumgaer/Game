@@ -14,11 +14,10 @@ export function property(): PropertyDecorator {
         const propDesc = Reflect.getOwnPropertyDescriptor(target, key);
 
         // Define metadata for access to properties like this.attributes
-        const propertyMap = new Map<string, any>();
         if (!Reflect.hasMetadata("definedProperties", target)) {
-            Reflect.defineMetadata("definedProperties", propertyMap, target);
+            Reflect.defineMetadata("definedProperties", new Map<string, any>(), target);
         }
-        Reflect.getMetadata("definedProperties", target);
+        const propertyMap: Map<string, any> = Reflect.getMetadata("definedProperties", target);
         propertyMap.set(key.toString(), target.constructor[key]);
 
         // Define new metadata property
@@ -67,7 +66,9 @@ export function attribute(): PropertyDecorator {
                 const stringKey = key.toString();
 
                 // Prefer in DOM defined attributes on initialization
-                if (!(<any>this).initialized) newVal = (<HTMLElement>this).getAttribute(stringKey) || newVal;
+                if (!Reflect.getMetadata(`${key.toString()}Initialized`, this)) {
+                    newVal = (<HTMLElement>this).getAttribute(stringKey) || newVal;
+                }
 
                 // Set the value of the property
                 if (propDesc && propDesc.set) {
@@ -80,7 +81,7 @@ export function attribute(): PropertyDecorator {
                 }
 
                 // Mark as initialized to prevent static attribute
-                (<any>this).initialized = true;
+                Reflect.defineMetadata(`${key.toString()}Initialized`, true, this);
             },
             enumerable: true,
             configurable: true
