@@ -1,51 +1,6 @@
 import 'reflect-metadata';
 import { merge } from 'lodash';
 
-interface IWatchedParams {
-    /**
-     * Test
-     *
-     * @memberof IWatchedParams
-     */
-    onChange?: (newValue: any, oldValue: any) => void;
-
-    /**
-     * Test
-     *
-     * @memberof IWatchedParams
-     */
-    onInitial?: (value: any) => void;
-
-    /**
-     * Test
-     *
-     * @memberof IWatchedParams
-     */
-    onDelete?: () => void;
-
-    /**
-     * Test
-     *
-     * @memberof IWatchedParams
-     */
-    onAdd?: () => void;
-
-    /**
-     * Test
-     *
-     * @memberof IWatchedParams
-     */
-    onRemove?: () => void;
-
-    /**
-     * Test
-     *
-     * @type {*}
-     * @memberof IWatchedParams
-     */
-    attachTo?: string;
-}
-
 /**
  * Propergates the assigned value to the assigned model and receives property
  * changes from the model.
@@ -54,7 +9,7 @@ interface IWatchedParams {
  * @param {IndexStructure} params
  * @returns {PropertyDecorator}
  */
-export function watched(_params?: IWatchedParams): PropertyDecorator {
+export function watched(): PropertyDecorator {
     return (target: any, key: string | symbol) => {
         const propDesc = Reflect.getOwnPropertyDescriptor(target, key);
         // Create new property with getter and setter

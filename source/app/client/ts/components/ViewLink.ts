@@ -27,7 +27,7 @@ export default class ViewLink extends BaseComponentFactory(HTMLAnchorElement) {
      * @type {string}
      * @memberof ViewLink
      */
-    @watched() @attribute() public test: string = "lol";
+    @watched() @attribute() public test: string = "lalala";
 
     /**
      * Test
