@@ -34,19 +34,26 @@ export function BaseComponentFactory<TBase extends Constructor<HTMLElement>>(HTM
         public static readonly extends?: string;
 
         /**
+         * Gives access to the properties similar to element.attributes
+         *
+         * @type {Map<string, any>}
+         * @memberof BaseComponent
+         */
+        get properties() {
+            const props = new Map<string, any>();
+            const properties: string[] = Reflect.getMetadata("definedProperties", this);
+            for (const prop of properties) {
+                props.set(prop, (<IndexStructure>this)[prop]);
+            }
+            return props;
+        }
+
+        /**
          * This is for better identification of base components and instance check
          *
          * @type {boolean}
          */
         @property() public readonly isBaseComponent?: boolean = true;
-
-        /**
-         * Gives access to the properties similar to element.attributes
-         *
-         * @type {IndexStructure}
-         * @memberof BaseComponent
-         */
-        @property() public readonly properties?: Map<string, any> = Reflect.getMetadata("definedProperties", this);
 
         /**
          * Model which should be used by this Component

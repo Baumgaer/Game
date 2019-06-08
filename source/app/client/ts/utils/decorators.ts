@@ -15,10 +15,10 @@ export function property(): PropertyDecorator {
 
         // Define metadata for access to properties like this.attributes
         if (!Reflect.hasMetadata("definedProperties", target)) {
-            Reflect.defineMetadata("definedProperties", new Map<string, any>(), target);
+            Reflect.defineMetadata("definedProperties", new Array<string>(), target);
         }
-        const propertyMap: Map<string, any> = Reflect.getMetadata("definedProperties", target);
-        propertyMap.set(key.toString(), target.constructor[key]);
+        const propertyMap: string[] = Reflect.getMetadata("definedProperties", target);
+        propertyMap.push(key.toString());
 
         // Define new metadata property
         Reflect.deleteProperty(target, key);
@@ -33,9 +33,6 @@ export function property(): PropertyDecorator {
                 if (propDesc && propDesc.set) {
                     propDesc.set.call(this, newVal);
                 } else Reflect.defineMetadata(key, newVal, this);
-
-                // Update property metadata
-                propertyMap.set(key.toString(), newVal);
             },
             enumerable: true,
             configurable: true
