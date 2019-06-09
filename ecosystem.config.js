@@ -4,18 +4,23 @@ const lodash = require('lodash');
 let defaults = {
     instances: 2,
     autostart: true,
-    watch: "out/app",
+    restart_delay: 3000,
+    max_restarts: 3,
+    watch: "source/app",
+    watch_options: {
+        "followSymlinks": false
+    },
     ignore_watch: [
-        "out/app/client",
-        "out/app/config",
-        "out/app/server/config"
+        "source/app/client/**/",
+        "source/app/config/**/",
+        "source/app/server/config/**/"
     ],
     log: false,
     merge_logs: true,
     source_map_support: true,
     max_memory_restart: '1G'
 };
-module.exports = {
+module.exports = JSON.parse(JSON.stringify({
     apps: [lodash.merge({}, defaults, {
         name: 'GameServer',
         "node_args": ["--inspect=7000"],
@@ -45,4 +50,4 @@ module.exports = {
             PORT: 8081
         }
     })]
-};
+}));

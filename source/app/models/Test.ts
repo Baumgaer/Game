@@ -8,8 +8,8 @@ import { BDOModel } from '~bdo/lib/BDOModel';
  * @export
  * @class Test
  */
-@ObjectType()
 @baseConstructor()
+@ObjectType()
 export class Test extends BDOModel {
     /**
      * Test

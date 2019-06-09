@@ -64,7 +64,11 @@ export function attribute(): PropertyDecorator {
 
                 // Prefer in DOM defined attributes on initialization
                 if (!Reflect.getMetadata(`${key.toString()}Initialized`, this)) {
-                    newVal = (<HTMLElement>this).getAttribute(stringKey) || newVal;
+                    // Mark as initialized to prevent static attribute
+                    Reflect.defineMetadata(`${key.toString()}Initialized`, true, this);
+                    // Set the real value and redo setter
+                    (<IndexStructure>this)[key.toString()] = (<HTMLElement>this).getAttribute(stringKey) || newVal;
+                    return;
                 }
 
                 // Set the value of the property
@@ -76,9 +80,6 @@ export function attribute(): PropertyDecorator {
                 if (target instanceof HTMLElement && (<HTMLElement>this).getAttribute(stringKey) !== newVal) {
                     (<HTMLElement>this).setAttribute(stringKey, newVal);
                 }
-
-                // Mark as initialized to prevent static attribute
-                Reflect.defineMetadata(`${key.toString()}Initialized`, true, this);
             },
             enumerable: true,
             configurable: true

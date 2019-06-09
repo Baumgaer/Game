@@ -1,6 +1,7 @@
 import { BaseComponentFactory } from '~client/lib/BaseComponent';
 import { attribute, property } from '~client/utils/decorators';
 import { watched, baseConstructor } from '~bdo/utils/decorators';
+import { Test } from "~bdo/models/Test";
 
 /**
  * Test
@@ -23,10 +24,18 @@ export default class ViewLink extends BaseComponentFactory(HTMLAnchorElement) {
     /**
      * Test
      *
+     * @type {Test}
+     * @memberof ViewLink
+     */
+    @property() public model: Test = new Test({ id: "1", title: String(Date.now()) });
+
+    /**
+     * Test
+     *
      * @type {string}
      * @memberof ViewLink
      */
-    @watched() @attribute() public test: string = "lalala";
+    @watched() @attribute() public test: string = this.model.watched("title");
 
     /**
      * Test
