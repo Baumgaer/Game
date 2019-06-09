@@ -1,3 +1,4 @@
+import { Binding } from "~bdo/lib/Binding";
 /**
  * Test
  *
@@ -8,6 +9,18 @@
 export abstract class BDOModel {
 
     /**
+     * Holds a list of all bindings to all components
+     *
+     * @protected
+     * @type {Binding[]}
+     * @memberof BDOModel
+     */
+    protected get bindings() {
+        const bindings = Reflect.getMetadata("bindings", this);
+        return bindings ? bindings : {};
+    }
+
+    /**
      * gets the property of this model and converts it to a watched one.
      * Only useful in combination with the watched decorator.
      *
@@ -15,20 +28,12 @@ export abstract class BDOModel {
      * @returns {*} The identity of the property as none primitive
      * @memberof BDOModel
      */
-    public watched(property: string): any {
-        const that: IndexStructure = this;
-        let type;
-        if (that[property]) type = that[property].constructor;
-        let newVal: IndexStructure = {
-            valueOf() {
-                return that[property];
-            }
-        };
-        if (type) newVal = new type((that)[property]);
-        newVal.__watched__ = {
-            model: that,
-            property
-        };
-        return newVal;
+    public bind(property: string): any {
+        const binding = new Binding(this, property);
+        if (!Reflect.hasMetadata("bindings", this)) Reflect.defineMetadata("bindings", {}, this);
+        const boundMetadata: IndexStructure<string, Binding[]> = Reflect.getMetadata("bindings", this);
+        if (!(property in boundMetadata)) boundMetadata[property] = [];
+        boundMetadata[property].push(binding);
+        return binding;
     }
 }

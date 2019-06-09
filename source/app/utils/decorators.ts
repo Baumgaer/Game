@@ -1,9 +1,10 @@
 import 'reflect-metadata';
 import { merge } from 'lodash';
+import { Binding } from "~bdo/lib/Binding";
 
 /**
- * Propergates the assigned value to the assigned model and receives property
- * changes from the model.
+ * Propergates the assigned value to the assigned object and receives property
+ * changes from the object.
  *
  * @export
  * @param {IndexStructure} params
@@ -20,48 +21,36 @@ export function watched(): PropertyDecorator {
                 return Reflect.getMetadata(key, this);
             },
             set: function set(newVal: any) {
-                if (!Reflect.hasMetadata("watched", this)) {
-                    Reflect.defineMetadata("watched", {}, this);
-                }
-                const watchedMetadata = Reflect.getMetadata("watched", this);
-                let reflectToModel = true;
+                // Setup remembered bound properties on object instance
+                if (!Reflect.hasMetadata("bindings", this)) Reflect.defineMetadata("bindings", {}, this);
+                const boundMetadata: IndexStructure<string, Binding[]> = Reflect.getMetadata("bindings", this);
+                const stringKey = key.toString();
+                let reflect = true;
 
-                if (newVal.__watched__) {
-                    watchedMetadata[key] = {
-                        model: newVal.__watched__.model,
-                        property: newVal.__watched__.property,
-                        descriptor: Reflect.getOwnPropertyDescriptor(
-                            newVal.__watched__.model, newVal.__watched__.property)
-                    };
-                    const metadata = watchedMetadata[key];
-                    const that: IndexStructure = this;
-
-                    Reflect.defineMetadata(metadata.property, metadata.model[metadata.property], metadata.model);
-                    Reflect.deleteProperty(metadata.model, metadata.property);
-                    Reflect.defineProperty(metadata.model, metadata.property, {
-                        get: function modelGet() {
-                            return Reflect.getMetadata(metadata.property, metadata.model);
-                        },
-                        set: function modelSet(modelNewVal: any) {
-                            that[key.toString()] = modelNewVal;
-                            if (metadata.descriptor && metadata.descriptor.set) {
-                                metadata.descriptor.set.call(metadata.model, modelNewVal);
-                            } else Reflect.defineMetadata(metadata.property, modelNewVal, metadata.model);
-                        },
-                        configurable: true,
-                        enumerable: true
-                    });
+                // Create new property descriptor on bound object if it is bound
+                if (newVal instanceof Binding) {
+                    // Remember all bindings
+                    if (!(key in boundMetadata)) boundMetadata[stringKey] = [];
+                    if (!boundMetadata[stringKey].includes(newVal)) boundMetadata[stringKey].push(newVal);
+                    // Bind to this object
+                    newVal.bind(this, key);
+                    // Get original value
                     newVal = newVal.valueOf();
-                    reflectToModel = false;
+                    reflect = false;
                 }
 
+                // Only execute watching on changes
                 if (newVal === Reflect.getMetadata(key, this)) return;
+                // Call other property descriptors on binding initializer else set metadata
                 if (propDesc && propDesc.set) {
                     propDesc.set.call(this, newVal);
                 } else Reflect.defineMetadata(key, newVal, this);
 
-                if (watchedMetadata[key] && reflectToModel) {
-                    watchedMetadata[key].model[watchedMetadata[key].property] = newVal;
+                // Reflect value to all bound objects
+                if (boundMetadata[stringKey] && reflect) {
+                    for (const binding of boundMetadata[stringKey]) {
+                        binding.object[binding.property] = newVal;
+                    }
                 }
             },
             enumerable: true,

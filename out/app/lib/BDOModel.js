@@ -1,24 +1,21 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+const Binding_1 = require("~bdo/lib/Binding");
 class BDOModel {
-    watched(property) {
-        const that = this;
-        let type;
-        if (that[property])
-            type = that[property].constructor;
-        let newVal = {
-            valueOf() {
-                return that[property];
-            }
-        };
-        if (type)
-            newVal = new type((that)[property]);
-        newVal.__watched__ = {
-            model: that,
-            property
-        };
-        return newVal;
+    get bindings() {
+        const bindings = Reflect.getMetadata("bindings", this);
+        return bindings ? bindings : {};
+    }
+    bind(property) {
+        const binding = new Binding_1.Binding(this, property);
+        if (!Reflect.hasMetadata("bindings", this))
+            Reflect.defineMetadata("bindings", {}, this);
+        const boundMetadata = Reflect.getMetadata("bindings", this);
+        if (!(property in boundMetadata))
+            boundMetadata[property] = [];
+        boundMetadata[property].push(binding);
+        return binding;
     }
 }
 exports.BDOModel = BDOModel;
-//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiQkRPTW9kZWwuanMiLCJzb3VyY2VSb290IjoiIiwic291cmNlcyI6WyIuLi8uLi8uLi9zb3VyY2UvYXBwL2xpYi9CRE9Nb2RlbC50cyJdLCJuYW1lcyI6W10sIm1hcHBpbmdzIjoiOztBQU9BLE1BQXNCLFFBQVE7SUFVbkIsT0FBTyxDQUFDLFFBQWdCO1FBQzNCLE1BQU0sSUFBSSxHQUFtQixJQUFJLENBQUM7UUFDbEMsSUFBSSxJQUFJLENBQUM7UUFDVCxJQUFJLElBQUksQ0FBQyxRQUFRLENBQUM7WUFBRSxJQUFJLEdBQUcsSUFBSSxDQUFDLFFBQVEsQ0FBQyxDQUFDLFdBQVcsQ0FBQztRQUN0RCxJQUFJLE1BQU0sR0FBbUI7WUFDekIsT0FBTztnQkFDSCxPQUFPLElBQUksQ0FBQyxRQUFRLENBQUMsQ0FBQztZQUMxQixDQUFDO1NBQ0osQ0FBQztRQUNGLElBQUksSUFBSTtZQUFFLE1BQU0sR0FBRyxJQUFJLElBQUksQ0FBQyxDQUFDLElBQUksQ0FBQyxDQUFDLFFBQVEsQ0FBQyxDQUFDLENBQUM7UUFDOUMsTUFBTSxDQUFDLFdBQVcsR0FBRztZQUNqQixLQUFLLEVBQUUsSUFBSTtZQUNYLFFBQVE7U0FDWCxDQUFDO1FBQ0YsT0FBTyxNQUFNLENBQUM7SUFDbEIsQ0FBQztDQUNKO0FBMUJELDRCQTBCQyJ9
+//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiQkRPTW9kZWwuanMiLCJzb3VyY2VSb290IjoiIiwic291cmNlcyI6WyIuLi8uLi8uLi9zb3VyY2UvYXBwL2xpYi9CRE9Nb2RlbC50cyJdLCJuYW1lcyI6W10sIm1hcHBpbmdzIjoiOztBQUFBLDhDQUEyQztBQVEzQyxNQUFzQixRQUFRO0lBUzFCLElBQWMsUUFBUTtRQUNsQixNQUFNLFFBQVEsR0FBRyxPQUFPLENBQUMsV0FBVyxDQUFDLFVBQVUsRUFBRSxJQUFJLENBQUMsQ0FBQztRQUN2RCxPQUFPLFFBQVEsQ0FBQyxDQUFDLENBQUMsUUFBUSxDQUFDLENBQUMsQ0FBQyxFQUFFLENBQUM7SUFDcEMsQ0FBQztJQVVNLElBQUksQ0FBQyxRQUFnQjtRQUN4QixNQUFNLE9BQU8sR0FBRyxJQUFJLGlCQUFPLENBQUMsSUFBSSxFQUFFLFFBQVEsQ0FBQyxDQUFDO1FBQzVDLElBQUksQ0FBQyxPQUFPLENBQUMsV0FBVyxDQUFDLFVBQVUsRUFBRSxJQUFJLENBQUM7WUFBRSxPQUFPLENBQUMsY0FBYyxDQUFDLFVBQVUsRUFBRSxFQUFFLEVBQUUsSUFBSSxDQUFDLENBQUM7UUFDekYsTUFBTSxhQUFhLEdBQXNDLE9BQU8sQ0FBQyxXQUFXLENBQUMsVUFBVSxFQUFFLElBQUksQ0FBQyxDQUFDO1FBQy9GLElBQUksQ0FBQyxDQUFDLFFBQVEsSUFBSSxhQUFhLENBQUM7WUFBRSxhQUFhLENBQUMsUUFBUSxDQUFDLEdBQUcsRUFBRSxDQUFDO1FBQy9ELGFBQWEsQ0FBQyxRQUFRLENBQUMsQ0FBQyxJQUFJLENBQUMsT0FBTyxDQUFDLENBQUM7UUFDdEMsT0FBTyxPQUFPLENBQUM7SUFDbkIsQ0FBQztDQUNKO0FBOUJELDRCQThCQyJ9

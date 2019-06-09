@@ -35,7 +35,7 @@ export default class ViewLink extends BaseComponentFactory(HTMLAnchorElement) {
      * @type {string}
      * @memberof ViewLink
      */
-    @watched() @attribute() public test: string = this.model.watched("title");
+    @watched() @attribute() public test: string = this.model.bind("title");
 
     /**
      * Test

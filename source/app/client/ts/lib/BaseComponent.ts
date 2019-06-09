@@ -84,6 +84,18 @@ export function BaseComponentFactory<TBase extends Constructor<HTMLElement>>(HTM
          */
         @property() protected templateParams: IndexStructure = {};
 
+        /**
+         * Holds a list of all bindings to all models
+         *
+         * @protected
+         * @type {Binding[]}
+         * @memberof BDOModel
+         */
+        @property() protected get bindings() {
+            const bindings = Reflect.getMetadata("bindings", this);
+            return bindings ? bindings : {};
+        }
+
         constructor(...args: any[]) {
             super(...args);
         }
