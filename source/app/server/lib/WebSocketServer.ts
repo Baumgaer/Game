@@ -7,6 +7,7 @@ import { RedisClientManager } from '~server/lib/RedisClientManager';
 import { Redis } from '~server/lib/Redis';
 import { graphql, GraphQLSchema } from 'graphql';
 import { ConfigManager } from '~server/lib/ConfigManager';
+import { ucFirst } from "~bdo/utils/util";
 
 const logger = new Logger();
 const redisClientManager = RedisClientManager.getInstance();
@@ -248,9 +249,8 @@ export abstract class WebSocketServer extends BaseServer {
                 }));
                 break;
             default:
-                const bigLetter = data.type.charAt(0).toUpperCase();
-                const restLetter = data.type.slice(1);
-                const funcName = `on${bigLetter}${restLetter}`;
+                const capitalized = ucFirst(data.type);
+                const funcName = `on${capitalized}`;
                 if (typeof (<IndexStructure>this)[funcName] === 'function') {
                     try {
                         (<IndexStructure>this)[funcName](JSON.parse(data.data), socket);

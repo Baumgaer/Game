@@ -1,6 +1,8 @@
 import 'reflect-metadata';
-import { merge } from 'lodash';
+import { merge, isObject } from 'lodash';
 import { Binding } from "~bdo/lib/Binding";
+import { ucFirst } from "~bdo/utils/util";
+import onChange from "on-change";
 
 /**
  * Propergates the assigned value to the assigned object and receives property
@@ -21,10 +23,18 @@ export function watched(): PropertyDecorator {
                 return Reflect.getMetadata(key, this);
             },
             set: function set(newVal: any) {
+                const stringKey = key.toString();
+                const capitalizedProp = ucFirst(stringKey);
+                const that: IndexStructure = this;
+
+                const initFunc = `on${capitalizedProp}Init`;
+                const changeFunc = `on${capitalizedProp}Change`;
+                const addFunc = `on${capitalizedProp}Add`;
+                const removeFunc = `on${capitalizedProp}Remove`;
+
                 // Setup remembered bound properties on object instance
                 if (!Reflect.hasMetadata("bindings", this)) Reflect.defineMetadata("bindings", {}, this);
                 const boundMetadata: IndexStructure<string, Binding[]> = Reflect.getMetadata("bindings", this);
-                const stringKey = key.toString();
                 let reflect = true;
 
                 // Create new property descriptor on bound object if it is bound
@@ -37,6 +47,36 @@ export function watched(): PropertyDecorator {
                     // Get original value
                     newVal = newVal.valueOf();
                     reflect = false;
+                }
+
+                // Observe objects and arrays of any changes
+                if (newVal instanceof Array || isObject(newVal)) {
+                    newVal = onChange(<IndexStructure>newVal, (_path, value, previousValue) => {
+                        const newObjectKeys = Object.keys(<object>value);
+                        const oldObjectKeys = Object.keys(<object>previousValue);
+                        const newLength = newObjectKeys.length;
+                        const oldLength = oldObjectKeys.length;
+
+                        // Case: added
+                        if (newLength > oldLength && addFunc in this) {
+                            for (const added of newObjectKeys) {
+                                if (!oldObjectKeys.includes(added)) {
+                                    that[addFunc](added);
+                                    break;
+                                }
+                            }
+                        }
+
+                        // Case: removed
+                        if (newLength < oldLength && removeFunc in this) {
+                            for (const removed of oldObjectKeys) {
+                                if (!newObjectKeys.includes(removed)) {
+                                    that[removeFunc](removed);
+                                    break;
+                                }
+                            }
+                        }
+                    });
                 }
 
                 // Only execute watching on changes
@@ -52,6 +92,11 @@ export function watched(): PropertyDecorator {
                         binding.object[binding.property] = newVal;
                     }
                 }
+
+                // React on changes
+                if (changeFunc in this && Reflect.getMetadata(`init${capitalizedProp}`, this)) that[changeFunc]();
+                if (initFunc in this && !Reflect.getMetadata(`init${capitalizedProp}`, this)) that[initFunc]();
+                Reflect.defineMetadata(`init${capitalizedProp}`, true, this);
             },
             enumerable: true,
             configurable: true
@@ -81,7 +126,7 @@ export function baseConstructor(constParamsIndex: number = 0) {
                 let constParams = args[constParamsIndex];
                 if (!(constParams instanceof Object)) constParams = {};
                 merge(this, constParams);
-                if ("constructedCallback" in this) (<any>this).constructedCallback();
+                if ("constructedCallback" in this) (<IndexStructure>this).constructedCallback();
             }
         }
 
