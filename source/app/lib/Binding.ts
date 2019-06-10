@@ -1,3 +1,4 @@
+import { removeElementFromArray } from "~bdo/utils/util";
 /**
  * Creates a Binding object for watched attributes / properties.
  * Should not be used outside the watched-decorator or the bind-function of an Object
@@ -5,7 +6,7 @@
  * @export
  * @class Binding
  */
-export class Binding {
+export class Binding<T, K extends Exclude<NonFunctionPropertyNames<T>, undefined>> {
 
     /**
      * The object instance which contains the property which should be bound
@@ -31,7 +32,23 @@ export class Binding {
      */
     public descriptor?: PropertyDescriptor;
 
-    constructor(object: object, property: string | number | symbol) {
+    /**
+     * The object which initiates the binding to the objects property
+     *
+     * @type {IndexStructure}
+     * @memberof Binding
+     */
+    public initiator!: IndexStructure;
+
+    /**
+     * The property name to which the objects property is bound
+     *
+     * @type {string}
+     * @memberof Binding
+     */
+    public initiatorProperty!: string;
+
+    constructor(object: T, property: K) {
         this.object = object;
         this.property = property.toString();
     }
@@ -54,6 +71,9 @@ export class Binding {
      * @memberof Binding
      */
     public bind(object: object, property: symbol | string | number): void {
+        this.initiator = object;
+        this.initiatorProperty = property.toString();
+
         const that = this;
         // Define default (current) value of bound property in this
         Reflect.defineMetadata(this.property, this.object[this.property], this.object);
@@ -97,6 +117,11 @@ export class Binding {
         if (this.descriptor) {
             // Overwrite binding descriptor with original descriptor
             Reflect.defineProperty(this.object, this.property, this.descriptor);
-        } else this.object[this.property] = value;
+        }
+        // Set original value
+        this.object[this.property] = value;
+        // Remove binding from bindings list of object and initiator
+        removeElementFromArray(this.object.bindings[this.property], this);
+        removeElementFromArray(this.initiator.bindings[this.initiatorProperty], this);
     }
 }

@@ -28,12 +28,12 @@ export abstract class BDOModel {
      * @returns {*} The identity of the property as none primitive
      * @memberof BDOModel
      */
-    public bind(property: string): any {
+    public bind<K extends Exclude<NonFunctionPropertyNames<this>, undefined>>(property: K) {
         const binding = new Binding(this, property);
         if (!Reflect.hasMetadata("bindings", this)) Reflect.defineMetadata("bindings", {}, this);
-        const boundMetadata: IndexStructure<string, Binding[]> = Reflect.getMetadata("bindings", this);
-        if (!(property in boundMetadata)) boundMetadata[property] = [];
-        boundMetadata[property].push(binding);
-        return binding;
+        const boundMetadata: IndexStructure<string, Array<Binding<this, K>>> = Reflect.getMetadata("bindings", this);
+        if (!(property in boundMetadata)) boundMetadata[<string>property] = [];
+        boundMetadata[<string>property].push(binding);
+        return binding as unknown as this[K];
     }
 }

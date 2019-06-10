@@ -34,14 +34,14 @@ export function watched(): PropertyDecorator {
 
                 // Setup remembered bound properties on object instance
                 if (!Reflect.hasMetadata("bindings", this)) Reflect.defineMetadata("bindings", {}, this);
-                const boundMetadata: IndexStructure<string, Binding[]> = Reflect.getMetadata("bindings", this);
+                const mData: IndexStructure<string, Array<Binding<any, any>>> = Reflect.getMetadata("bindings", this);
                 let reflect = true;
 
                 // Create new property descriptor on bound object if it is bound
                 if (newVal instanceof Binding) {
                     // Remember all bindings
-                    if (!(key in boundMetadata)) boundMetadata[stringKey] = [];
-                    if (!boundMetadata[stringKey].includes(newVal)) boundMetadata[stringKey].push(newVal);
+                    if (!(key in mData)) mData[stringKey] = [];
+                    if (!mData[stringKey].includes(newVal)) mData[stringKey].push(newVal);
                     // Bind to this object
                     newVal.bind(this, key);
                     // Get original value
@@ -87,8 +87,8 @@ export function watched(): PropertyDecorator {
                 } else Reflect.defineMetadata(key, newVal, this);
 
                 // Reflect value to all bound objects
-                if (boundMetadata[stringKey] && reflect) {
-                    for (const binding of boundMetadata[stringKey]) {
+                if (mData[stringKey] && reflect) {
+                    for (const binding of mData[stringKey]) {
                         binding.object[binding.property] = newVal;
                     }
                 }

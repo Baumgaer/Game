@@ -1,7 +1,6 @@
 import 'reflect-metadata';
 import { isString, isObject } from 'lodash';
 import { Template, renderString } from 'nunjucks';
-import { BDOModel } from '~bdo/lib/BDOModel';
 import { property } from '~client/utils/decorators';
 
 /**
@@ -54,14 +53,6 @@ export function BaseComponentFactory<TBase extends Constructor<HTMLElement>>(HTM
          * @type {boolean}
          */
         @property() public readonly isBaseComponent: boolean = true;
-
-        /**
-         * Model which should be used by this Component
-         *
-         * @type {(BDOBaseModel | null)}
-         * @memberof BaseComponent
-         */
-        @property() public model?: BDOModel;
 
         /**
          * Defines the template of the of the component.

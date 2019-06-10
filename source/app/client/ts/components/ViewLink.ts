@@ -54,8 +54,8 @@ export default class ViewLink extends BaseComponentFactory(HTMLAnchorElement) {
      *
      * @memberof ViewLink
      */
-    public connectedCallback() {
-        super.connectedCallback();
+    public constructedCallback() {
+        super.constructedCallback();
         this.addEventListener("click", this.onLinkClick.bind(this));
     }
 
