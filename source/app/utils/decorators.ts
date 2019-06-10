@@ -126,7 +126,7 @@ export function baseConstructor(constParamsIndex: number = 0) {
                 let constParams = args[constParamsIndex];
                 if (!(constParams instanceof Object)) constParams = {};
                 merge(this, constParams);
-                if ("constructedCallback" in this) (<IndexStructure>this).constructedCallback();
+                if ("constructedCallback" in this) (<IndexStructure>this).constructedCallback(...args);
             }
         }
 

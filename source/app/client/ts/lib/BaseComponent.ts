@@ -39,7 +39,7 @@ export function BaseComponentFactory<TBase extends Constructor<HTMLElement>>(HTM
          * @type {Map<string, any>}
          * @memberof BaseComponent
          */
-        get properties() {
+        public get properties() {
             const props = new Map<string, any>();
             const properties: string[] = Reflect.getMetadata("definedProperties", this);
             for (const prop of properties) {
@@ -53,7 +53,7 @@ export function BaseComponentFactory<TBase extends Constructor<HTMLElement>>(HTM
          *
          * @type {boolean}
          */
-        @property() public readonly isBaseComponent?: boolean = true;
+        @property() public readonly isBaseComponent: boolean = true;
 
         /**
          * Model which should be used by this Component
@@ -131,13 +131,14 @@ export function BaseComponentFactory<TBase extends Constructor<HTMLElement>>(HTM
         }
 
         /**
-         * Called when a component is connected with the dom and sets predefined
-         * attributes which are masked with a _.
+         * 1. Called when all provided constructor parameters are assigned to
+         * their corresponding properties / attributes.
          *
          * @protected
+         * @param {...any[]} _args Same parameters like the constructor
          * @memberof BaseComponent
          */
-        protected connectedCallback(): void {
+        protected constructedCallback(..._args: any[]) {
             // Render template only if this component doesn't extend a native one
             if (!(<any>this.constructor).extends) {
                 // Attach a shadow root to the element.
@@ -157,7 +158,16 @@ export function BaseComponentFactory<TBase extends Constructor<HTMLElement>>(HTM
         }
 
         /**
-         * Called when a component will be finally removed from the dom.
+         * 2. Called when a component is connected with the dom and sets predefined
+         * attributes which are masked with a _.
+         *
+         * @protected
+         * @memberof BaseComponent
+         */
+        protected connectedCallback(): void { }
+
+        /**
+         * 3. Called when a component will be finally removed from the dom.
          * removes all controllers and event listeners.
          *
          * @protected
@@ -166,7 +176,7 @@ export function BaseComponentFactory<TBase extends Constructor<HTMLElement>>(HTM
         protected disconnectedCallback(): void { }
 
         /**
-         * Called when the component is moved to another document.
+         * 4. Called when the component is moved to another document.
          * Rebinds all controllers and event listeners.
          *
          * @protected

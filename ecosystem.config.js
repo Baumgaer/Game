@@ -4,16 +4,16 @@ const lodash = require('lodash');
 let defaults = {
     instances: 2,
     autostart: true,
-    restart_delay: 3000,
+    restart_delay: 5000,
     max_restarts: 3,
-    watch: "source/app",
+    watch: "out/app",
     watch_options: {
         "followSymlinks": false
     },
     ignore_watch: [
-        "source/app/client/**/",
-        "source/app/config/**/",
-        "source/app/server/config/**/"
+        "out/app/client",
+        "out/app/config",
+        "out/app/server/config"
     ],
     log: false,
     merge_logs: true,
