@@ -112,24 +112,52 @@ export function watched(): PropertyDecorator {
  * @returns
  */
 export function baseConstructor(constParamsIndex: number = 0) {
+
+    /**
+     * Implements the life cycle of all decorated objects
+     *
+     * @param {*} object
+     * @param {any[]} args
+     */
+    const lifeCycle = (object: any, args: any[]) => {
+        let constParams = args[constParamsIndex];
+        if (!(constParams instanceof Object)) constParams = {};
+        merge(object, constParams);
+        if ("constructedCallback" in object) object.constructedCallback(...args);
+    };
+
     return <T extends Constructor>(ctor: T) => {
-
-        /**
-         * Constructs an object with its constParams with position constParamsIndex
-         *
-         * @class BaseConstructor
-         * @extends {ctor}
-         */
-        class BaseConstructor extends ctor {
-            constructor(...args: any[]) {
-                super(...args);
-                let constParams = args[constParamsIndex];
-                if (!(constParams instanceof Object)) constParams = {};
-                merge(this, constParams);
-                if ("constructedCallback" in this) (<IndexStructure>this).constructedCallback(...args);
-            }
+        // If the ctor is an HTMLElement, it is necessary to extend the class
+        // because web components have a special construction behavior.
+        // Otherwise the constructor will be wrapped to make sure to see the
+        // right object in console for better debugging
+        if (ctor.prototype instanceof HTMLElement) {
+            /**
+             * Constructs an object with its constParams with position constParamsIndex
+             *
+             * @class BaseConstructor
+             * @extends {ctor}
+             */
+            return class extends ctor {
+                constructor(...args: any[]) {
+                    super(...args);
+                    lifeCycle(this, args);
+                }
+            };
+        } else {
+            const original = ctor;
+            // the new constructor behavior
+            const f: any = function newConstructor(...args: any[]) {
+                const instance = new original(...args);
+                lifeCycle(instance, args);
+                return instance;
+            };
+            // copy prototype so intanceof operator still works
+            f.prototype = original.prototype;
+            // Copy static members
+            Object.keys(original).forEach((name: string) => { f[name] = (<any>original)[name]; });
+            // return new constructor (will override original)
+            return f;
         }
-
-        return BaseConstructor;
     };
 }
