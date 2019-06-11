@@ -131,7 +131,7 @@ export function baseConstructor(constParamsIndex: number = 0) {
         // because web components have a special construction behavior.
         // Otherwise the constructor will be wrapped to make sure to see the
         // right object in console for better debugging
-        if (ctor.prototype instanceof HTMLElement) {
+        if ("HTMLElement" in global && ctor.prototype instanceof HTMLElement) {
             /**
              * Constructs an object with its constParams with position constParamsIndex
              *
