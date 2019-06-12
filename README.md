@@ -137,6 +137,12 @@ To persist the data we will use [ArangoDB](https://www.arangodb.com/).
     npm run dev
     ```
 
+12. start the application:
+
+    ```bash
+    npm start
+    ```
+
 "That's it!"... I know this is much to do but after this it works everywhere in the exact same way and we will use a linux as production os!
 
 ## Start and stop the application
