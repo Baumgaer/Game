@@ -123,7 +123,8 @@ export function BaseComponentFactory<TBase extends Constructor<HTMLElement>>(HTM
 
         /**
          * 1. Called when all provided constructor parameters are assigned to
-         * their corresponding properties / attributes.
+         * their corresponding properties / attributes. Also sets predefined
+         * attributes from the dom.
          *
          * @protected
          * @param {...any[]} _args Same parameters like the constructor
@@ -149,8 +150,7 @@ export function BaseComponentFactory<TBase extends Constructor<HTMLElement>>(HTM
         }
 
         /**
-         * 2. Called when a component is connected with the dom and sets predefined
-         * attributes which are masked with a _.
+         * 2. Called when a component is connected with the dom.
          *
          * @protected
          * @memberof BaseComponent
@@ -174,6 +174,22 @@ export function BaseComponentFactory<TBase extends Constructor<HTMLElement>>(HTM
          * @memberof BaseComponent
          */
         protected adoptedCallback(): void { }
+
+        /**
+         * Initializes the given controller and returns its instance
+         *
+         * @protected
+         * @memberof BaseComponent
+         */
+        protected addController(): void { }
+
+        /**
+         * Removes the given controller
+         *
+         * @protected
+         * @memberof BaseComponent
+         */
+        protected removeController(): void { }
     }
 
     return BaseComponent;
