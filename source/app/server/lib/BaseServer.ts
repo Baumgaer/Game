@@ -19,7 +19,7 @@ import { ConfigManager } from '~server/lib/ConfigManager';
 import { RedisClientManager } from '~server/lib/RedisClientManager';
 import { Logger } from '~server/lib/Logger';
 import { walk } from '~root/utils/projectStructure';
-import { includesMemberOfList } from '~bdo/utils/environment';
+import { includesMemberOfList } from '~bdo/utils/util';
 
 const configManager = ConfigManager.getInstance();
 const redisClientManager = RedisClientManager.getInstance();

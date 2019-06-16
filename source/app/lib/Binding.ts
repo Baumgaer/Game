@@ -1,7 +1,20 @@
 import { removeElementFromArray } from "~bdo/utils/util";
 /**
  * Creates a Binding object for watched attributes / properties.
- * Should not be used outside the watched-decorator or the bind-function of an Object
+ * Should not be used outside the watched-decorator or the bind-function of an Object.
+ *
+ * The binding happens in 2 steps:
+ *
+ * 1. The initialization with the object which should be bound
+ * 2. The binding with the initiator
+ *
+ * example:
+ *
+ * Component A wants to bind property p from model M to its property q.
+ * Then the Component A is the initiator so the Binding is initialized
+ * with the model M and property p.
+ *
+ * After that the component A completes the binding with itself and its property q
  *
  * @export
  * @class Binding

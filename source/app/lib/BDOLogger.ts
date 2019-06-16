@@ -1,7 +1,7 @@
 /* tslint:disable:no-console*/
 import * as moment from 'moment';
 import { sep } from 'path';
-import { includesMemberOfList, getPrototypeNamesRecursive } from '~bdo/utils/environment';
+import { includesMemberOfList, getPrototypeNamesRecursive } from '~bdo/utils/util';
 
 export type logLevels = 'log' | 'debug' | 'info' | 'warn' | 'error';
 export type printEnvironments = 'console' | 'file' | 'browser';

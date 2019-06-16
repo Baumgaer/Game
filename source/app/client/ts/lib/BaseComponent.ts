@@ -1,7 +1,7 @@
 import 'reflect-metadata';
 import { isString, isObject } from 'lodash';
 import { Template, renderString } from 'nunjucks';
-import { property } from '~client/utils/decorators';
+import { property } from '~bdo/utils/decorators';
 
 /**
  * Creates a new BaseComponent based on the HTMLTypeElement

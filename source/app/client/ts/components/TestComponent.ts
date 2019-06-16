@@ -1,6 +1,6 @@
 import { BaseComponentFactory } from '~client/lib/BaseComponent';
 import { baseConstructor } from '~bdo/utils/decorators';
-import { property, attribute } from '~client/utils/decorators';
+import { property, attribute } from '~bdo/utils/decorators';
 
 /**
  * Test

@@ -24,40 +24,6 @@ export function isBrowser(): boolean {
 }
 
 /**
- * Iterates an object's prototypes recursive and collects the names
- *
- * @export
- * @param {*} object
- * @returns {Array<string>}
- */
-export function getPrototypeNamesRecursive(object: any, prototypes: string[] = []): string[] {
-    const prototype = Object.getPrototypeOf(object);
-    if (prototype) {
-        prototypes.push(prototype.constructor.name);
-        getPrototypeNamesRecursive(prototype, prototypes);
-    }
-    return prototypes;
-}
-
-/**
- * Checks if a member of list is includes in search string respecting the
- * extension of the list member.
- *
- * @export
- * @param {string} search
- * @param {Array<any>} list
- * @returns {boolean}
- */
-export function includesMemberOfList(search: string | string[], list: string[], extension: string = ''): boolean {
-    for (const member of list) {
-        if (search.includes(`${member}${extension}`)) {
-            return true;
-        }
-    }
-    return false;
-}
-
-/**
  * Provides the basic template environment of nunjucks and defines several extensions
  */
 export const templateEnvironment = (() => {
