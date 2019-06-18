@@ -1,4 +1,5 @@
 import { Resolver, Query } from 'type-graphql';
+import { Test } from "~bdo/models/Test";
 
 /**
  * Test
@@ -24,5 +25,5 @@ class BaseResolver {
  * @class TestResolver
  * @extends {BaseResolver}
  */
-@Resolver()
+@Resolver(Test)
 export default class TestResolver extends BaseResolver { }

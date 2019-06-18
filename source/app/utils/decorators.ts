@@ -229,7 +229,7 @@ export function baseConstructor(constParamsIndex: number = 0) {
         if ("constructedCallback" in object) object.constructedCallback(...args);
     };
 
-    return <T extends Constructor>(ctor: T) => {
+    return <T extends Constructor>(ctor: T): T => {
         // If the ctor is an HTMLElement, it is necessary to extend the class
         // because web components have a special construction behavior.
         // Otherwise the constructor will be wrapped to make sure to see the
