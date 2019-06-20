@@ -1,7 +1,6 @@
 /* eslint-disable camelcase */
-const lodash = require('lodash');
 // Options reference: https://pm2.io/doc/en/runtime/reference/ecosystem-file/
-let defaults = {
+const defaults = {
     instances: 2,
     autostart: true,
     restart_delay: 5000,
@@ -20,7 +19,7 @@ let defaults = {
     source_map_support: true,
     max_memory_restart: '1G'
 };
-let gameServer = lodash.merge({}, defaults, {
+const gameServer = Object.assign({}, defaults, {
     name: 'GameServer',
     "node_args": ["--inspect=7000"],
     script: 'out/app/GameServer.js',
@@ -35,7 +34,7 @@ let gameServer = lodash.merge({}, defaults, {
         PORT: 8080
     }
 });
-let webServer = lodash.merge({}, defaults, {
+const webServer = Object.assign({}, defaults, {
     name: 'WebServer',
     "node_args": ["--inspect=7001"],
     script: 'out/app/WebServer.js',

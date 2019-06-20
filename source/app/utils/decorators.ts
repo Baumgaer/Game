@@ -169,7 +169,7 @@ export function watched(params: IWatchParams = {}): PropertyDecorator {
 
                 // Only execute watching on changes reference types like array
                 // will not be effected by this constraint.
-                if (newVal === Reflect.getMetadata(key, this)) return;
+                if (newVal === (<IndexStructure>this)[stringKey]) return;
                 // Call other property descriptors on binding initializer else set metadata
                 if (propDesc && propDesc.set) {
                     propDesc.set.call(this, newVal);
