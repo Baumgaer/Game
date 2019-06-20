@@ -7,7 +7,8 @@ import onChange from "on-change";
 
 interface IWatchParams {
     /**
-     * The name of the function which should be called when the value will be initialized
+     * The name of the function which should be called when the value will be initialized.
+     * Gets a parameter with initial value.
      *
      * @type {string}
      * @memberof IWatchParams
@@ -16,6 +17,8 @@ interface IWatchParams {
 
     /**
      * The name of the function which should be called when the value will be changed
+     * Gets a parameter with new value and if it is an object or array it gets
+     * additionally a parameter with the path which was changed.
      *
      * @type {string}
      * @memberof IWatchParams
@@ -23,7 +26,8 @@ interface IWatchParams {
     onChange?: string;
 
     /**
-     * The name of the function which should be called when a value will be added to the array
+     * The name of the function which should be called when a value will be added to the array.
+     * Gets a parameter with the added value and the path.
      *
      * @type {string}
      * @memberof IWatchParams
@@ -31,12 +35,23 @@ interface IWatchParams {
     onAdd?: string;
 
     /**
-     * The name of the function which should be called when a value will be removed from the array
+     * The name of the function which should be called when a value will be removed from the array.
+     * Gets a parameter with the removed value and the path.
      *
      * @type {string}
      * @memberof IWatchParams
      */
     onRemove?: string;
+
+    /**
+     * If true arrays and object will recursively observed for
+     * changes, removes and additions.
+     *
+     * @default false No recursive observation
+     * @type {boolean}
+     * @memberof IWatchParams
+     */
+    isShallow?: boolean;
 }
 
 /**
@@ -139,7 +154,7 @@ export function watched(params: IWatchParams = {}): PropertyDecorator {
 
                 // Observe objects and arrays of any changes
                 if (newVal instanceof Array || isObject(newVal)) {
-                    newVal = onChange(<IndexStructure>newVal, (_path, value, previousValue) => {
+                    newVal = onChange(<IndexStructure>newVal, (path, value, previousValue) => {
                         const newObjectKeys = Object.keys(<object>value);
                         const oldObjectKeys = Object.keys(<object>previousValue);
                         const newLength = newObjectKeys.length;
@@ -149,7 +164,7 @@ export function watched(params: IWatchParams = {}): PropertyDecorator {
                         if (newLength > oldLength && addFunc in this) {
                             for (const added of newObjectKeys) {
                                 if (!oldObjectKeys.includes(added)) {
-                                    that[addFunc](added);
+                                    that[addFunc]((<IndexStructure>value)[<any>added], path);
                                     break;
                                 }
                             }
@@ -159,12 +174,18 @@ export function watched(params: IWatchParams = {}): PropertyDecorator {
                         if (newLength < oldLength && removeFunc in this) {
                             for (const removed of oldObjectKeys) {
                                 if (!newObjectKeys.includes(removed)) {
-                                    that[removeFunc](removed);
+                                    that[removeFunc]((<IndexStructure>previousValue)[<any>removed], path);
                                     break;
                                 }
                             }
                         }
-                    });
+
+                        // Case: deep change
+                        if (newLength === oldLength && changeFunc in this) {
+                            if (Reflect.getMetadata(`init${capitalizedProp}`, this)) that[changeFunc](value, path);
+                        }
+
+                    }, { isShallow: Boolean(params.isShallow) });
                 }
 
                 // Only execute watching on changes reference types like array
@@ -175,9 +196,9 @@ export function watched(params: IWatchParams = {}): PropertyDecorator {
                     propDesc.set.call(this, newVal);
                 } else Reflect.defineMetadata(key, newVal, this);
 
-                // React on variable changes
+                // React on initial variable changes
                 if (changeFunc in this && Reflect.getMetadata(`init${capitalizedProp}`, this)) that[changeFunc]();
-                if (initFunc in this && !Reflect.getMetadata(`init${capitalizedProp}`, this)) that[initFunc]();
+                if (initFunc in this && !Reflect.getMetadata(`init${capitalizedProp}`, this)) that[initFunc](newVal);
                 Reflect.defineMetadata(`init${capitalizedProp}`, true, this);
             },
             enumerable: true,
