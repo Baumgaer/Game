@@ -5,6 +5,108 @@ import { ucFirst } from "~bdo/utils/util";
 import { isBrowser } from "~bdo/utils/environment";
 import onChange from "on-change";
 
+interface IWatchParams {
+    /**
+     * The name of the function which should be called when the value will be initialized
+     *
+     * @type {string}
+     * @memberof IWatchParams
+     */
+    onInit?: string;
+
+    /**
+     * The name of the function which should be called when the value will be changed
+     *
+     * @type {string}
+     * @memberof IWatchParams
+     */
+    onChange?: string;
+
+    /**
+     * The name of the function which should be called when a value will be added to the array
+     *
+     * @type {string}
+     * @memberof IWatchParams
+     */
+    onAdd?: string;
+
+    /**
+     * The name of the function which should be called when a value will be removed from the array
+     *
+     * @type {string}
+     * @memberof IWatchParams
+     */
+    onRemove?: string;
+}
+
+/**
+ * This parameters should only be used in models and components other objects
+ * should not be effected with this behavior.
+ *
+ * @interface IPropertyParams
+ */
+interface IPropertyParams {
+    /**
+     * If set the value will be stored in a cache map for the time in
+     * milliseconds on client side the storage in the IndexedDb will be omitted.
+     *
+     * @default 0 Means will stored permanently
+     * @type {number}
+     */
+    StoreTemporaryInObject?: number;
+
+    /**
+     * If true the value will be saved in localStorage until next NEW login or
+     * in redis until next redis restart.
+     *
+     * @default false Values will NOT be saved in cache
+     * @type {boolean}
+     */
+    saveInCache?: boolean;
+}
+
+/**
+ * This parameters will only ba make sense when used in a model.
+ * A Component or other objects will not be effected.
+ *
+ * @interface IAttributeParams
+ */
+interface IAttributeParams {
+    /**
+     * If true the value will not be sent to the server if set or save() will be called
+     *
+     * @default false
+     * @type {boolean}
+     */
+    neverSendToServer?: boolean;
+
+    /**
+     * If true the value will not be sent to client if set or save() will be called
+     *
+     * @default false
+     * @type {boolean}
+     */
+    neverSendToClient?: boolean;
+
+    /**
+     * If true the value will NOT be saved in localStorage until next NEW login or
+     * in redis until next redis restart.
+     *
+     * @default false Values will be saved in cache
+     * @type {boolean}
+     */
+    neverSaveInCache?: boolean;
+
+    /**
+     * If set the value will be stored in a cache map for the time in
+     * milliseconds on client side the storage in the IndexedDb will be omitted.
+     *
+     * @default 0 Means will stored permanently
+     * @type {number}
+     */
+    StoreTemporaryInObject?: number;
+}
+
 /**
  * Propergates the assigned value to the assigned object and receives property
  * changes from the object.
@@ -13,7 +115,7 @@ import onChange from "on-change";
  * @param {IndexStructure} params
  * @returns {PropertyDecorator}
  */
-export function watched(): PropertyDecorator {
+export function watched(params: IWatchParams = {}): PropertyDecorator {
     return (target: any, key: string | symbol | number) => {
         const propDesc = Reflect.getOwnPropertyDescriptor(target, key);
 
@@ -21,17 +123,19 @@ export function watched(): PropertyDecorator {
         Reflect.deleteProperty(target, key);
         Reflect.defineProperty(target, key, {
             get: function get() {
-                return Reflect.getMetadata(key, this);
+                if (propDesc && propDesc.get) {
+                    return propDesc.get.call(this);
+                } else return Reflect.getMetadata(key, this);
             },
             set: function set(newVal: any) {
                 const stringKey = key.toString();
                 const capitalizedProp = ucFirst(stringKey);
                 const that: IndexStructure = this;
 
-                const initFunc = `on${capitalizedProp}Init`;
-                const changeFunc = `on${capitalizedProp}Change`;
-                const addFunc = `on${capitalizedProp}Add`;
-                const removeFunc = `on${capitalizedProp}Remove`;
+                const initFunc = params.onInit || `on${capitalizedProp}Init`;
+                const changeFunc = params.onChange || `on${capitalizedProp}Change`;
+                const addFunc = params.onAdd || `on${capitalizedProp}Add`;
+                const removeFunc = params.onRemove || `on${capitalizedProp}Remove`;
 
                 // Observe objects and arrays of any changes
                 if (newVal instanceof Array || isObject(newVal)) {
@@ -83,51 +187,6 @@ export function watched(): PropertyDecorator {
 }
 
 /**
- * Does the second part of the binding mechanism.
- * First part is to initialize the Binding object.
- * Second part is to bind the components/models to each other
- *
- * @param {*} thisArg The object on which the binding is working on
- * @param {(string | number | symbol)} key The property name
- * @param {*} newVal The new value of the property
- * @param {PropertyDescriptor} [propDesc] The original property descriptor
- * @returns {*} The value of the binding
- */
-function processBinding(thisArg: any, key: string | number | symbol, newVal: any, propDesc?: PropertyDescriptor): any {
-    const stringKey = key.toString();
-    // Setup remembered bound properties on object instance
-    if (!Reflect.hasMetadata("bindings", thisArg)) Reflect.defineMetadata("bindings", {}, thisArg);
-    const mData: IndexStructure<string, Array<Binding<any, any>>> = Reflect.getMetadata("bindings", thisArg);
-    let reflect = true;
-
-    // Create new property descriptor on bound object if it is bound
-    if (newVal instanceof Binding) {
-        // Remember all bindings
-        if (!(key in mData)) mData[stringKey] = [];
-        if (!mData[stringKey].includes(newVal)) mData[stringKey].push(newVal);
-        // Bind to thisArg object
-        newVal.bind(thisArg, key);
-        // Get original value
-        newVal = newVal.valueOf();
-        reflect = false;
-    }
-
-    // Only execute watching on changes
-    if (newVal === Reflect.getMetadata(key, thisArg)) return newVal;
-    // Call other property descriptors on binding initializer else set metadata
-    if (propDesc && propDesc.set) {
-        propDesc.set.call(thisArg, newVal);
-    } else Reflect.defineMetadata(key, newVal, thisArg);
-
-    if (mData[stringKey] && reflect) {
-        for (const binding of mData[stringKey]) {
-            if (binding.object[binding.property] !== newVal) binding.object[binding.property] = newVal;
-        }
-    }
-    return newVal;
-}
-
-/**
  * Marks an component property as a real property and avoids setting the
  * corresponding attribute. Also it maintains the "properties" values of a
  * component.
@@ -135,7 +194,7 @@ function processBinding(thisArg: any, key: string | number | symbol, newVal: any
  * @export
  * @returns {PropertyDecorator}
  */
-export function property(): PropertyDecorator {
+export function property(_params: IPropertyParams = {}): PropertyDecorator {
     return (target: any, key: string | symbol) => {
         // Get previous defined property descriptor for chaining
         const propDesc = Reflect.getOwnPropertyDescriptor(target, key);
@@ -151,10 +210,12 @@ export function property(): PropertyDecorator {
         Reflect.deleteProperty(target, key);
         Reflect.defineProperty(target, key, {
             get: function get() {
-                return Reflect.getMetadata(key, this);
+                if (propDesc && propDesc.get) {
+                    return propDesc.get.call(this);
+                } else return Reflect.getMetadata(key, this);
             },
             set: function set(newVal: any) {
-                if (newVal === Reflect.getMetadata(key, this)) return;
+                if (newVal === (<IndexStructure>this)[key.toString()]) return;
                 processBinding(this, key, newVal, propDesc);
             },
             enumerable: true,
@@ -170,7 +231,7 @@ export function property(): PropertyDecorator {
  * @export
  * @returns {PropertyDecorator}
  */
-export function attribute(): PropertyDecorator {
+export function attribute(_params: IAttributeParams = {}): PropertyDecorator {
     return (target: any, key: string | symbol) => {
         // Get previous defined property descriptor for chaining
         const propDesc = Reflect.getOwnPropertyDescriptor(target, key);
@@ -179,11 +240,13 @@ export function attribute(): PropertyDecorator {
         Reflect.deleteProperty(target, key);
         Reflect.defineProperty(target, key, {
             get: function get() {
-                return Reflect.getMetadata(key, this);
+                if (propDesc && propDesc.get) {
+                    return propDesc.get.call(this);
+                } else return Reflect.getMetadata(key, this);
             },
             set: function set(newVal: any) {
-                if (newVal === Reflect.getMetadata(key, this)) return;
                 const stringKey = key.toString();
+                if (newVal === (<IndexStructure>this)[stringKey]) return;
                 const initMetaName = `${stringKey}AttrInitialized`;
                 newVal = processBinding(this, key, newVal, propDesc);
                 // Prefer in DOM defined attributes on initialization
@@ -229,7 +292,7 @@ export function baseConstructor(constParamsIndex: number = 0) {
         if ("constructedCallback" in object) object.constructedCallback(...args);
     };
 
-    return <T extends Constructor>(ctor: T): T => {
+    return <T extends Constructor>(ctor: T) => {
         // If the ctor is an HTMLElement, it is necessary to extend the class
         // because web components have a special construction behavior.
         // Otherwise the constructor will be wrapped to make sure to see the
@@ -255,7 +318,7 @@ export function baseConstructor(constParamsIndex: number = 0) {
                 lifeCycle(instance, args);
                 return instance;
             };
-            // copy prototype so intanceof operator still works
+            // copy prototype so instanceof operator still works
             f.prototype = original.prototype;
             // Copy static members
             Object.keys(original).forEach((name: string) => { f[name] = (<any>original)[name]; });
@@ -263,4 +326,49 @@ export function baseConstructor(constParamsIndex: number = 0) {
             return f;
         }
     };
+}
+
+/**
+ * Does the second part of the binding mechanism.
+ * First part is to initialize the Binding object.
+ * Second part is to bind the components/models to each other
+ *
+ * @param {*} thisArg The object on which the binding is working on
+ * @param {(string | number | symbol)} key The property name
+ * @param {*} newVal The new value of the property
+ * @param {PropertyDescriptor} [propDesc] The original property descriptor
+ * @returns {*} The value of the binding
+ */
+function processBinding(thisArg: any, key: string | number | symbol, newVal: any, propDesc?: PropertyDescriptor): any {
+    const stringKey = key.toString();
+    // Setup remembered bound properties on object instance
+    if (!Reflect.hasMetadata("bindings", thisArg)) Reflect.defineMetadata("bindings", {}, thisArg);
+    const mData: IndexStructure<string, Array<Binding<any, any>>> = Reflect.getMetadata("bindings", thisArg);
+    let reflect = true;
+
+    // Create new property descriptor on bound object if it is bound
+    if (newVal instanceof Binding) {
+        // Remember all bindings
+        if (!(key in mData)) mData[stringKey] = [];
+        if (!mData[stringKey].includes(newVal)) mData[stringKey].push(newVal);
+        // Bind to thisArg object
+        newVal.bind(thisArg, key);
+        // Get original value
+        newVal = newVal.valueOf();
+        reflect = false;
+    }
+
+    // Only execute watching on changes
+    if (newVal === thisArg[key]) return newVal;
+    // Call other property descriptors on binding initializer else set metadata
+    if (propDesc && propDesc.set) {
+        propDesc.set.call(thisArg, newVal);
+    } else Reflect.defineMetadata(key, newVal, thisArg);
+
+    if (mData[stringKey] && reflect) {
+        for (const binding of mData[stringKey]) {
+            if (binding.object[binding.property] !== newVal) binding.object[binding.property] = newVal;
+        }
+    }
+    return newVal;
 }

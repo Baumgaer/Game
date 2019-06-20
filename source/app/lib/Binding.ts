@@ -92,18 +92,19 @@ export class Binding<T, K extends Exclude<NonFunctionPropertyNames<T>, undefined
         Reflect.defineMetadata(this.property, this.object[this.property], this.object);
 
         // Save the original property descriptor only if it is not a binding descriptor
-        const thisDescriptor = Reflect.getOwnPropertyDescriptor(this.object, this.property);
-        if (!this.descriptor) this.descriptor = thisDescriptor;
-        const descriptor = Reflect.getOwnPropertyDescriptor(object, property);
+        const descriptor = Reflect.getOwnPropertyDescriptor(this.object, this.property);
+        if (!this.descriptor) this.descriptor = descriptor;
 
         // Create new property descriptor on bound object
         Reflect.deleteProperty(this.object, this.property);
         Reflect.defineProperty(this.object, this.property, {
             get: function modelGet() {
-                return Reflect.getMetadata(that.property, that.object);
+                if (descriptor && descriptor.get) {
+                    return descriptor.get.call(that.object);
+                } else return Reflect.getMetadata(that.property, that.object);
             },
             set: function modelSet(newVal: any) {
-                if (newVal === Reflect.getMetadata(that.property, that.object)) return;
+                if (newVal === that.object[that.property]) return;
                 // Set value to binding initializer object
                 (<IndexStructure>object)[property.toString()] = newVal;
                 // Call other descriptors else set this
