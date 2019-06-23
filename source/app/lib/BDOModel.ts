@@ -11,13 +11,14 @@ export abstract class BDOModel {
     /**
      * Holds a list of all bindings to all components
      *
+     * @readonly
      * @protected
-     * @type {Binding[]}
+     * @type {Map<string, Array<Binding<this, DefinitiveNonFunctionPropertyNames<this>>>>}
      * @memberof BDOModel
      */
-    protected get bindings() {
+    protected get bindings(): Map<string, Array<Binding<this, DefinitiveNonFunctionPropertyNames<this>>>> {
         const bindings = Reflect.getMetadata("bindings", this);
-        return bindings ? bindings : {};
+        return bindings ? bindings : new Map();
     }
 
     /**
@@ -29,11 +30,6 @@ export abstract class BDOModel {
      * @memberof BDOModel
      */
     public bind<K extends Exclude<NonFunctionPropertyNames<this>, undefined>>(property: K) {
-        const binding = new Binding(this, property);
-        if (!Reflect.hasMetadata("bindings", this)) Reflect.defineMetadata("bindings", {}, this);
-        const boundMetadata: IndexStructure<string, Array<Binding<this, K>>> = Reflect.getMetadata("bindings", this);
-        if (!(property in boundMetadata)) boundMetadata[<string>property] = [];
-        boundMetadata[<string>property].push(binding);
-        return binding as unknown as this[K];
+        return new Binding(this, property) as unknown as this[K];
     }
 }

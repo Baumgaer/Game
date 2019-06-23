@@ -2,6 +2,7 @@ import 'reflect-metadata';
 import { isString, isObject } from 'lodash';
 import { Template, renderString } from 'nunjucks';
 import { property } from '~bdo/utils/decorators';
+import { Binding } from "~bdo/lib/Binding";
 
 /**
  * Creates a new BaseComponent based on the HTMLTypeElement
@@ -78,13 +79,14 @@ export function BaseComponentFactory<TBase extends Constructor<HTMLElement>>(HTM
         /**
          * Holds a list of all bindings to all models
          *
+         * @readonly
          * @protected
-         * @type {Binding[]}
-         * @memberof BDOModel
+         * @type {Map<string, Binding<this, DefinitiveNonFunctionPropertyNames<this>>>}
+         * @memberof BaseComponent
          */
-        @property() protected get bindings() {
-            const bindings = Reflect.getMetadata("bindings", this);
-            return bindings ? bindings : {};
+        @property() protected get bindings(): Map<string, Binding<this, DefinitiveNonFunctionPropertyNames<this>>> {
+            const bindings = Reflect.getMetadata("initiatorBinding", this);
+            return bindings ? bindings : new Map();
         }
 
         constructor(...args: any[]) {

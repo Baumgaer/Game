@@ -63,7 +63,7 @@ interface IWatchParams {
 interface IPropertyParams {
     /**
      * If set the value will be stored in a cache map for the time in
-     * milliseconds on client side the storage in the IndexedDb will be omitted.
+     * milliseconds.
      *
      * @default 0 Means will stored permanently
      * @type {number}
@@ -71,8 +71,8 @@ interface IPropertyParams {
     StoreTemporaryInObject?: number;
 
     /**
-     * If true the value will be saved in localStorage until next NEW login or
-     * in redis until next redis restart.
+     * If true the value will be saved in localStorage until its deletion
+     * in localStorage or in redis until its deletion in redis.
      *
      * @default false Values will NOT be saved in cache
      * @type {boolean}
@@ -88,24 +88,17 @@ interface IPropertyParams {
  */
 interface IAttributeParams {
     /**
-     * If true the value will not be sent to the server if set or save() will be called
+     * If true the value will not be sent to client or server if value is set
+     * or save() will be called.
      *
      * @default false
      * @type {boolean}
      */
-    neverSendToServer?: boolean;
+    noClientServerInteraction?: boolean;
 
     /**
-     * If true the value will not be sent to client if set or save() will be called
-     *
-     * @default false
-     * @type {boolean}
-     */
-    neverSendToClient?: boolean;
-
-    /**
-     * If true the value will NOT be saved in localStorage until next NEW login or
-     * in redis until next redis restart.
+     * If true the value will NOT be saved in localStorage until its deletion
+     * in localStorage or in redis until  its deletion in redis.
      *
      * @default false Values will be saved in cache
      * @type {boolean}
@@ -114,7 +107,8 @@ interface IAttributeParams {
 
     /**
      * If set the value will be stored in a cache map for the time in
-     * milliseconds on client side the storage in the IndexedDb will be omitted.
+     * milliseconds. The IndexedDb on client side or database on server side
+     * will be omitted.
      *
      * @default 0 Means will stored permanently
      * @type {number}
@@ -343,6 +337,9 @@ export function baseConstructor(constParamsIndex: number = 0) {
             f.prototype = original.prototype;
             // Copy static members
             Object.keys(original).forEach((name: string) => { f[name] = (<any>original)[name]; });
+            Reflect.defineMetadata("design:type", {
+                name: original.name
+            }, f);
             // return new constructor (will override original)
             return f;
         }
@@ -360,24 +357,19 @@ export function baseConstructor(constParamsIndex: number = 0) {
  * @param {PropertyDescriptor} [propDesc] The original property descriptor
  * @returns {*} The value of the binding
  */
-function processBinding(thisArg: any, key: string | number | symbol, newVal: any, propDesc?: PropertyDescriptor): any {
-    const stringKey = key.toString();
-    // Setup remembered bound properties on object instance
-    if (!Reflect.hasMetadata("bindings", thisArg)) Reflect.defineMetadata("bindings", {}, thisArg);
-    const mData: IndexStructure<string, Array<Binding<any, any>>> = Reflect.getMetadata("bindings", thisArg);
+function processBinding(thisArg: any, key: string | symbol | number, newVal: any, propDesc?: PropertyDescriptor): any {
     let reflect = true;
 
     // Create new property descriptor on bound object if it is bound
     if (newVal instanceof Binding) {
-        // Remember all bindings
-        if (!(key in mData)) mData[stringKey] = [];
-        if (!mData[stringKey].includes(newVal)) mData[stringKey].push(newVal);
         // Bind to thisArg object
-        newVal.bind(thisArg, key);
-        // Get original value
-        newVal = newVal.valueOf();
+        newVal.install(thisArg, key);
         reflect = false;
+        newVal = newVal.valueOf();
     }
+
+    const initiatorMData: Map<string, Binding<any, any>> | undefined = Reflect.getMetadata("initiatorBinding", thisArg);
+    const initiatorBinding = initiatorMData ? initiatorMData.get(key.toString()) : undefined;
 
     // Only execute watching on changes
     if (newVal === thisArg[key]) return newVal;
@@ -386,10 +378,6 @@ function processBinding(thisArg: any, key: string | number | symbol, newVal: any
         propDesc.set.call(thisArg, newVal);
     } else Reflect.defineMetadata(key, newVal, thisArg);
 
-    if (mData[stringKey] && reflect) {
-        for (const binding of mData[stringKey]) {
-            if (binding.object[binding.property] !== newVal) binding.object[binding.property] = newVal;
-        }
-    }
+    if (reflect && initiatorBinding) initiatorBinding.reflectToObject(newVal);
     return newVal;
 }
