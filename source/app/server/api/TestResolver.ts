@@ -1,5 +1,5 @@
-import { Resolver, Query } from 'type-graphql';
-import { Test } from "~bdo/models/Test";
+import { Test1 } from "~bdo/models/Test1";
+import { resolver, arg, query } from "~bdo/utils/decorators";
 
 /**
  * Test
@@ -13,8 +13,8 @@ class BaseResolver {
      * @returns {string}
      * @memberof BaseResolver
      */
-    @Query()
-    public resolverName(): string {
+    @query()
+    public resolverName(@arg("id") _id: string): string {
         return this.constructor.name;
     }
 }
@@ -25,5 +25,22 @@ class BaseResolver {
  * @class TestResolver
  * @extends {BaseResolver}
  */
-@Resolver(Test)
-export default class TestResolver extends BaseResolver { }
+@resolver(Test1)
+export default class TestResolver extends BaseResolver {
+
+    /**
+     * Test
+     *
+     * @param {string} id
+     * @returns {Test1}
+     * @memberof TestResolver
+     */
+    @query((_returns) => Test1.graphQLType)
+    public lalala(@arg("id") id: string): Test1 {
+        return new Test1({
+            id,
+            title: "hahahahahahahahahahahahaha",
+            description: "hicks..."
+        });
+    }
+}

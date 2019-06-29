@@ -263,7 +263,7 @@ export abstract class BaseServer {
         ]);
         const pubSub = new GraphQLRedisPubSub({ publisher, subscriber });
 
-        this.apiSchema = await buildSchema({ resolvers, pubSub });
+        this.apiSchema = await buildSchema({ resolvers, pubSub, skipCheck: true });
         this.app.use(pathsConfig.apiEntryPoint, expressGraphQL({
             schema: this.apiSchema,
             graphiql: process.env.NODE_ENV === 'development' ? true : false

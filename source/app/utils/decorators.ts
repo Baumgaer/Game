@@ -1,9 +1,24 @@
 import 'reflect-metadata';
+import onChange from "on-change";
 import { merge, isObject } from 'lodash';
 import { Binding } from "~bdo/lib/Binding";
 import { ucFirst } from "~bdo/utils/util";
 import { isBrowser } from "~bdo/utils/environment";
-import onChange from "on-change";
+import { ReturnTypeFunc, AdvancedOptions } from "type-graphql/dist/decorators/types";
+import { ObjectOptions } from "type-graphql/dist/decorators/ObjectType";
+import {
+    Field,
+    ObjectType,
+    Query,
+    Arg,
+    Args,
+    Resolver,
+    Root,
+    Subscription,
+    Mutation,
+    PubSub,
+    InputType
+} from "type-graphql";
 
 interface IWatchParams {
     /**
@@ -86,7 +101,7 @@ interface IPropertyParams {
  *
  * @interface IAttributeParams
  */
-interface IAttributeParams {
+interface IAttributeParams extends AdvancedOptions {
     /**
      * If true the value will not be sent to client or server if value is set
      * or save() will be called.
@@ -116,9 +131,16 @@ interface IAttributeParams {
     StoreTemporaryInObject?: number;
 }
 
+type FuncOrAttrParams = ReturnTypeFunc | IAttributeParams;
+type nameOrOptsOrIndex = string | ObjectOptions | number;
+type optsOrIndex = ObjectOptions | number;
+
 /**
- * Propergates the assigned value to the assigned object and receives property
- * changes from the object.
+ * reacts on several types of changes of the property / attribute.
+ * If no function name is given, it will look for on<PropertyName><Action>.
+ *
+ * Example: The property is named test and is of type string, then the
+ * reactionFunction is called onTestChange.
  *
  * @export
  * @param {IndexStructure} params
@@ -243,11 +265,25 @@ export function property(_params: IPropertyParams = {}): PropertyDecorator {
  * Marks a component property as a real attribute and reflects the set values
  * to the attribute dom even it is not a native attribute.
  *
+ * If it is a BDOModel it marks the property as an attribute which should be
+ * send to server or saved in database.
+ *
+ * It also do some other logic like data flow, caching and so on. For more
+ * information read the property comments.
+ *
  * @export
  * @returns {PropertyDecorator}
  */
-export function attribute(_params: IAttributeParams = {}): PropertyDecorator {
+export function attribute(typeFunc?: FuncOrAttrParams, params?: IAttributeParams): PropertyDecorator {
     return (target: any, key: string | symbol) => {
+        if (typeFunc && !(typeFunc instanceof Function) && !params) params = typeFunc;
+
+        // Decide which Field should be used
+        if (typeFunc instanceof Function && params) Field(typeFunc, params)(target, key);
+        else if (typeFunc instanceof Function) Field(typeFunc)(target, key);
+        else if (params) Field(params)(target, key);
+        else Field()(target, key);
+
         // Get previous defined property descriptor for chaining
         const propDesc = Reflect.getOwnPropertyDescriptor(target, key);
 
@@ -286,65 +322,71 @@ export function attribute(_params: IAttributeParams = {}): PropertyDecorator {
 }
 
 /**
- * Constructs an object with its constParams with position constParamsIndex
+ * Constructs an object with its constParams with position constParamsIndex.
+ * It also defines an graphQL object type if it is a BDOModel
  *
  * @export
  * @param {number} [constParamsIndex=0] Position of parameters which are used to initialize the object
  * @returns
  */
-export function baseConstructor(constParamsIndex: number = 0) {
+export function baseConstructor(name?: nameOrOptsOrIndex, options?: optsOrIndex, constParamsIndex: number = 0) {
 
-    /**
-     * Implements the life cycle of all decorated objects
-     *
-     * @param {*} object
-     * @param {any[]} args
-     */
-    const lifeCycle = (object: any, args: any[]) => {
-        let constParams = args[constParamsIndex];
-        if (!(constParams instanceof Object)) constParams = {};
-        merge(object, constParams);
-        if ("constructedCallback" in object) object.constructedCallback(...args);
-    };
-
-    return <T extends Constructor>(ctor: T) => {
-        // If the ctor is an HTMLElement, it is necessary to extend the class
-        // because web components have a special construction behavior.
-        // Otherwise the constructor will be wrapped to make sure to see the
-        // right object in console for better debugging
-        if (isBrowser() && ctor.prototype instanceof HTMLElement) {
-            /**
-             * Constructs an object with its constParams with position constParamsIndex
-             *
-             * @class BaseConstructor
-             * @extends {ctor}
-             */
-            return class extends ctor {
-                constructor(...args: any[]) {
-                    super(...args);
-                    lifeCycle(this, args);
-                }
-            };
-        } else {
-            const original = ctor;
-            // the new constructor behavior
-            const f: any = function newConstructor(...args: any[]) {
-                const instance = new original(...args);
-                lifeCycle(instance, args);
-                return instance;
-            };
-            // copy prototype so instanceof operator still works
-            f.prototype = original.prototype;
-            // Copy static members
-            Object.keys(original).forEach((name: string) => { f[name] = (<any>original)[name]; });
-            Reflect.defineMetadata("design:type", {
-                name: original.name
-            }, f);
-            // return new constructor (will override original)
-            return f;
+    return (ctor: any) => {
+        const prototype = Object.getPrototypeOf(ctor);
+        if (prototype.name === "BaseConstructor") {
+            Object.setPrototypeOf(ctor, Object.getPrototypeOf(prototype));
         }
+
+        // Determine param types
+        if (name && (typeof name === "number")) constParamsIndex = name;
+        if (name && (typeof name === "object")) options = name;
+        if (name && ((typeof name === "object") || (typeof name === "number"))) name = undefined;
+        if (options && (typeof options === "number")) constParamsIndex = options;
+        if (options && (typeof options === "number")) options = undefined;
+
+        if (ctor.graphQLType) {
+            // Decide which ObjectType to use
+            if (name && (typeof name === "string") && options && (typeof options === "object")) {
+                ObjectType(name, options)(ctor);
+            } else if (name && (typeof name === "string")) {
+                ObjectType(name)(ctor);
+            } else if (options && (typeof options === "object")) {
+                ObjectType(options)(ctor);
+            } else ObjectType()(ctor);
+        }
+
+        if (options && (typeof options === "object" && options.isAbstract)) return ctor;
+
+        return class BaseConstructor extends ctor {
+
+            /**
+             * Determines the original type of this model - set by the
+             * baseConstructor - for the GraphQL resolver
+             *
+             * @static
+             */
+            public static readonly graphQLType: any = ctor;
+
+            constructor(...params: any[]) {
+                super(...params);
+                let constParams = params[constParamsIndex];
+                if (!(constParams instanceof Object)) constParams = {};
+                merge(this, constParams);
+                if ("constructedCallback" in this) (<any>this).constructedCallback(...params);
+            }
+        };
     };
 }
+
+export let query = Query;
+export let arg = Arg;
+export let args = Args;
+export let resolver = Resolver;
+export let root = Root;
+export let mutation = Mutation;
+export let subscription = Subscription;
+export let pubSub = PubSub;
+export let inputType = InputType;
 
 /**
  * Does the second part of the binding mechanism.

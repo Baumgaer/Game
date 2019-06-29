@@ -1,5 +1,5 @@
-import { ObjectType, Field, ID } from 'type-graphql';
-import { baseConstructor } from '~bdo/utils/decorators';
+import { ID } from 'type-graphql';
+import { baseConstructor, attribute } from '~bdo/utils/decorators';
 import { BDOModel } from '~bdo/lib/BDOModel';
 
 /**
@@ -8,7 +8,7 @@ import { BDOModel } from '~bdo/lib/BDOModel';
  * @export
  * @class Test
  */
-@baseConstructor() @ObjectType()
+@baseConstructor()
 export class Test extends BDOModel {
     /**
      * Test
@@ -16,7 +16,7 @@ export class Test extends BDOModel {
      * @type {string}
      * @memberof Test
      */
-    @Field((_type) => ID) public id: string = '0';
+    @attribute((_type) => ID) public id: string = '0';
 
     /**
      * Test
@@ -24,7 +24,7 @@ export class Test extends BDOModel {
      * @type {string}
      * @memberof Test
      */
-    @Field() public title: string = 'test';
+    @attribute() public title: string = 'test';
 
     /**
      * Test
@@ -32,7 +32,7 @@ export class Test extends BDOModel {
      * @type {string}
      * @memberof Test
      */
-    @Field({ nullable: true }) public description?: string;
+    @attribute({ nullable: true }) public description?: string;
 
     constructor(_params: ConstParams<Test>) {
         super();

@@ -2,7 +2,7 @@
     "extends": "./../../../../baseTSConfig.json",
     "compilerOptions": {
         "target": "es6",
-        "module": "commonjs",
+        "module": "esnext",
         "rootDir": "./../../",
         "outDir": "./../../../../out/app/client/js",
         "sourceMap": true,

@@ -1,23 +1,38 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const tslib_1 = require("tslib");
-const type_graphql_1 = require("type-graphql");
-const Test_1 = require("~bdo/models/Test");
+const Test1_1 = require("~bdo/models/Test1");
+const decorators_1 = require("~bdo/utils/decorators");
 class BaseResolver {
-    resolverName() {
+    resolverName(_id) {
         return this.constructor.name;
     }
 }
 tslib_1.__decorate([
-    type_graphql_1.Query(),
+    decorators_1.query(),
+    tslib_1.__param(0, decorators_1.arg("id")),
     tslib_1.__metadata("design:type", Function),
-    tslib_1.__metadata("design:paramtypes", []),
+    tslib_1.__metadata("design:paramtypes", [String]),
     tslib_1.__metadata("design:returntype", String)
 ], BaseResolver.prototype, "resolverName", null);
 let TestResolver = class TestResolver extends BaseResolver {
+    lalala(id) {
+        return new Test1_1.Test1({
+            id,
+            title: "hahahahahahahahahahahahaha",
+            description: "hicks..."
+        });
+    }
 };
+tslib_1.__decorate([
+    decorators_1.query((_returns) => Test1_1.Test1.graphQLType),
+    tslib_1.__param(0, decorators_1.arg("id")),
+    tslib_1.__metadata("design:type", Function),
+    tslib_1.__metadata("design:paramtypes", [String]),
+    tslib_1.__metadata("design:returntype", Test1_1.Test1)
+], TestResolver.prototype, "lalala", null);
 TestResolver = tslib_1.__decorate([
-    type_graphql_1.Resolver(Test_1.Test)
+    decorators_1.resolver(Test1_1.Test1)
 ], TestResolver);
 exports.default = TestResolver;
-//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiVGVzdFJlc29sdmVyLmpzIiwic291cmNlUm9vdCI6IiIsInNvdXJjZXMiOlsiLi4vLi4vLi4vLi4vc291cmNlL2FwcC9zZXJ2ZXIvYXBpL1Rlc3RSZXNvbHZlci50cyJdLCJuYW1lcyI6W10sIm1hcHBpbmdzIjoiOzs7QUFBQSwrQ0FBK0M7QUFDL0MsMkNBQXdDO0FBT3hDLE1BQU0sWUFBWTtJQVFQLFlBQVk7UUFDZixPQUFPLElBQUksQ0FBQyxXQUFXLENBQUMsSUFBSSxDQUFDO0lBQ2pDLENBQUM7Q0FDSjtBQUhHO0lBREMsb0JBQUssRUFBRTs7OztnREFHUDtBQVVMLElBQXFCLFlBQVksR0FBakMsTUFBcUIsWUFBYSxTQUFRLFlBQVk7Q0FBSSxDQUFBO0FBQXJDLFlBQVk7SUFEaEMsdUJBQVEsQ0FBQyxXQUFJLENBQUM7R0FDTSxZQUFZLENBQXlCO2tCQUFyQyxZQUFZIn0=
+//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiVGVzdFJlc29sdmVyLmpzIiwic291cmNlUm9vdCI6IiIsInNvdXJjZXMiOlsiLi4vLi4vLi4vLi4vc291cmNlL2FwcC9zZXJ2ZXIvYXBpL1Rlc3RSZXNvbHZlci50cyJdLCJuYW1lcyI6W10sIm1hcHBpbmdzIjoiOzs7QUFBQSw2Q0FBMEM7QUFDMUMsc0RBQTZEO0FBTzdELE1BQU0sWUFBWTtJQVFQLFlBQVksQ0FBWSxHQUFXO1FBQ3RDLE9BQU8sSUFBSSxDQUFDLFdBQVcsQ0FBQyxJQUFJLENBQUM7SUFDakMsQ0FBQztDQUNKO0FBSEc7SUFEQyxrQkFBSyxFQUFFO0lBQ2EsbUJBQUEsZ0JBQUcsQ0FBQyxJQUFJLENBQUMsQ0FBQTs7OztnREFFN0I7QUFVTCxJQUFxQixZQUFZLEdBQWpDLE1BQXFCLFlBQWEsU0FBUSxZQUFZO0lBVTNDLE1BQU0sQ0FBWSxFQUFVO1FBQy9CLE9BQU8sSUFBSSxhQUFLLENBQUM7WUFDYixFQUFFO1lBQ0YsS0FBSyxFQUFFLDRCQUE0QjtZQUNuQyxXQUFXLEVBQUUsVUFBVTtTQUMxQixDQUFDLENBQUM7SUFDUCxDQUFDO0NBQ0osQ0FBQTtBQVBHO0lBREMsa0JBQUssQ0FBQyxDQUFDLFFBQVEsRUFBRSxFQUFFLENBQUMsYUFBSyxDQUFDLFdBQVcsQ0FBQztJQUN4QixtQkFBQSxnQkFBRyxDQUFDLElBQUksQ0FBQyxDQUFBOzs7NENBQWMsYUFBSzswQ0FNMUM7QUFoQmdCLFlBQVk7SUFEaEMscUJBQVEsQ0FBQyxhQUFLLENBQUM7R0FDSyxZQUFZLENBaUJoQztrQkFqQm9CLFlBQVkifQ==
