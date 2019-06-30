@@ -1,4 +1,3 @@
-import { ID } from 'type-graphql';
 import { baseConstructor, attribute } from '~bdo/utils/decorators';
 import { BDOModel } from '~bdo/lib/BDOModel';
 
@@ -10,13 +9,6 @@ import { BDOModel } from '~bdo/lib/BDOModel';
  */
 @baseConstructor()
 export class Test extends BDOModel {
-    /**
-     * Test
-     *
-     * @type {string}
-     * @memberof Test
-     */
-    @attribute((_type) => ID) public id: string = '0';
 
     /**
      * Test
@@ -33,8 +25,4 @@ export class Test extends BDOModel {
      * @memberof Test
      */
     @attribute({ nullable: true }) public description?: string;
-
-    constructor(_params: ConstParams<Test>) {
-        super();
-    }
 }

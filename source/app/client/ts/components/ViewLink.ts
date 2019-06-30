@@ -18,7 +18,7 @@ export default class ViewLink extends BaseComponentFactory(HTMLAnchorElement) {
      * @static
      * @memberof ViewLink
      */
-    public static readonly extends?: string = 'a';
+    public static readonly extends: string = 'a';
 
     /**
      * Test
@@ -26,7 +26,7 @@ export default class ViewLink extends BaseComponentFactory(HTMLAnchorElement) {
      * @type {Test}
      * @memberof ViewLink
      */
-    @property() public model: Test1 = new Test1({ id: "1", title: String(Date.now()) });
+    @property() public model: Test1 = new Test1({ id: "1", title: String(Date.now()), oha: "oha..." });
 
     /**
      * Test

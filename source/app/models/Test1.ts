@@ -1,5 +1,5 @@
 import { Test } from './Test';
-import { baseConstructor, attribute } from "~bdo/utils/decorators";
+import { baseConstructor, property } from "~bdo/utils/decorators";
 
 /**
  * Test
@@ -17,5 +17,9 @@ export class Test1 extends Test {
      * @type {string}
      * @memberof Test1
      */
-    @attribute() public oha: string = 'test';
+    @property({ StoreTemporaryInObject: 5000 }) public oha: string = 'test';
+
+    constructor(_params?: ConstParams<Test1>) {
+        super();
+    }
 }

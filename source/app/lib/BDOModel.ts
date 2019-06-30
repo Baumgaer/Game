@@ -1,11 +1,15 @@
+import { v1 as uuid } from "uuid";
+import { ID } from "type-graphql";
 import { Binding } from "~bdo/lib/Binding";
 import { attribute, baseConstructor } from "~bdo/utils/decorators";
+
 /**
- * Test
+ * Provides basic functionality and fields for each Model on each side
+ * (server and client)
  *
  * @export
  * @abstract
- * @class BDOBaseModel
+ * @class BDOModel
  */
 @baseConstructor({ isAbstract: true })
 export abstract class BDOModel {
@@ -21,6 +25,15 @@ export abstract class BDOModel {
     public static readonly graphQLType: any = Object.getPrototypeOf(BDOModel.constructor);
 
     /**
+     * Provides a unique id for each model. If there is no id given, a unique
+     * dummy id will be generated.
+     *
+     * @type {string}
+     * @memberof BDOModel
+     */
+    @attribute((_type) => ID) public id?: string = `pending_${uuid()}`;
+
+    /**
      * Represents the constructors name to ensure the right Model construction
      * on client and server side when data is received.
      *
@@ -28,7 +41,7 @@ export abstract class BDOModel {
      * @type {string}
      * @memberof BDOModel
      */
-    @attribute() protected className: string = Object.getPrototypeOf(this.constructor).name;
+    @attribute() public readonly className: string = Object.getPrototypeOf(this.constructor).name;
 
     /**
      * Holds a list of all bindings to all components

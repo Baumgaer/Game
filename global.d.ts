@@ -2,17 +2,32 @@
 declare type Constructor<T = {}> = new (...args: any[]) => T;
 declare type AbstractConstructor<T = {}> = Function & { prototype: T };
 
-// Collects all properties of a class except native functions and wraps them in an object with their types
+// Next two type decide wether a property is writable or not
+declare type IfNotEquals<X, Y, A, B> = (<T>() => T extends X ? 1 : 2) extends (<T>() => T extends Y ? 1 : 2) ? B : A;
+declare type NoneWritableKeysOf<T> = { [P in keyof T]: IfNotEquals<{ [Q in P]: T[P] }, { -readonly [Q in P]: T[P] }, P, never> }[keyof T];
+
+// Filters all properties out which are undefined or a function
 declare type NonFunctionPropertyNames<T> = { [K in keyof T]: T[K] extends (...args: any) => any ? never : K }[keyof T];
+// Filters all properties out which are a function
 declare type DefinitiveNonFunctionPropertyNames<T> = Exclude<NonFunctionPropertyNames<T>, undefined>
-declare type ConstParams<T> = Pick<T, T extends HTMLElement ? Exclude<
-    NonFunctionPropertyNames<T>,
-    NonFunctionPropertyNames<
-        HTMLElement &
-        HTMLAnchorElement &
-        HTMLCanvasElement
+
+// Collects all properties of a class except native functions and readonly properties and wraps them in an object with their types
+declare type ConstParams<T> = Pick<T, T extends HTMLElement ?
+    Exclude<
+        Exclude<
+            NonFunctionPropertyNames<T>,
+            NonFunctionPropertyNames<HTMLElement & HTMLAnchorElement & HTMLCanvasElement>
+        >,
+        NoneWritableKeysOf<T>
     >
-> : NonFunctionPropertyNames<T>>;
+    :
+    Exclude<
+        NonFunctionPropertyNames<T>,
+        NoneWritableKeysOf<T>
+    >
+>;
+
+type test = Part
 
 declare type ComponentProperties = {
     length: number;
