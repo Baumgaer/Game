@@ -34,6 +34,15 @@ export function BaseComponentFactory<TBase extends Constructor<HTMLElement>>(HTM
         public static readonly extends?: string;
 
         /**
+         * The static version of the base component identifier
+         *
+         * @static
+         * @type {boolean}
+         * @memberof BaseComponent
+         */
+        public static readonly isBaseComponent: boolean = true;
+
+        /**
          * Gives access to the properties similar to element.attributes
          *
          * @type {Map<string, any>}
@@ -52,6 +61,7 @@ export function BaseComponentFactory<TBase extends Constructor<HTMLElement>>(HTM
          * This is for better identification of base components and instance check
          *
          * @type {boolean}
+         * @memberof BaseComponent
          */
         @property() public readonly isBaseComponent: boolean = true;
 

@@ -28,4 +28,3 @@ export default class TestComponent extends BaseComponentFactory(HTMLElement) {
     @property() protected templateString = require('~static/views/testComponent.njk');
 
 }
-customElements.define('test-component', TestComponent);

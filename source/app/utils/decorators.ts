@@ -2,7 +2,7 @@ import 'reflect-metadata';
 import onChange from "on-change";
 import { merge, isObject } from 'lodash';
 import { Binding } from "~bdo/lib/Binding";
-import { ucFirst } from "~bdo/utils/util";
+import { ucFirst, pascalCase2kebabCase } from "~bdo/utils/util";
 import { isBrowser } from "~bdo/utils/environment";
 import { ReturnTypeFunc, AdvancedOptions } from "type-graphql/dist/decorators/types";
 import { ObjectOptions } from "type-graphql/dist/decorators/ObjectType";
@@ -77,13 +77,12 @@ interface IWatchParams {
  */
 interface IPropertyParams {
     /**
-     * If set the value will be stored in a cache map for the time in
-     * milliseconds.
+     * If set > 0 the value will expire after x milliseconds
      *
      * @default 0 Means will stored permanently
      * @type {number}
      */
-    StoreTemporaryInObject?: number;
+    StoreTemporary?: number;
 
     /**
      * If true the value will be saved in localStorage until its deletion
@@ -101,34 +100,57 @@ interface IPropertyParams {
  *
  * @interface IAttributeParams
  */
-interface IAttributeParams extends AdvancedOptions {
+interface IAttributeParams extends AdvancedOptions, IPropertyParams {
     /**
-     * If true the value will not be sent to client or server if value is set
+     * If true the value will not be sent to server if value is set
      * or save() will be called.
      *
      * @default false
      * @type {boolean}
+     * @memberof IAttributeParams
      */
-    noClientServerInteraction?: boolean;
+    noServerInteraction?: boolean;
 
     /**
-     * If true the value will NOT be saved in localStorage until its deletion
-     * in localStorage or in redis until  its deletion in redis.
+     * If true the value will not be sent to client if value is set
+     * or save() will be called.
      *
-     * @default false Values will be saved in cache
+     * @default false
      * @type {boolean}
+     * @memberof IAttributeParams
      */
-    neverSaveInCache?: boolean;
+    noClientInteraction?: boolean;
 
     /**
-     * If set the value will be stored in a cache map for the time in
-     * milliseconds. The IndexedDb on client side or database on server side
-     * will be omitted.
+     * If true the value will not be sent to p2p clients of current client if
+     * value is set or save() will be called.
      *
-     * @default 0 Means will stored permanently
-     * @type {number}
+     * @default false
+     * @type {boolean}
+     * @memberof IAttributeParams
      */
-    StoreTemporaryInObject?: number;
+    noP2PInteraction?: boolean;
+
+    /**
+     * @inheritdoc
+     *
+     * @default true Values will be saved in cache
+     * @type {boolean}
+     * @memberof IAttributeParams
+     */
+    saveInCache?: boolean;
+
+    /**
+     * If true, value will be saved automatically and immediately.
+     * If it is a number > 0 the value will be saved automatically but
+     * debounced which means that the number is the time in milliseconds of
+     * save timeout.
+     *
+     * @default false
+     * @type {(boolean | number)}
+     * @memberof IAttributeParams
+     */
+    autoSave?: boolean | number;
 }
 
 type FuncOrAttrParams = ReturnTypeFunc | IAttributeParams;
@@ -357,7 +379,13 @@ export function baseConstructor(name?: nameOrOptsOrIndex, options?: optsOrIndex,
 
         if (options && (typeof options === "object" && options.isAbstract)) return ctor;
 
-        return class BaseConstructor extends ctor {
+        /**
+         * Invokes the life cycle of every component and model
+         *
+         * @class BaseConstructor
+         * @extends {ctor}
+         */
+        class BaseConstructor extends ctor {
 
             /**
              * Determines the original type of this model - set by the
@@ -374,7 +402,14 @@ export function baseConstructor(name?: nameOrOptsOrIndex, options?: optsOrIndex,
                 merge(this, constParams);
                 if ("constructedCallback" in this) (<any>this).constructedCallback(...params);
             }
-        };
+        }
+        if (isBrowser() && ctor.isBaseComponent) {
+            customElements.define(pascalCase2kebabCase(ctor.name), BaseConstructor, {
+                extends: BaseConstructor.extends
+            });
+        }
+
+        return BaseConstructor;
     };
 }
 

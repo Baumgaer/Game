@@ -12,18 +12,20 @@ declare type NonFunctionPropertyNames<T> = { [K in keyof T]: T[K] extends (...ar
 declare type DefinitiveNonFunctionPropertyNames<T> = Exclude<NonFunctionPropertyNames<T>, undefined>
 
 // Collects all properties of a class except native functions and readonly properties and wraps them in an object with their types
-declare type ConstParams<T> = Pick<T, T extends HTMLElement ?
-    Exclude<
+declare type ConstParams<T> = Partial<
+    Pick<T, T extends HTMLElement ?
+        Exclude<
+            Exclude<
+                NonFunctionPropertyNames<T>,
+                NonFunctionPropertyNames<HTMLElement & HTMLAnchorElement & HTMLCanvasElement>
+            >,
+            NoneWritableKeysOf<T>
+        >
+        :
         Exclude<
             NonFunctionPropertyNames<T>,
-            NonFunctionPropertyNames<HTMLElement & HTMLAnchorElement & HTMLCanvasElement>
-        >,
-        NoneWritableKeysOf<T>
-    >
-    :
-    Exclude<
-        NonFunctionPropertyNames<T>,
-        NoneWritableKeysOf<T>
+            NoneWritableKeysOf<T>
+        >
     >
 >;
 

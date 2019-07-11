@@ -17,7 +17,7 @@ export class Test1 extends Test {
      * @type {string}
      * @memberof Test1
      */
-    @property({ StoreTemporaryInObject: 5000 }) public oha: string = 'test';
+    @property({ StoreTemporary: 5000 }) public oha: string = 'test';
 
     constructor(_params?: ConstParams<Test1>) {
         super();

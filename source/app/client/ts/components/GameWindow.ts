@@ -98,6 +98,3 @@ export default class GameWindow extends BaseComponentFactory(HTMLCanvasElement) 
      */
     protected createTerrain() { }
 }
-customElements.define('game-window', GameWindow, {
-    extends: GameWindow.extends
-});

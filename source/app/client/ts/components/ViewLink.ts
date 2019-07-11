@@ -81,4 +81,3 @@ export default class ViewLink extends BaseComponentFactory(HTMLAnchorElement) {
         window.router.navigate(this.href, true);
     }
 }
-customElements.define("view-link", ViewLink, { extends: ViewLink.extends });

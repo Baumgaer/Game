@@ -40,7 +40,8 @@ export default class TestResolver extends BaseResolver {
         return new Test1({
             id,
             title: "hahahahahahahahahahahahaha",
-            description: "hicks..."
+            description: "hicks...",
+            oha: "joah"
         });
     }
 }

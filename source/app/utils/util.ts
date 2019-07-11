@@ -10,6 +10,30 @@ export function ucFirst(str: string): string {
 }
 
 /**
+ * Converts a camelCase string to kebab-case
+ *
+ * @export
+ * @param {string} str String to convert
+ * @returns {string}
+ */
+export function camelCase2kebabCase(str: string): string {
+    str = str.charAt(0).toLowerCase() + str.slice(1);
+    return str.replace(/([a-z0-9]|(?=[A-Z]))([A-Z])/g, '$1-$2').toLowerCase();
+}
+
+/**
+ * Converts a PascalCase string to kebab-case
+ *
+ * @export
+ * @param {string} str String to convert
+ * @returns {string}
+ */
+export function pascalCase2kebabCase(str: string): string {
+    str = ucFirst(str);
+    return camelCase2kebabCase(str);
+}
+
+/**
  * Removes element from array
  *
  * @export

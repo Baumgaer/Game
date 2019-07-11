@@ -4,8 +4,8 @@ const tslib_1 = require("tslib");
 const decorators_1 = require("~bdo/utils/decorators");
 const BDOModel_1 = require("~bdo/lib/BDOModel");
 let Test = class Test extends BDOModel_1.BDOModel {
-    constructor(_params) {
-        super();
+    constructor() {
+        super(...arguments);
         this.title = 'test';
     }
 };
@@ -18,8 +18,7 @@ tslib_1.__decorate([
     tslib_1.__metadata("design:type", String)
 ], Test.prototype, "description", void 0);
 Test = tslib_1.__decorate([
-    decorators_1.baseConstructor(),
-    tslib_1.__metadata("design:paramtypes", [Object])
+    decorators_1.baseConstructor()
 ], Test);
 exports.Test = Test;
-//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiVGVzdC5qcyIsInNvdXJjZVJvb3QiOiIiLCJzb3VyY2VzIjpbIi4uLy4uLy4uL3NvdXJjZS9hcHAvbW9kZWxzL1Rlc3QudHMiXSwibmFtZXMiOltdLCJtYXBwaW5ncyI6Ijs7O0FBQUEsc0RBQW1FO0FBQ25FLGdEQUE2QztBQVM3QyxJQUFhLElBQUksR0FBakIsTUFBYSxJQUFLLFNBQVEsbUJBQVE7SUFrQjlCLFlBQVksT0FBMEI7UUFDbEMsS0FBSyxFQUFFLENBQUM7UUFYUSxVQUFLLEdBQVcsTUFBTSxDQUFDO0lBWTNDLENBQUM7Q0FDSixDQUFBO0FBYmdCO0lBQVosc0JBQVMsRUFBRTs7bUNBQStCO0FBUVo7SUFBOUIsc0JBQVMsQ0FBQyxFQUFFLFFBQVEsRUFBRSxJQUFJLEVBQUUsQ0FBQzs7eUNBQTZCO0FBaEJsRCxJQUFJO0lBRGhCLDRCQUFlLEVBQUU7O0dBQ0wsSUFBSSxDQXFCaEI7QUFyQlksb0JBQUkifQ==
+//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiVGVzdC5qcyIsInNvdXJjZVJvb3QiOiIiLCJzb3VyY2VzIjpbIi4uLy4uLy4uL3NvdXJjZS9hcHAvbW9kZWxzL1Rlc3QudHMiXSwibmFtZXMiOltdLCJtYXBwaW5ncyI6Ijs7O0FBQUEsc0RBQW1FO0FBQ25FLGdEQUE2QztBQVM3QyxJQUFhLElBQUksR0FBakIsTUFBYSxJQUFLLFNBQVEsbUJBQVE7SUFEbEM7O1FBU3dCLFVBQUssR0FBVyxNQUFNLENBQUM7SUFTL0MsQ0FBQztDQUFBLENBQUE7QUFUZ0I7SUFBWixzQkFBUyxFQUFFOzttQ0FBK0I7QUFRWjtJQUE5QixzQkFBUyxDQUFDLEVBQUUsUUFBUSxFQUFFLElBQUksRUFBRSxDQUFDOzt5Q0FBNkI7QUFoQmxELElBQUk7SUFEaEIsNEJBQWUsRUFBRTtHQUNMLElBQUksQ0FpQmhCO0FBakJZLG9CQUFJIn0=

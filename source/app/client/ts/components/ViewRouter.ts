@@ -68,4 +68,3 @@ export default class ViewRouter extends BaseComponentFactory(HTMLElement) {
         }
     }
 }
-customElements.define("view-router", ViewRouter);
