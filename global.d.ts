@@ -29,8 +29,6 @@ declare type ConstParams<T> = Partial<
     >
 >;
 
-type test = Part
-
 declare type ComponentProperties = {
     length: number;
     values: any[];
@@ -57,6 +55,12 @@ declare interface IndexStructure<K = string, V = any> {
     [member: K]: V
 }
 
+declare type Unpacked<T> =
+    T extends (infer U)[] ? U :
+    T extends (...args: any[]) => infer U ? U :
+    T extends Promise<infer U> ? U :
+    T;
+
 // ExpressJS overwrites
 namespace Express {
 
@@ -70,4 +74,11 @@ namespace Express {
 interface Window {
     virtualRoutes: string[];
     router: import('navigo');
+    localStorage: import('node-localstorage')
+}
+
+namespace NodeJS {
+    interface Global {
+        localStorage: import('node-localstorage').LocalStorage
+    }
 }

@@ -82,11 +82,12 @@ interface IPropertyParams {
      * @default 0 Means will stored permanently
      * @type {number}
      */
-    StoreTemporary?: number;
+    storeTemporary?: number;
 
     /**
      * If true the value will be saved in localStorage until its deletion
      * in localStorage or in redis until its deletion in redis.
+     * This is useful to relieve heavy databases.
      *
      * @default false Values will NOT be saved in cache
      * @type {boolean}
@@ -134,7 +135,7 @@ interface IAttributeParams extends AdvancedOptions, IPropertyParams {
     /**
      * @inheritdoc
      *
-     * @default true Values will be saved in cache
+     * @default true Values will be saved in cache if is model else false
      * @type {boolean}
      * @memberof IAttributeParams
      */
@@ -253,7 +254,7 @@ export function watched(params: IWatchParams = {}): PropertyDecorator {
  * @export
  * @returns {PropertyDecorator}
  */
-export function property(_params: IPropertyParams = {}): PropertyDecorator {
+export function property(params: IPropertyParams = {}): PropertyDecorator {
     return (target: any, key: string | symbol) => {
         // Get previous defined property descriptor for chaining
         const propDesc = Reflect.getOwnPropertyDescriptor(target, key);
@@ -271,11 +272,15 @@ export function property(_params: IPropertyParams = {}): PropertyDecorator {
             get: function get() {
                 if (propDesc && propDesc.get) {
                     return propDesc.get.call(this);
-                } else return Reflect.getMetadata(key, this);
+                } else {
+                    if (params.saveInCache) return getCache(this, key);
+                    return Reflect.getMetadata(key, this);
+                }
             },
             set: function set(newVal: any) {
                 if (newVal === (<IndexStructure>this)[key.toString()]) return;
-                processBinding(this, key, newVal, propDesc);
+                newVal = processBinding(this, key, newVal, propDesc);
+                setUpdateCache(this, key, newVal, params);
             },
             enumerable: true,
             configurable: true
@@ -299,6 +304,9 @@ export function property(_params: IPropertyParams = {}): PropertyDecorator {
 export function attribute(typeFunc?: FuncOrAttrParams, params?: IAttributeParams): PropertyDecorator {
     return (target: any, key: string | symbol) => {
         if (typeFunc && !(typeFunc instanceof Function) && !params) params = typeFunc;
+        if (!params) params = {};
+
+        if (params.saveInCache === undefined && "isBDOModel" in target) params.saveInCache = true;
 
         // Decide which Field should be used
         if (typeFunc instanceof Function && params) Field(typeFunc, params)(target, key);
@@ -315,13 +323,17 @@ export function attribute(typeFunc?: FuncOrAttrParams, params?: IAttributeParams
             get: function get() {
                 if (propDesc && propDesc.get) {
                     return propDesc.get.call(this);
-                } else return Reflect.getMetadata(key, this);
+                } else {
+                    if (params && params.saveInCache) return getCache(this, key);
+                    return Reflect.getMetadata(key, this);
+                }
             },
             set: function set(newVal: any) {
                 const stringKey = key.toString();
                 if (newVal === (<IndexStructure>this)[stringKey]) return;
                 const initMetaName = `${stringKey}AttrInitialized`;
                 newVal = processBinding(this, key, newVal, propDesc);
+                setUpdateCache(this, key, newVal, params);
                 // Prefer in DOM defined attributes on initialization
                 if (isBrowser() && this instanceof HTMLElement) {
                     const attrValue = this.getAttribute(stringKey);
@@ -366,7 +378,7 @@ export function baseConstructor(name?: nameOrOptsOrIndex, options?: optsOrIndex,
         if (options && (typeof options === "number")) constParamsIndex = options;
         if (options && (typeof options === "number")) options = undefined;
 
-        if (ctor.graphQLType) {
+        if ("isBDOModel" in ctor) {
             // Decide which ObjectType to use
             if (name && (typeof name === "string") && options && (typeof options === "object")) {
                 ObjectType(name, options)(ctor);
@@ -408,7 +420,6 @@ export function baseConstructor(name?: nameOrOptsOrIndex, options?: optsOrIndex,
                 extends: BaseConstructor.extends
             });
         }
-
         return BaseConstructor;
     };
 }
@@ -457,4 +468,63 @@ function processBinding(thisArg: any, key: string | symbol | number, newVal: any
 
     if (reflect && initiatorBinding) initiatorBinding.reflectToObject(newVal);
     return newVal;
+}
+
+/**
+ * sets or updates cache from attributes or properties respecting the
+ * "storeTemporary" parameter.
+ *
+ * @param {*} instance
+ * @param {(string | symbol)} key
+ * @param {IAttributeParams} params
+ */
+function setUpdateCache(instance: any, key: string | symbol, newVal: any, params?: IAttributeParams) {
+    const objectType = Object.getPrototypeOf(instance.constructor).name;
+    let cacheId = `${objectType}_${Reflect.getMetadata("oldID", instance)}`;
+
+    let cacheValue: any;
+    if (key === "id") {
+        const newCacheId = `${objectType}_${newVal}`;
+        cacheValue = localStorage.getItem(cacheId);
+        if (cacheValue) {
+            localStorage.removeItem(cacheId);
+            localStorage.setItem(newCacheId, cacheValue);
+        }
+        cacheId = newCacheId;
+    }
+    Reflect.defineMetadata("oldID", instance.id, instance);
+    if (params && params.saveInCache) {
+        cacheValue = cacheValue || localStorage.getItem(cacheId);
+        if (cacheValue) {
+            cacheValue = JSON.parse(cacheValue);
+        } else cacheValue = {};
+        localStorage.setItem(cacheId, JSON.stringify(Object.assign(cacheValue, {
+            [key]: {
+                value: newVal,
+                expires: params.storeTemporary ? Date.now() + params.storeTemporary : 0
+            }
+        })));
+    }
+}
+
+/**
+ * Test
+ *
+ * @template T
+ * @template K
+ * @param {T} instance
+ * @param {K} key
+ * @returns {T[K]}
+ */
+function getCache<T extends any, K extends string | symbol>(instance: T, key: K): T[K] {
+    const objectType = Object.getPrototypeOf(instance.constructor).name;
+    const cacheId = `${objectType}_${Reflect.getMetadata("oldID", instance)}`;
+    let cacheValue: any = localStorage.getItem(cacheId);
+    if (cacheValue) cacheValue = JSON.parse(cacheValue);
+    if (cacheValue && key in cacheValue) {
+        if (!cacheValue[key].expires || cacheValue[key].expires >= Date.now()) {
+            return cacheValue[key].value;
+        } else setUpdateCache(instance, key, undefined, { storeTemporary: 0, saveInCache: true });
+    }
+    return undefined;
 }
