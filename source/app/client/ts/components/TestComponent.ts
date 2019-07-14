@@ -1,6 +1,6 @@
 import { BaseComponentFactory } from '~client/lib/BaseComponent';
 import { baseConstructor } from '~bdo/utils/decorators';
-import { property, attribute } from '~bdo/utils/decorators';
+import { property } from '~bdo/utils/decorators';
 
 /**
  * Test
@@ -11,13 +11,6 @@ import { property, attribute } from '~bdo/utils/decorators';
  */
 @baseConstructor()
 export default class TestComponent extends BaseComponentFactory(HTMLElement) {
-    /**
-     * Defines a class attribute...
-     *
-     * @type {string}
-     * @memberof TestComponent
-     */
-    @attribute() public className: string = 'test';
 
     /**
      * @inheritdoc

@@ -1,8 +1,9 @@
 import 'reflect-metadata';
 import { isString, isObject } from 'lodash';
 import { Template, renderString } from 'nunjucks';
-import { property } from '~bdo/utils/decorators';
+import { property, attribute } from '~bdo/utils/decorators';
 import { Binding } from "~bdo/lib/Binding";
+import { v4 as uuid } from "uuid";
 
 /**
  * Creates a new BaseComponent based on the HTMLTypeElement
@@ -58,12 +59,29 @@ export function BaseComponentFactory<TBase extends Constructor<HTMLElement>>(HTM
         }
 
         /**
+         * To ensure that every component has a unique ID attribute
+         *
+         * @type {string}
+         * @memberof BaseComponent
+         */
+        @attribute() public id: string = uuid();
+
+        /**
          * This is for better identification of base components and instance check
          *
          * @type {boolean}
          * @memberof BaseComponent
          */
         @property() public readonly isBaseComponent: boolean = true;
+
+        /**
+         * Represents the constructors name.
+         *
+         * @protected
+         * @type {string}
+         * @memberof BDOModel
+         */
+        @property() public readonly className: string = Object.getPrototypeOf(this.constructor).name;
 
         /**
          * Defines the template of the of the component.

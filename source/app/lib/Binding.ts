@@ -76,9 +76,16 @@ export class Binding<T, K extends DefinitiveNonFunctionPropertyNames<T>> {
         // Save the original property descriptor only if it is not a binding descriptor
         // In case it is a binding descriptor, have a look at the bindings of this property
         // and take the first descriptor you can find
-        const descriptor: PropertyDescriptor | undefined = Reflect.getOwnPropertyDescriptor(this.object, this.property);
+        let descriptor: PropertyDescriptor | undefined = Reflect.getOwnPropertyDescriptor(this.object, this.property);
         const bindingDescriptor: PropertyDescriptor | undefined = Reflect.getMetadata("bindingDescriptor", this.object);
 
+        let prototype = this.object;
+        while (!descriptor) {
+            prototype = Object.getPrototypeOf(prototype);
+            if (!prototype) break;
+            if (prototype.constructor.name === "BaseConstructor") prototype = Object.getPrototypeOf(prototype);
+            descriptor = Reflect.getOwnPropertyDescriptor(prototype, this.property);
+        }
         if (descriptor && bindingDescriptor && descriptor === bindingDescriptor) {
             const mData: Map<string, Array<Binding<T, K>>> | undefined = Reflect.getMetadata("bindings", this.object);
             const bindings = mData ? mData.get(this.property) : undefined;
