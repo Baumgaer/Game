@@ -1,4 +1,3 @@
-/* eslint-disable camelcase */
 // Options reference: https://pm2.io/doc/en/runtime/reference/ecosystem-file/
 const defaults = {
     instances: 2,
@@ -21,7 +20,7 @@ const defaults = {
 };
 const gameServer = Object.assign({}, defaults, {
     name: 'GameServer',
-    "node_args": ["--inspect=7000"],
+    // "node_args": ["--inspect=7000"],
     script: 'out/app/GameServer.js',
     pid_file: "var/pids/gameServer.pid",
     error: "var/logs/gameServerError.log",
@@ -36,7 +35,7 @@ const gameServer = Object.assign({}, defaults, {
 });
 const webServer = Object.assign({}, defaults, {
     name: 'WebServer',
-    "node_args": ["--inspect=7001"],
+    // "node_args": ["--inspect=7001"],
     script: 'out/app/WebServer.js',
     pid_file: "var/pids/webServer.pid",
     error: "var/logs/webServerError.log",
