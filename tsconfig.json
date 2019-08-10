@@ -14,7 +14,7 @@
                 "source/*"
             ],
             "~client/*": [
-                "source/app/client/*"
+                "source/app/client/ts/*"
             ],
             "~bdo/*": [
                 "source/app/*"

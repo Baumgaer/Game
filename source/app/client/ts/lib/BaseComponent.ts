@@ -134,7 +134,9 @@ export function BaseComponentFactory<TBase extends Constructor<HTMLElement>>(HTM
                 throw new Error(`"${qualifiedName}" can't be set as attribute because it is a defined property`);
             }
             (<any>this)[qualifiedName] = value;
-            super.setAttribute(qualifiedName, value);
+            if (value) {
+                super.setAttribute(qualifiedName, value);
+            } else this.removeAttribute(qualifiedName);
         }
 
         /**
@@ -149,6 +151,25 @@ export function BaseComponentFactory<TBase extends Constructor<HTMLElement>>(HTM
             }
             super.removeAttribute(qualifiedName);
             (<any>this)[qualifiedName] = undefined;
+        }
+
+        /**
+         * Converts the current instance of this to a json with properties only
+         * NOTE: This will be used by JSON.stringify() to make a string out of this
+         *       instance.
+         *
+         * @returns
+         * @memberof BaseComponent
+         */
+        public toJSON() {
+            const data: IndexStructure = {};
+            for (const key in this) {
+                if (this[key] !== undefined) {
+                    const element = this[key];
+                    data[key] = element;
+                }
+            }
+            return data;
         }
 
         /**

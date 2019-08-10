@@ -29,13 +29,6 @@ declare type ConstParams<T> = Partial<
     >
 >;
 
-declare type ComponentProperties = {
-    length: number;
-    values: any[];
-    keys: string[];
-    definedProperties: IndexStructure;
-}
-
 // WebSocket types
 type wsVerifyClientInfo = { origin: string; secure: boolean; req: IncomingMessage };
 type wsVerifyClientDone = (
@@ -55,15 +48,17 @@ declare interface IndexStructure<K = string, V = any> {
     [member: K]: V
 }
 
+// General types
 declare type Unpacked<T> =
     T extends (infer U)[] ? U :
     T extends (...args: any[]) => infer U ? U :
     T extends Promise<infer U> ? U :
     T;
 
-// ExpressJS overwrites
-namespace Express {
+// Overwrites
+declare type PropDesc = PropertyDescriptor;
 
+namespace Express {
     interface Request {
         // Overwrite Express session because it's always available
         session: Express.Session;

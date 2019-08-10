@@ -4,6 +4,7 @@ import { merge, isObject } from 'lodash';
 import { Binding } from "~bdo/lib/Binding";
 import { ucFirst, pascalCase2kebabCase } from "~bdo/utils/util";
 import { isBrowser } from "~bdo/utils/environment";
+import { getNamespacedStorage, setUpdateNamespacedStorage } from "~client/utils/util";
 import { ReturnTypeFunc, AdvancedOptions } from "type-graphql/dist/decorators/types";
 import { ObjectOptions } from "type-graphql/dist/decorators/ObjectType";
 import {
@@ -92,7 +93,7 @@ interface IPropertyParams {
      * @default false Values will NOT be saved in cache
      * @type {boolean}
      */
-    saveInCache?: boolean;
+    saveInLocalStorage?: boolean;
 }
 
 /**
@@ -131,15 +132,6 @@ interface IAttributeParams extends AdvancedOptions, IPropertyParams {
      * @memberof IAttributeParams
      */
     noP2PInteraction?: boolean;
-
-    /**
-     * @inheritdoc
-     *
-     * @default true Values will be saved in cache if is model else false
-     * @type {boolean}
-     * @memberof IAttributeParams
-     */
-    saveInCache?: boolean;
 
     /**
      * If true, value will be saved automatically and immediately.
@@ -182,6 +174,12 @@ export function watched(params: IWatchParams = {}): PropertyDecorator {
                 } else return Reflect.getMetadata(key, this);
             },
             set: function set(newVal: any) {
+                if (!Reflect.getMetadata("normalFunctionality", this)) {
+                    if (propDesc && propDesc.set) {
+                        propDesc.set.call(this, newVal);
+                    }
+                    return;
+                }
                 const stringKey = key.toString();
                 const capitalizedProp = ucFirst(stringKey);
                 const that: IndexStructure = this;
@@ -256,31 +254,15 @@ export function watched(params: IWatchParams = {}): PropertyDecorator {
  */
 export function property(params: IPropertyParams = {}): PropertyDecorator {
     return (target: any, key: string | symbol) => {
-        // Get previous defined property descriptor for chaining
-        const propDesc = Reflect.getOwnPropertyDescriptor(target, key);
-
-        // Define metadata for access to properties like this.attributes
-        if (!Reflect.hasMetadata("definedProperties", target)) {
-            Reflect.defineMetadata("definedProperties", new Array<string>(), target);
-        }
-        const propertyMap: string[] = Reflect.getMetadata("definedProperties", target);
-        propertyMap.push(key.toString());
-
+        const propDesc = beforePropertyDescriptors(target, key, "definedProperties");
         // Define new metadata property
         Reflect.deleteProperty(target, key);
         Reflect.defineProperty(target, key, {
             get: function get() {
-                if (propDesc && propDesc.get) {
-                    return propDesc.get.call(this);
-                } else {
-                    if (params.saveInCache) return getCache(this, key);
-                    return Reflect.getMetadata(key, this);
-                }
+                return getter(this, key, params, propDesc);
             },
             set: function set(newVal: any) {
-                if (newVal === (<IndexStructure>this)[key.toString()]) return;
-                newVal = processBinding(this, key, newVal, propDesc);
-                setUpdateCache(this, key, newVal, params);
+                setter(this, key, newVal, params, propDesc);
             },
             enumerable: true,
             configurable: true
@@ -306,48 +288,20 @@ export function attribute(typeFunc?: FuncOrAttrParams, params?: IAttributeParams
         if (typeFunc && !(typeFunc instanceof Function) && !params) params = typeFunc;
         if (!params) params = {};
 
-        if (params.saveInCache === undefined && "isBDOModel" in target) params.saveInCache = true;
-
         // Decide which Field should be used
         if (typeFunc instanceof Function && params) Field(typeFunc, params)(target, key);
         else if (typeFunc instanceof Function) Field(typeFunc)(target, key);
         else if (params) Field(params)(target, key);
         else Field()(target, key);
-
-        // Get previous defined property descriptor for chaining
-        const propDesc = Reflect.getOwnPropertyDescriptor(target, key);
-
+        const propDesc = beforePropertyDescriptors(target, key, "definedAttributes");
         // Define new metadata property
         Reflect.deleteProperty(target, key);
         Reflect.defineProperty(target, key, {
             get: function get() {
-                if (propDesc && propDesc.get) {
-                    return propDesc.get.call(this);
-                } else {
-                    if (params && params.saveInCache) return getCache(this, key);
-                    return Reflect.getMetadata(key, this);
-                }
+                return getter(this, key, params, propDesc);
             },
             set: function set(newVal: any) {
-                const stringKey = key.toString();
-                if (newVal === (<IndexStructure>this)[stringKey]) return;
-                const initMetaName = `${stringKey}AttrInitialized`;
-                newVal = processBinding(this, key, newVal, propDesc);
-                setUpdateCache(this, key, newVal, params);
-                // Prefer in DOM defined attributes on initialization
-                if (isBrowser() && this instanceof HTMLElement) {
-                    const attrValue = this.getAttribute(stringKey);
-                    if (!Reflect.getMetadata(initMetaName, this) && attrValue) {
-                        // Mark as initialized to prevent static attribute
-                        Reflect.defineMetadata(initMetaName, true, this);
-                        Reflect.set(this, stringKey, attrValue);
-                        // Set the real value and redo setter
-                        (<IndexStructure>this)[key.toString()] = attrValue;
-                        return;
-                    } else Reflect.defineMetadata(initMetaName, true, this);
-                    // Reflect property changes to attribute
-                    if (attrValue !== newVal) this.setAttribute(stringKey, newVal);
-                }
+                setter(this, key, newVal, params, propDesc);
             },
             enumerable: true,
             configurable: true
@@ -411,10 +365,16 @@ export function baseConstructor(name?: nameOrOptsOrIndex, options?: optsOrIndex,
                 super(...params);
                 let constParams = params[constParamsIndex];
                 if (!(constParams instanceof Object)) constParams = {};
-                merge(this, constParams);
+                Reflect.defineMetadata("normalFunctionality", true, this);
+                const defaultSettings = Reflect.getMetadata("defaultSettings", this) || {};
+                merge(defaultSettings, constParams);
+                merge(this, defaultSettings);
+                Reflect.defineMetadata("constructionComplete", true, this);
                 if ("constructedCallback" in this) (<any>this).constructedCallback(...params);
             }
         }
+
+        // Register custom Element
         if (isBrowser() && ctor.isBaseComponent) {
             customElements.define(pascalCase2kebabCase(ctor.name), BaseConstructor, {
                 extends: BaseConstructor.extends
@@ -435,96 +395,158 @@ export let pubSub = PubSub;
 export let inputType = InputType;
 
 /**
- * Does the second part of the binding mechanism.
- * First part is to initialize the Binding object.
- * Second part is to bind the components/models to each other
+ * Decides wether to update the namespaced storage or not
  *
- * @param {*} thisArg The object on which the binding is working on
- * @param {(string | number | symbol)} key The property name
- * @param {*} newVal The new value of the property
- * @param {PropertyDescriptor} [propDesc] The original property descriptor
- * @returns {*} The value of the binding
+ * @param {*} instance
+ * @param {string} key
+ * @param {IPropertyParams} [params]
+ * @returns {boolean}
  */
-function processBinding(thisArg: any, key: string | symbol | number, newVal: any, propDesc?: PropertyDescriptor): any {
-    let reflect = true;
-
-    // Create new property descriptor on bound object if it is bound
-    if (newVal instanceof Binding) {
-        // Bind to thisArg object
-        newVal.install(thisArg, key);
-        reflect = false;
-        newVal = newVal.valueOf();
+function shouldUpdateNsStorage(instance: any, key: string, params?: IPropertyParams): boolean {
+    if (!params || !params.saveInLocalStorage || !isBrowser()) return false;
+    const keyShouldBeUpdated = `${key}shouldBeUpdated`;
+    if (Reflect.getMetadata(keyShouldBeUpdated, instance)) return true;
+    if (getNamespacedStorage(instance, key) === undefined) {
+        Reflect.defineMetadata(keyShouldBeUpdated, true, instance);
+        return true;
     }
-
-    const initiatorMData: Map<string, Binding<any, any>> | undefined = Reflect.getMetadata("initiatorBinding", thisArg);
-    const initiatorBinding = initiatorMData ? initiatorMData.get(key.toString()) : undefined;
-
-    // Only execute watching on changes
-    if (newVal === thisArg[key]) return newVal;
-    // Call other property descriptors on binding initializer else set metadata
-    if (propDesc && propDesc.set) {
-        propDesc.set.call(thisArg, newVal);
-    } else Reflect.defineMetadata(key, newVal, thisArg);
-
-    if (reflect && initiatorBinding) initiatorBinding.reflectToObject(newVal);
-    return newVal;
+    return Reflect.getMetadata("constructionComplete", instance);
 }
 
 /**
- * sets or updates cache from attributes or properties respecting the
- * "storeTemporary" parameter.
+ * Gets the previous property descriptor and sets metadata for later access and
+ * identification of properties and attributes.
+ *
+ * @param {*} target
+ * @param {(string | symbol)} key
+ * @param {string} mDataName
+ * @returns
+ */
+function beforePropertyDescriptors(target: any, key: string | symbol, mDataName: string) {
+    // Get previous defined property descriptor for chaining
+    const propDesc = Reflect.getOwnPropertyDescriptor(target, key);
+
+    // Define metadata for access to attributes for later checks
+    if (!Reflect.hasMetadata(mDataName, target)) Reflect.defineMetadata(mDataName, new Array<string>(), target);
+    const map: string[] = Reflect.getMetadata(mDataName, target);
+    map.push(key.toString());
+    return propDesc;
+}
+
+/**
+ * Implements the getter of properties and attributes
  *
  * @param {*} instance
  * @param {(string | symbol)} key
- * @param {IAttributeParams} params
+ * @param {IAttributeParams} [params]
+ * @param {PropertyDescriptor} [propDesc]
+ * @returns
  */
-function setUpdateCache(instance: any, key: string | symbol, newVal: any, params?: IAttributeParams) {
-    const objectType = Object.getPrototypeOf(instance.constructor).name;
-    let cacheId = `${objectType}_${Reflect.getMetadata("oldID", instance)}`;
-
-    let cacheValue: any;
-    if (key === "id") {
-        const newCacheId = `${objectType}_${newVal}`;
-        cacheValue = localStorage.getItem(cacheId);
-        if (cacheValue) {
-            localStorage.removeItem(cacheId);
-            localStorage.setItem(newCacheId, cacheValue);
-        }
-        cacheId = newCacheId;
+function getter(instance: any, key: string | symbol, params?: IAttributeParams, propDesc?: PropertyDescriptor) {
+    if (!Reflect.getMetadata("normalFunctionality", instance)) {
+        const defaultSettings = Reflect.getMetadata("defaultSettings", instance) || {};
+        return defaultSettings[key];
     }
-    Reflect.defineMetadata("oldID", instance.id, instance);
-    if (params && params.saveInCache) {
-        cacheValue = cacheValue || localStorage.getItem(cacheId);
-        if (cacheValue) {
-            cacheValue = JSON.parse(cacheValue);
-        } else cacheValue = {};
-        localStorage.setItem(cacheId, JSON.stringify(Object.assign(cacheValue, {
-            [key]: {
-                value: newVal,
-                expires: params.storeTemporary ? Date.now() + params.storeTemporary : 0
-            }
-        })));
+    const stringKey = key.toString();
+    if (propDesc && propDesc.get) {
+        return propDesc.get.call(instance);
+    } else {
+        let value = Reflect.getMetadata(key, instance);
+        if (params && params.saveInLocalStorage && isBrowser()) value = getNamespacedStorage(instance, stringKey);
+        if (value && params && params.storeTemporary) {
+            if (value.expires < Date.now()) {
+                value = undefined;
+            } else value = value.value;
+        }
+        return value;
     }
 }
 
 /**
- * Test
+ * Implements the setter of attribute and property and does the second part of
+ * the binding mechanism. First part is to initialize the Binding object.
+ * Second part is to bind the components/models to each other
  *
- * @template T
- * @template K
- * @param {T} instance
- * @param {K} key
- * @returns {T[K]}
+ * @param {*} instance
+ * @param {(string | symbol)} key
+ * @param {*} newVal
+ * @param {IAttributeParams} [params]
+ * @param {PropertyDescriptor} [propDesc]
+ * @returns
  */
-function getCache<T extends any, K extends string | symbol>(instance: T, key: K): T[K] {
-    const objectType = Object.getPrototypeOf(instance.constructor).name;
-    const cacheId = `${objectType}_${Reflect.getMetadata("oldID", instance)}`;
-    let cacheValue: any = localStorage.getItem(cacheId);
-    if (cacheValue) cacheValue = JSON.parse(cacheValue);
-    if (cacheValue && key in cacheValue) {
-        if (!cacheValue[key].expires || cacheValue[key].expires >= Date.now()) {
-            return cacheValue[key].value;
-        } else setUpdateCache(instance, key, undefined, { storeTemporary: 0, saveInCache: true });
+function setter(instance: any, key: string | symbol, newVal: any, params?: IAttributeParams, propDesc?: PropDesc) {
+    if (!Reflect.getMetadata("normalFunctionality", instance)) {
+        const defaultSettings = Reflect.getMetadata("defaultSettings", instance) || {};
+        merge(defaultSettings, { [key]: newVal });
+        return Reflect.defineMetadata("defaultSettings", defaultSettings, instance);
     }
-    return undefined;
+    const stringKey = key.toString();
+    const initiatorMData: Map<string, Binding> | undefined = Reflect.getMetadata("initiatorBinding", instance);
+    const initiatorBinding = initiatorMData ? initiatorMData.get(stringKey) : undefined;
+    let reflect = true;
+
+    if (newVal === instance[stringKey]) return;
+
+    // install binding
+    if (newVal instanceof Binding) {
+        // Bind to thisArg object
+        newVal.install(instance, key);
+        reflect = false;
+        newVal = newVal.valueOf();
+        if (newVal === instance[key]) return;
+    }
+
+    if (newVal instanceof Deletion) newVal = newVal.valueOf();
+
+    // Add expiration
+    if (newVal && params && params.storeTemporary) {
+        newVal = { value: newVal, expires: Date.now() + params.storeTemporary };
+        clearTimeout(Reflect.getMetadata(`expirationTimeout_${stringKey}`, instance));
+        Reflect.defineMetadata(`expirationTimeout_${stringKey}`, setTimeout(() => {
+            instance[key] = new Deletion();
+        }, params.storeTemporary), instance);
+    }
+
+    // Call other property descriptors or set metadata
+    if (propDesc && propDesc.set) {
+        propDesc.set.call(instance, newVal);
+    } else Reflect.defineMetadata(key, newVal, instance);
+    if (reflect && initiatorBinding) initiatorBinding.reflectToObject(newVal);
+
+    if (isBrowser()) {
+        if (shouldUpdateNsStorage(instance, stringKey, params)) setUpdateNamespacedStorage(instance, stringKey, newVal);
+        // Prefer in DOM defined attributes on initialization
+        if (instance instanceof HTMLElement && Reflect.getMetadata("definedAttributes", instance).includes(key)) {
+            const initMetaName = `${stringKey}AttrInitialized`;
+            const attrValue = instance.getAttribute(stringKey);
+            if (!Reflect.getMetadata(initMetaName, instance) && attrValue) {
+                // Mark as initialized to prevent static attribute
+                Reflect.defineMetadata(initMetaName, true, instance);
+                Reflect.set(instance, stringKey, attrValue);
+                // Set the real value and redo setter
+                (<IndexStructure>instance)[stringKey] = attrValue;
+                return;
+            } else Reflect.defineMetadata(initMetaName, true, instance);
+            // Reflect property changes to attribute
+            if (attrValue !== newVal) instance.setAttribute(stringKey, newVal);
+        }
+    }
+}
+
+/**
+ * Forces the setter to use the newVal (undefined) event it's equal to the old value
+ *
+ * @class Deletion
+ */
+class Deletion {
+
+    /**
+     * Returns the original value
+     *
+     * @returns
+     * @memberof Deletion
+     */
+    public valueOf() {
+        return undefined;
+    }
 }

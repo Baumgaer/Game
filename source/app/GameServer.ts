@@ -1,10 +1,6 @@
 import './../utils/requireOverride';
 import { WebSocketServer } from '~server/lib/WebSocketServer';
 import { Request } from 'express';
-import { LocalStorage } from "node-localstorage";
-
-// Declare local storage to have the same behavior on server like the client
-global.localStorage = new LocalStorage("./var/data/localStorage");
 
 /**
  * This server serves a static html page to the client which initializes

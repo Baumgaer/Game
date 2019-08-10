@@ -19,7 +19,7 @@ import { removeElementFromArray } from "~bdo/utils/util";
  * @export
  * @class Binding
  */
-export class Binding<T, K extends DefinitiveNonFunctionPropertyNames<T>> {
+export class Binding<T = any, K extends DefinitiveNonFunctionPropertyNames<T> = any> {
 
     /**
      * The object instance which contains the property which should be bound

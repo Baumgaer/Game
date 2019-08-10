@@ -16,7 +16,7 @@ export class Test extends BDOModel {
      * @type {string}
      * @memberof Test
      */
-    @attribute() public title: string = 'test';
+    @attribute({ storeTemporary: 5000 }) public title: string = 'test';
 
     /**
      * Test

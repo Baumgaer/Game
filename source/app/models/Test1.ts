@@ -17,9 +17,19 @@ export class Test1 extends Test {
      * @type {string}
      * @memberof Test1
      */
-    @property({ storeTemporary: 5000, saveInCache: true }) public oha: string = 'test';
+    @property({ saveInLocalStorage: true, storeTemporary: 10000 }) public oha: string = 'test';
 
     constructor(_params?: ConstParams<Test1>) {
         super();
+    }
+
+    /**
+     * Test
+     *
+     * @returns
+     * @memberof Test1
+     */
+    public doSomething() {
+        return "lol";
     }
 }

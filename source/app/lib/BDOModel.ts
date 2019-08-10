@@ -85,4 +85,34 @@ export abstract class BDOModel {
     public bind<K extends Exclude<NonFunctionPropertyNames<this>, undefined>>(propName: K) {
         return new Binding(this, propName) as unknown as this[K];
     }
+
+    /**
+     * Converts the current instance if this to a stringified JSON with properties only
+     *
+     * @returns
+     * @memberof BDOModel
+     */
+    public toString() {
+        const data = this.toJSON();
+        return JSON.stringify(data);
+    }
+
+    /**
+     * Converts the current instance of this to a json with properties only
+     * NOTE: This will be used by JSON.stringify() to make a string out of this
+     *       instance.
+     *
+     * @returns
+     * @memberof BDOModel
+     */
+    public toJSON() {
+        const data: IndexStructure = {};
+        for (const key in this) {
+            if (this[key] !== undefined) {
+                const element = this[key];
+                data[key] = element;
+            }
+        }
+        return data;
+    }
 }
