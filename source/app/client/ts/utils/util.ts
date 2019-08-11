@@ -1,3 +1,4 @@
+import { getMetadata, defineMetadata } from "~bdo/utils/metadata";
 /**
  * Stores a value with its key in a separate namespace depending on a property
  * name of the instance (nsProp)
@@ -10,7 +11,7 @@
 export function setUpdateNamespacedStorage(instance: any, key: string, newVal: any, nsProp: string = "id") {
     // Get basic information
     const nsPrefix = Object.getPrototypeOf(instance.constructor).name;
-    let nsSuffix = Reflect.getMetadata("oldStorageNsSuffix", instance);
+    let nsSuffix = getMetadata(instance, "oldStorageNsSuffix");
     let storageValue: any;
 
     // Create namespace if not available
@@ -41,7 +42,7 @@ export function setUpdateNamespacedStorage(instance: any, key: string, newVal: a
         } else localStorage.setItem(ns, JSON.stringify(Object.assign(storageValue, { [key]: newVal })));
     }
     // Trace namespace suffix
-    Reflect.defineMetadata("oldStorageNsSuffix", nsSuffix, instance);
+    defineMetadata(instance, "oldStorageNsSuffix", nsSuffix);
 }
 
 /**
@@ -62,7 +63,7 @@ export function setUpdateNamespacedStorage(instance: any, key: string, newVal: a
  */
 export function getNamespacedStorage(instance: any, key: string, nsProp: string = "id", forceNS?: string) {
     const nsPrefix = Object.getPrototypeOf(instance.constructor).name;
-    let nsSuffix = Reflect.getMetadata("oldStorageNsSuffix", instance);
+    let nsSuffix = getMetadata(instance, "oldStorageNsSuffix");
     if (nsSuffix !== instance[nsProp]) nsSuffix = instance[nsProp];
     if (forceNS) nsSuffix = forceNS;
     let storageValue: any = localStorage.getItem(`${nsPrefix}_${nsSuffix}`);

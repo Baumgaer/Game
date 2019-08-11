@@ -2,6 +2,7 @@ import { v1 as uuid } from "uuid";
 import { ID } from "type-graphql";
 import { Binding } from "~bdo/lib/Binding";
 import { attribute, baseConstructor, property } from "~bdo/utils/decorators";
+import { getMetadata } from "~bdo/utils/metadata";
 
 /**
  * Provides basic functionality and fields for each Model on each side
@@ -70,7 +71,7 @@ export abstract class BDOModel {
      * @memberof BDOModel
      */
     protected get bindings(): Map<string, Array<Binding<this, DefinitiveNonFunctionPropertyNames<this>>>> {
-        const bindings = Reflect.getMetadata("bindings", this);
+        const bindings = getMetadata(this, "bindings");
         return bindings ? bindings : new Map();
     }
 

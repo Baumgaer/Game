@@ -4,6 +4,7 @@ import { isObject } from 'lodash';
 import { Binding } from "~bdo/lib/Binding";
 import { ucFirst, pascalCase2kebabCase } from "~bdo/utils/util";
 import { isBrowser } from "~bdo/utils/environment";
+import { getMetadata, defineMetadata, defineWildcardMetadata, getWildcardMetadata } from "~bdo/utils/metadata";
 import { getNamespacedStorage, setUpdateNamespacedStorage } from "~client/utils/util";
 import { ReturnTypeFunc, AdvancedOptions } from "type-graphql/dist/decorators/types";
 import { ObjectOptions } from "type-graphql/dist/decorators/ObjectType";
@@ -213,10 +214,10 @@ export function watched(params: IWatchParams = {}): PropertyDecorator {
             get: function get() {
                 if (propDesc && propDesc.get) {
                     return propDesc.get.call(this);
-                } else return Reflect.getMetadata(key, this);
+                } else return getWildcardMetadata(this, key.toString());
             },
             set: function set(newVal: any) {
-                if (!Reflect.getMetadata("normalFunctionality", this)) {
+                if (!getMetadata(this, "normalFunctionality")) {
                     if (propDesc && propDesc.set) {
                         propDesc.set.call(this, newVal);
                     }
@@ -230,9 +231,8 @@ export function watched(params: IWatchParams = {}): PropertyDecorator {
                 const changeFunc = params.onChange || `on${capitalizedProp}Change`;
                 const addFunc = params.onAdd || `on${capitalizedProp}Add`;
                 const remFunc = params.onRemove || `on${capitalizedProp}Remove`;
-                const initPropMarker = `init${capitalizedProp}`;
 
-                const initPropMarkerVal = Reflect.getMetadata(initPropMarker, this);
+                const initPropMarkerVals = getMetadata(this, "initPropMarker") || {};
 
                 // Observe objects and arrays of any changes
                 if (newVal instanceof Array || isObject(newVal)) {
@@ -263,16 +263,18 @@ export function watched(params: IWatchParams = {}): PropertyDecorator {
                         // Case: removed
                         caseDetectExec({ len1: oldLen, len2: newLen, func: remFunc, keys1: oldKeys, keys2: newKeys });
                         // Case: deep change
-                        if (newLen === oldLen && changeFunc in this && initPropMarkerVal) that[changeFunc](value, path);
+                        if (newLen === oldLen && changeFunc in this && initPropMarkerVals[stringKey]) {
+                            that[changeFunc](value, path);
+                        }
                     }, { isShallow: Boolean(params.isShallow) });
                 }
 
-                if (initFunc in this && !initPropMarkerVal) that[initFunc](newVal);
+                if (initFunc in this && !initPropMarkerVals[stringKey]) that[initFunc](newVal);
                 // React on variable changes
-                if (changeFunc in this && initPropMarkerVal && newVal !== (<IndexStructure>this)[stringKey]) {
+                if (changeFunc in this && initPropMarkerVals[stringKey] && newVal !== that[stringKey]) {
                     that[changeFunc](newVal);
                 }
-                Reflect.defineMetadata(initPropMarker, true, this);
+                defineMetadata(this, "initPropMarker", Object.assign(initPropMarkerVals, { [stringKey]: true }));
 
                 // Only execute watching on changes reference types like array
                 // will not be effected by this constraint.
@@ -280,7 +282,7 @@ export function watched(params: IWatchParams = {}): PropertyDecorator {
                 // Call other property descriptors on binding initializer else set metadata
                 if (propDesc && propDesc.set) {
                     propDesc.set.call(this, newVal);
-                } else Reflect.defineMetadata(key, newVal, this);
+                } else defineWildcardMetadata(this, stringKey, newVal);
             },
             enumerable: true,
             configurable: true
@@ -298,7 +300,7 @@ export function watched(params: IWatchParams = {}): PropertyDecorator {
  */
 export function property(params: IPropertyParams = {}): PropertyDecorator {
     return (target: any, key: string | symbol) => {
-        const propDesc = beforePropertyDescriptors(target, key, "definedProperties");
+        const propDesc = beforePropertyDescriptors(target, key.toString(), "definedProperties");
         // Define new metadata property
         Reflect.deleteProperty(target, key);
         Reflect.defineProperty(target, key, {
@@ -337,7 +339,7 @@ export function attribute(typeFunc?: FuncOrAttrParams, params?: IAttributeParams
         else if (typeFunc instanceof Function) Field(typeFunc)(target, key);
         else if (params) Field(params)(target, key);
         else Field()(target, key);
-        const propDesc = beforePropertyDescriptors(target, key, "definedAttributes");
+        const propDesc = beforePropertyDescriptors(target, key.toString(), "definedAttributes");
         // Define new metadata property
         Reflect.deleteProperty(target, key);
         Reflect.defineProperty(target, key, {
@@ -409,15 +411,15 @@ export function baseConstructor(name?: nameOrOptsOrIndex, options?: optsOrIndex,
                 super(...params);
                 let constParams = params[constParamsIndex];
                 if (!(constParams instanceof Object)) constParams = {};
-                Reflect.defineMetadata("normalFunctionality", true, this);
-                let defaultSettings = Reflect.getMetadata("defaultSettings", this) || {};
+                defineMetadata(this, "normalFunctionality", true);
+                let defaultSettings = getMetadata(this, "defaultSettings") || {};
                 defaultSettings = Object.assign(defaultSettings, constParams);
                 if (isBrowser()) {
                     const cachedSettings = getNamespacedStorage(this, "*", "id", constParams.id);
                     defaultSettings = Object.assign(defaultSettings, cachedSettings);
                 }
                 Object.assign(this, defaultSettings);
-                Reflect.defineMetadata("constructionComplete", true, this);
+                defineMetadata(this, "constructionComplete", true);
                 if ("constructedCallback" in this) (<any>this).constructedCallback(...params);
             }
         }
@@ -452,13 +454,13 @@ export let inputType = InputType;
  */
 function shouldUpdateNsStorage(instance: any, key: string, params?: IPropertyParams): boolean {
     if (!params || !params.saveInLocalStorage || !isBrowser()) return false;
-    const keyShouldBeUpdated = `${key}shouldBeUpdated`;
-    if (Reflect.getMetadata(keyShouldBeUpdated, instance)) return true;
+    const keyShouldBeUpdated = getMetadata(instance, "keyShouldBeUpdated") || {};
+    if (keyShouldBeUpdated[key]) return true;
     if (getNamespacedStorage(instance, key) === undefined) {
-        Reflect.defineMetadata(keyShouldBeUpdated, true, instance);
+        defineMetadata(instance, "keyShouldBeUpdated", Object.assign(keyShouldBeUpdated, { [key]: true }));
         return true;
     }
-    return Reflect.getMetadata("constructionComplete", instance);
+    return Boolean(getMetadata(instance, "constructionComplete"));
 }
 
 /**
@@ -470,13 +472,13 @@ function shouldUpdateNsStorage(instance: any, key: string, params?: IPropertyPar
  * @param {string} mDataName
  * @returns
  */
-function beforePropertyDescriptors(target: any, key: string | symbol, mDataName: string) {
+function beforePropertyDescriptors(target: any, key: string, mDataName: "definedProperties" | "definedAttributes") {
     // Get previous defined property descriptor for chaining
     const propDesc = Reflect.getOwnPropertyDescriptor(target, key);
 
     // Define metadata for access to attributes for later checks
-    if (!Reflect.hasMetadata(mDataName, target)) Reflect.defineMetadata(mDataName, new Array<string>(), target);
-    const map: string[] = Reflect.getMetadata(mDataName, target);
+    if (!Reflect.hasMetadata(mDataName, target)) defineMetadata(target, mDataName, new Array<string>());
+    const map = getMetadata(target, mDataName) as string[];
     map.push(key.toString());
     return propDesc;
 }
@@ -491,15 +493,15 @@ function beforePropertyDescriptors(target: any, key: string | symbol, mDataName:
  * @returns
  */
 function getter(instance: any, key: string | symbol, params?: IAttributeParams, propDesc?: PropertyDescriptor) {
-    if (!Reflect.getMetadata("normalFunctionality", instance)) {
-        const defaultSettings = Reflect.getMetadata("defaultSettings", instance) || {};
-        return defaultSettings[key];
+    if (!getMetadata(instance, "normalFunctionality")) {
+        const defaultSettings = getMetadata(instance, "defaultSettings") || {};
+        return defaultSettings[key.toString()];
     }
     const stringKey = key.toString();
     if (propDesc && propDesc.get) {
         return propDesc.get.call(instance);
     } else {
-        let value = Reflect.getMetadata(key, instance);
+        let value = getWildcardMetadata(instance, stringKey);
         if (params && params.saveInLocalStorage && isBrowser()) value = getNamespacedStorage(instance, stringKey);
         if (value && params && params.storeTemporary) {
             if (value.expires < Date.now()) {
@@ -523,14 +525,14 @@ function getter(instance: any, key: string | symbol, params?: IAttributeParams, 
  * @returns
  */
 function setter(instance: any, key: string | symbol, newVal: any, params?: IAttributeParams, propDesc?: PropDesc) {
-    if (!Reflect.getMetadata("normalFunctionality", instance)) {
-        const defaultSettings = Reflect.getMetadata("defaultSettings", instance) || {};
+    if (!getMetadata(instance, "normalFunctionality")) {
+        const defaultSettings = getMetadata(instance, "defaultSettings") || {};
         Object.assign(defaultSettings, { [key]: newVal });
-        Reflect.defineMetadata("defaultSettings", defaultSettings, instance);
+        defineMetadata(instance, "defaultSettings", defaultSettings);
         return;
     }
     const stringKey = key.toString();
-    const initiatorMData: Map<string, Binding> | undefined = Reflect.getMetadata("initiatorBinding", instance);
+    const initiatorMData = getMetadata(instance, "initiatorBinding");
     const initiatorBinding = initiatorMData ? initiatorMData.get(stringKey) : undefined;
     let reflect = true;
 
@@ -550,32 +552,37 @@ function setter(instance: any, key: string | symbol, newVal: any, params?: IAttr
     // Add expiration
     if (newVal && params && params.storeTemporary) {
         newVal = { value: newVal, expires: Date.now() + params.storeTemporary };
-        clearTimeout(Reflect.getMetadata(`expirationTimeout_${stringKey}`, instance));
-        Reflect.defineMetadata(`expirationTimeout_${stringKey}`, setTimeout(() => {
-            instance[key] = new Deletion();
-        }, params.storeTemporary), instance);
+        const expirationTimeouts = getMetadata(instance, "expirationTimeout") || {};
+        clearTimeout(expirationTimeouts[stringKey]);
+        defineMetadata(instance, "expirationTimeout", Object.assign(expirationTimeouts, {
+            [stringKey]: setTimeout(() => {
+                instance[key] = new Deletion();
+            }, params.storeTemporary)
+        }));
     }
 
     // Call other property descriptors or set metadata
     if (propDesc && propDesc.set) {
         propDesc.set.call(instance, newVal);
-    } else Reflect.defineMetadata(key, newVal, instance);
+    } else defineWildcardMetadata(instance, stringKey, newVal);
     if (reflect && initiatorBinding) initiatorBinding.reflectToObject(newVal);
 
     if (isBrowser()) {
         if (shouldUpdateNsStorage(instance, stringKey, params)) setUpdateNamespacedStorage(instance, stringKey, newVal);
         // Prefer in DOM defined attributes on initialization
-        if (instance instanceof HTMLElement && Reflect.getMetadata("definedAttributes", instance).includes(key)) {
-            const initMetaName = `${stringKey}AttrInitialized`;
+        const definedAttributes = getMetadata(instance, "definedAttributes");
+        if (instance instanceof HTMLElement && definedAttributes && definedAttributes.includes(stringKey)) {
+            const initMetaVal = getMetadata(instance, "attrInitialized") || {};
             const attrValue = instance.getAttribute(stringKey);
-            if (!Reflect.getMetadata(initMetaName, instance) && attrValue) {
+
+            if (!initMetaVal[stringKey] && attrValue) {
                 // Mark as initialized to prevent static attribute
-                Reflect.defineMetadata(initMetaName, true, instance);
+                defineMetadata(instance, "attrInitialized", Object.assign(initMetaVal, { [stringKey]: true }));
                 Reflect.set(instance, stringKey, attrValue);
                 // Set the real value and redo setter
                 (<IndexStructure>instance)[stringKey] = attrValue;
                 return;
-            } else Reflect.defineMetadata(initMetaName, true, instance);
+            } else defineMetadata(instance, "attrInitialized", Object.assign(initMetaVal, { [stringKey]: true }));
             // Reflect property changes to attribute
             if (attrValue !== newVal) instance.setAttribute(stringKey, newVal);
         }

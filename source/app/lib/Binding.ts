@@ -1,4 +1,5 @@
 import { removeElementFromArray } from "~bdo/utils/util";
+import { defineMetadata, getMetadata, defineWildcardMetadata, getWildcardMetadata } from "~bdo/utils/metadata";
 /**
  * Creates a Binding object for watched attributes / properties.
  * Should not be used outside the watched-decorator or the bind-function of an Object.
@@ -77,7 +78,7 @@ export class Binding<T = any, K extends DefinitiveNonFunctionPropertyNames<T> = 
         // In case it is a binding descriptor, have a look at the bindings of this property
         // and take the first descriptor you can find
         let descriptor: PropertyDescriptor | undefined = Reflect.getOwnPropertyDescriptor(this.object, this.property);
-        const bindingDescriptor: PropertyDescriptor | undefined = Reflect.getMetadata("bindingDescriptor", this.object);
+        const bindingDescriptor = getMetadata(this.object, "bindingDescriptor");
 
         let prototype = this.object;
         while (!descriptor) {
@@ -87,7 +88,7 @@ export class Binding<T = any, K extends DefinitiveNonFunctionPropertyNames<T> = 
             descriptor = Reflect.getOwnPropertyDescriptor(prototype, this.property);
         }
         if (descriptor && bindingDescriptor && descriptor === bindingDescriptor) {
-            const mData: Map<string, Array<Binding<T, K>>> | undefined = Reflect.getMetadata("bindings", this.object);
+            const mData = getMetadata(this.object, "bindings");
             const bindings = mData ? mData.get(this.property) : undefined;
             if (bindings) this.descriptor = bindings[0].descriptor;
         }
@@ -110,9 +111,11 @@ export class Binding<T = any, K extends DefinitiveNonFunctionPropertyNames<T> = 
      * @memberof Binding
      */
     public reflectToInitiators(newVal: T[K]) {
-        const mData: Map<string, Array<Binding<T, K>>> = Reflect.getMetadata("bindings", this.object);
-        const bindings = mData.get(this.property);
-        if (bindings) for (const binding of bindings) binding.initiator[binding.initiatorProperty] = newVal;
+        const mData = getMetadata(this.object, "bindings");
+        if (mData) {
+            const bindings = mData.get(this.property);
+            if (bindings) for (const binding of bindings) binding.initiator[binding.initiatorProperty] = newVal;
+        }
     }
 
     /**
@@ -137,9 +140,9 @@ export class Binding<T = any, K extends DefinitiveNonFunctionPropertyNames<T> = 
         this.initiator = initiator;
         this.initiatorProperty = property.toString();
         if (!Reflect.hasMetadata("initiatorBinding", this.initiator)) {
-            Reflect.defineMetadata("initiatorBinding", new Map(), this.initiator);
+            defineMetadata(this.initiator, "initiatorBinding", new Map());
         }
-        const initiatorMData: Map<string, Binding<T, K>> = Reflect.getMetadata("initiatorBinding", this.initiator);
+        const initiatorMData = getMetadata(this.initiator, "initiatorBinding") as Map<string, Binding<T, K>>;
         const initiatorBinding = initiatorMData.get(this.initiatorProperty);
         if (initiatorBinding) initiatorBinding.remove();
         this.bind();
@@ -157,21 +160,21 @@ export class Binding<T = any, K extends DefinitiveNonFunctionPropertyNames<T> = 
         const initiatorValue = this.initiator[this.initiatorProperty];
 
         // Get Bindings
-        const objectMData: Map<string, Array<Binding<T, K>>> = Reflect.getMetadata("bindings", this.object);
+        const objectMData = getMetadata(this.object, "bindings");
         const objectBindings = objectMData ? objectMData.get(this.property) : undefined;
-        const initiatorMData: Map<string, Binding<T, K>> = Reflect.getMetadata("initiatorBinding", this.initiator);
+        const initiatorMData = getMetadata(this.initiator, "initiatorBinding");
         const initiatorBinding = initiatorMData ? initiatorMData.get(this.initiatorProperty) : undefined;
 
         if (objectBindings) {
             removeElementFromArray(objectBindings, this);
             if (!objectBindings.length) {
-                objectMData.delete(this.property);
+                if (objectMData) objectMData.delete(this.property);
                 this.restoreDescriptor(this.object, this.property, objectValue, this.descriptor);
             }
         }
 
         if (initiatorBinding) {
-            initiatorMData.delete(this.initiatorProperty);
+            if (initiatorMData) initiatorMData.delete(this.initiatorProperty);
             this.restoreDescriptor(this.initiator, this.initiatorProperty, initiatorValue, this.initiatorDescriptor);
         }
     }
@@ -185,52 +188,55 @@ export class Binding<T = any, K extends DefinitiveNonFunctionPropertyNames<T> = 
      */
     private bind() {
         // Define bindings metadata for this property
-        if (!Reflect.hasMetadata("bindings", this.object)) Reflect.defineMetadata("bindings", new Map(), this.object);
-        const mData: Map<string, Array<Binding<T, K>>> = Reflect.getMetadata("bindings", this.object);
+        if (!Reflect.hasMetadata("bindings", this.object)) defineMetadata(this.object, "bindings", new Map());
+        const mData = getMetadata(this.object, "bindings");
         const initialValue = this.object[this.property];
 
-        // Define a general change detector if property is not already bound
-        if (!mData.has(this.property)) {
-            mData.set(this.property, []);
-            const that = this;
-            Reflect.deleteProperty(this.object, this.property);
-            Reflect.defineProperty(this.object, this.property, {
-                get: function modelGet() {
-                    // Call other descriptors of this object property if
-                    // available otherwise simply get the value
-                    if (that.descriptor && that.descriptor.get) {
-                        return that.descriptor.get.call(that.object);
-                    } else return Reflect.getMetadata(that.property, that.object) || initialValue;
-                },
-                set: function modelSet(newVal: T[K]) {
-                    if (newVal === that.object[that.property]) return;
-                    // Call other descriptors of this object property if
-                    // available otherwise simply set the value
-                    if (that.descriptor && that.descriptor.set) {
-                        that.descriptor.set.call(that.object, newVal);
-                    } else Reflect.defineMetadata(that.property, newVal, that.object);
-                    // Reflect changes to every bound initiator of this object
-                    that.reflectToInitiators(newVal);
-                },
-                configurable: true,
-                enumerable: true
-            });
-            const bindingDescriptor = Reflect.getOwnPropertyDescriptor(this.object, this.property);
-            Reflect.defineMetadata("bindingDescriptor", bindingDescriptor, this.object);
-        }
-
-        // Find old binding and replace it with this new binding
-        const definitelyDefinedBindings = <Array<Binding<T, K>>>mData.get(this.property);
-        let alreadyBound = false;
-        for (const [index, binding] of definitelyDefinedBindings.entries()) {
-            if (binding.initiator === this.initiator && binding.initiatorProperty === this.initiatorProperty) {
-                definitelyDefinedBindings[index] = this;
-                alreadyBound = true;
-                break;
+        if (mData) {
+            // Define a general change detector if property is not already bound
+            if (!mData.has(this.property)) {
+                mData.set(this.property, []);
+                const that = this;
+                Reflect.deleteProperty(this.object, this.property);
+                Reflect.defineProperty(this.object, this.property, {
+                    get: function modelGet() {
+                        // Call other descriptors of this object property if
+                        // available otherwise simply get the value
+                        if (that.descriptor && that.descriptor.get) {
+                            return that.descriptor.get.call(that.object);
+                        } else return getWildcardMetadata(that.object, that.property) || initialValue;
+                    },
+                    set: function modelSet(newVal: T[K]) {
+                        if (newVal === that.object[that.property]) return;
+                        // Call other descriptors of this object property if
+                        // available otherwise simply set the value
+                        if (that.descriptor && that.descriptor.set) {
+                            that.descriptor.set.call(that.object, newVal);
+                        } else defineWildcardMetadata(that.object, that.property, newVal);
+                        // Reflect changes to every bound initiator of this object
+                        that.reflectToInitiators(newVal);
+                    },
+                    configurable: true,
+                    enumerable: true
+                });
+                const bindingDescriptor = Reflect.getOwnPropertyDescriptor(this.object, this.property);
+                defineMetadata(this.object, "bindingDescriptor", bindingDescriptor);
+            }
+            // Find old binding and replace it with this new binding
+            const definitelyDefinedBindings = mData.get(this.property);
+            if (definitelyDefinedBindings) {
+                let alreadyBound = false;
+                for (const [index, binding] of definitelyDefinedBindings.entries()) {
+                    if (binding.initiator === this.initiator && binding.initiatorProperty === this.initiatorProperty) {
+                        definitelyDefinedBindings[index] = <Binding>this;
+                        alreadyBound = true;
+                        break;
+                    }
+                }
+                // Otherwise if not already bound add it
+                if (!alreadyBound) definitelyDefinedBindings.push(<Binding>this);
             }
         }
-        // Otherwise if not already bound add it
-        if (!alreadyBound) definitelyDefinedBindings.push(this);
     }
 
     /**

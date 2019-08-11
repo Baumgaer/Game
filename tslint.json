@@ -5,6 +5,19 @@
     ],
     "jsRules": {},
     "rules": {
+        "ban": [
+            true,
+            [
+                "Reflect",
+                "getMetadata",
+                "use ~bdo/utils/metadata getMetadata instead"
+            ],
+            [
+                "Reflect",
+                "defineMetadata",
+                "use ~bdo/utils/metadata defineMetadata instead"
+            ]
+        ],
         "semicolon": [
             true,
             "always"

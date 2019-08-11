@@ -2,6 +2,7 @@ import 'reflect-metadata';
 import { isString, isObject } from 'lodash';
 import { Template, renderString } from 'nunjucks';
 import { property, attribute } from '~bdo/utils/decorators';
+import { getMetadata } from "~bdo/utils/metadata";
 import { Binding } from "~bdo/lib/Binding";
 import { v4 as uuid } from "uuid";
 
@@ -51,7 +52,7 @@ export function BaseComponentFactory<TBase extends Constructor<HTMLElement>>(HTM
          */
         public get properties() {
             const props = new Map<string, any>();
-            const properties: string[] = Reflect.getMetadata("definedProperties", this);
+            const properties = getMetadata(this, "definedProperties") as string[];
             for (const prop of properties) {
                 props.set(prop, (<IndexStructure>this)[prop]);
             }
@@ -113,7 +114,7 @@ export function BaseComponentFactory<TBase extends Constructor<HTMLElement>>(HTM
          * @memberof BaseComponent
          */
         @property() protected get bindings(): Map<string, Binding<this, DefinitiveNonFunctionPropertyNames<this>>> {
-            const bindings = Reflect.getMetadata("initiatorBinding", this);
+            const bindings = getMetadata(this, "initiatorBinding");
             return bindings ? bindings : new Map();
         }
 
