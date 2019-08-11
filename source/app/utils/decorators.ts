@@ -1,6 +1,6 @@
 import 'reflect-metadata';
 import onChange from "on-change";
-import { merge, isObject } from 'lodash';
+import { isObject } from 'lodash';
 import { Binding } from "~bdo/lib/Binding";
 import { ucFirst, pascalCase2kebabCase } from "~bdo/utils/util";
 import { isBrowser } from "~bdo/utils/environment";
@@ -68,6 +68,48 @@ interface IWatchParams {
      * @memberof IWatchParams
      */
     isShallow?: boolean;
+}
+
+interface ICaseDetectParams {
+
+    /**
+     * length of keys1
+     *
+     * @type {number}
+     * @memberof ICaseDetectParams
+     */
+    len1: number;
+    /**
+     * length of keys2
+     *
+     * @type {number}
+     * @memberof ICaseDetectParams
+     */
+    len2: number;
+
+    /**
+     * Name of function to execute
+     *
+     * @type {string}
+     * @memberof ICaseDetectParams
+     */
+    func: string;
+
+    /**
+     * First keys to detect the case
+     *
+     * @type {string[]}
+     * @memberof ICaseDetectParams
+     */
+    keys1: string[];
+
+    /**
+     * Second keys to detect the case
+     *
+     * @type {string[]}
+     * @memberof ICaseDetectParams
+     */
+    keys2: string[];
 }
 
 /**
@@ -187,43 +229,50 @@ export function watched(params: IWatchParams = {}): PropertyDecorator {
                 const initFunc = params.onInit || `on${capitalizedProp}Init`;
                 const changeFunc = params.onChange || `on${capitalizedProp}Change`;
                 const addFunc = params.onAdd || `on${capitalizedProp}Add`;
-                const removeFunc = params.onRemove || `on${capitalizedProp}Remove`;
+                const remFunc = params.onRemove || `on${capitalizedProp}Remove`;
+                const initPropMarker = `init${capitalizedProp}`;
+
+                const initPropMarkerVal = Reflect.getMetadata(initPropMarker, this);
 
                 // Observe objects and arrays of any changes
                 if (newVal instanceof Array || isObject(newVal)) {
                     newVal = onChange(<IndexStructure>newVal, (path, value, previousValue) => {
-                        const newObjectKeys = Object.keys(<object>value);
-                        const oldObjectKeys = Object.keys(<object>previousValue);
-                        const newLength = newObjectKeys.length;
-                        const oldLength = oldObjectKeys.length;
+                        const newKeys = Object.keys(<object>value);
+                        const oldKeys = Object.keys(<object>previousValue);
+                        const newLen = newKeys.length;
+                        const oldLen = oldKeys.length;
+
+                        /**
+                         * Detects case of change and executes corresponding function
+                         *
+                         * @param {ICaseDetectParams} cdParams
+                         */
+                        const caseDetectExec = (cdParams: ICaseDetectParams) => {
+                            if (cdParams.len1 > cdParams.len2 && cdParams.func in this) {
+                                for (const modified of cdParams.keys1) {
+                                    if (!cdParams.keys2.includes(modified)) {
+                                        that[cdParams.func]((<IndexStructure>value)[<any>modified], path);
+                                        break;
+                                    }
+                                }
+                            }
+                        };
 
                         // Case: added
-                        if (newLength > oldLength && addFunc in this) {
-                            for (const added of newObjectKeys) {
-                                if (!oldObjectKeys.includes(added)) {
-                                    that[addFunc]((<IndexStructure>value)[<any>added], path);
-                                    break;
-                                }
-                            }
-                        }
-
+                        caseDetectExec({ len1: newLen, len2: oldLen, func: addFunc, keys1: newKeys, keys2: oldKeys });
                         // Case: removed
-                        if (newLength < oldLength && removeFunc in this) {
-                            for (const removed of oldObjectKeys) {
-                                if (!newObjectKeys.includes(removed)) {
-                                    that[removeFunc]((<IndexStructure>previousValue)[<any>removed], path);
-                                    break;
-                                }
-                            }
-                        }
-
+                        caseDetectExec({ len1: oldLen, len2: newLen, func: remFunc, keys1: oldKeys, keys2: newKeys });
                         // Case: deep change
-                        if (newLength === oldLength && changeFunc in this) {
-                            if (Reflect.getMetadata(`init${capitalizedProp}`, this)) that[changeFunc](value, path);
-                        }
-
+                        if (newLen === oldLen && changeFunc in this && initPropMarkerVal) that[changeFunc](value, path);
                     }, { isShallow: Boolean(params.isShallow) });
                 }
+
+                if (initFunc in this && !initPropMarkerVal) that[initFunc](newVal);
+                // React on variable changes
+                if (changeFunc in this && initPropMarkerVal && newVal !== (<IndexStructure>this)[stringKey]) {
+                    that[changeFunc](newVal);
+                }
+                Reflect.defineMetadata(initPropMarker, true, this);
 
                 // Only execute watching on changes reference types like array
                 // will not be effected by this constraint.
@@ -232,11 +281,6 @@ export function watched(params: IWatchParams = {}): PropertyDecorator {
                 if (propDesc && propDesc.set) {
                     propDesc.set.call(this, newVal);
                 } else Reflect.defineMetadata(key, newVal, this);
-
-                // React on initial variable changes
-                if (changeFunc in this && Reflect.getMetadata(`init${capitalizedProp}`, this)) that[changeFunc]();
-                if (initFunc in this && !Reflect.getMetadata(`init${capitalizedProp}`, this)) that[initFunc](newVal);
-                Reflect.defineMetadata(`init${capitalizedProp}`, true, this);
             },
             enumerable: true,
             configurable: true
@@ -366,9 +410,13 @@ export function baseConstructor(name?: nameOrOptsOrIndex, options?: optsOrIndex,
                 let constParams = params[constParamsIndex];
                 if (!(constParams instanceof Object)) constParams = {};
                 Reflect.defineMetadata("normalFunctionality", true, this);
-                const defaultSettings = Reflect.getMetadata("defaultSettings", this) || {};
-                merge(defaultSettings, constParams);
-                merge(this, defaultSettings);
+                let defaultSettings = Reflect.getMetadata("defaultSettings", this) || {};
+                defaultSettings = Object.assign(defaultSettings, constParams);
+                if (isBrowser()) {
+                    const cachedSettings = getNamespacedStorage(this, "*", "id", constParams.id);
+                    defaultSettings = Object.assign(defaultSettings, cachedSettings);
+                }
+                Object.assign(this, defaultSettings);
                 Reflect.defineMetadata("constructionComplete", true, this);
                 if ("constructedCallback" in this) (<any>this).constructedCallback(...params);
             }
@@ -477,8 +525,9 @@ function getter(instance: any, key: string | symbol, params?: IAttributeParams, 
 function setter(instance: any, key: string | symbol, newVal: any, params?: IAttributeParams, propDesc?: PropDesc) {
     if (!Reflect.getMetadata("normalFunctionality", instance)) {
         const defaultSettings = Reflect.getMetadata("defaultSettings", instance) || {};
-        merge(defaultSettings, { [key]: newVal });
-        return Reflect.defineMetadata("defaultSettings", defaultSettings, instance);
+        Object.assign(defaultSettings, { [key]: newVal });
+        Reflect.defineMetadata("defaultSettings", defaultSettings, instance);
+        return;
     }
     const stringKey = key.toString();
     const initiatorMData: Map<string, Binding> | undefined = Reflect.getMetadata("initiatorBinding", instance);

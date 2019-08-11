@@ -6,6 +6,9 @@ declare type AbstractConstructor<T = {}> = Function & { prototype: T };
 declare type IfNotEquals<X, Y, A, B> = (<T>() => T extends X ? 1 : 2) extends (<T>() => T extends Y ? 1 : 2) ? B : A;
 declare type NoneWritableKeysOf<T> = { [P in keyof T]: IfNotEquals<{ [Q in P]: T[P] }, { -readonly [Q in P]: T[P] }, P, never> }[keyof T];
 
+// Filer all properties out which are not a function
+declare type FunctionPropertyNames<T> = { [K in keyof T]: T[K] extends Function ? K : never }[keyof T];
+
 // Filters all properties out which are undefined or a function
 declare type NonFunctionPropertyNames<T> = { [K in keyof T]: T[K] extends (...args: any) => any ? never : K }[keyof T];
 // Filters all properties out which are a function

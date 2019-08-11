@@ -48,17 +48,26 @@ export function setUpdateNamespacedStorage(instance: any, key: string, newVal: a
  * Gets a value of the key depending on the namespace suffix which was used
  * before in a store action or depending on the nsProp.
  *
+ * You also can force a namespace which will be used instead of all previous
+ * detected namespaces.
+ *
+ * if key is a *, all keys in this namespace will be returned in an object.
+ *
  * @export
  * @param {*} instance
  * @param {string} key
+ * @param {string} [nsProp="id"]
+ * @param {string} [forceNS]
  * @returns
  */
-export function getNamespacedStorage(instance: any, key: string, nsProp: string = "id") {
+export function getNamespacedStorage(instance: any, key: string, nsProp: string = "id", forceNS?: string) {
     const nsPrefix = Object.getPrototypeOf(instance.constructor).name;
     let nsSuffix = Reflect.getMetadata("oldStorageNsSuffix", instance);
     if (nsSuffix !== instance[nsProp]) nsSuffix = instance[nsProp];
+    if (forceNS) nsSuffix = forceNS;
     let storageValue: any = localStorage.getItem(`${nsPrefix}_${nsSuffix}`);
     if (storageValue) storageValue = JSON.parse(storageValue);
+    if (storageValue && key === "*") return storageValue;
     if (storageValue && key in storageValue) return storageValue[key];
     return undefined;
 }

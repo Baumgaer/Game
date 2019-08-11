@@ -2,8 +2,8 @@ import { BaseComponentFactory } from '~client/lib/BaseComponent';
 import { includesMemberOfList } from '~bdo/utils/util';
 import { baseConstructor } from '~bdo/utils/decorators';
 import { property } from '~bdo/utils/decorators';
-import Navigo from 'navigo';
-// import Navigo = require('navigo');
+// @ts-ignore
+import Navigo = require('navigo');
 
 /**
  * Test

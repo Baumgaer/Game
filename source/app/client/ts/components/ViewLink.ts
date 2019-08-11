@@ -42,7 +42,10 @@ export default class ViewLink extends BaseComponentFactory(HTMLAnchorElement) {
      * @type {string}
      * @memberof ViewLink
      */
-    @watched({ onAdd: "testerAdded" }) @property() public tester: string[] = ["haha"];
+    @watched({
+        onRemove: "onTesterChange",
+        onInit: "onTesterChange"
+    }) @property() public tester: string[] = ["haha"];
 
     constructor(_params?: ConstParams<ViewLink>) {
         super();
@@ -65,8 +68,19 @@ export default class ViewLink extends BaseComponentFactory(HTMLAnchorElement) {
      * @param {string} added
      * @memberof ViewLink
      */
-    protected testerAdded(_added: string): void {
+    protected onTesterAdd(_added: string): void {
         // console.log(added);
+    }
+
+    /**
+     * Test
+     *
+     * @protected
+     * @param {string} changed
+     * @memberof ViewLink
+     */
+    protected onTesterChange(_changed: string): void {
+        // console.log(changed);
     }
 
     /**

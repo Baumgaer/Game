@@ -1,5 +1,5 @@
 import { Test } from './Test';
-import { baseConstructor, property } from "~bdo/utils/decorators";
+import { baseConstructor, property, watched } from "~bdo/utils/decorators";
 
 /**
  * Test
@@ -17,7 +17,7 @@ export class Test1 extends Test {
      * @type {string}
      * @memberof Test1
      */
-    @property({ saveInLocalStorage: true, storeTemporary: 10000 }) public oha: string = 'test';
+    @watched() @property({ saveInLocalStorage: true }) public oha: string = 'test';
 
     constructor(_params?: ConstParams<Test1>) {
         super();
@@ -31,5 +31,16 @@ export class Test1 extends Test {
      */
     public doSomething() {
         return "lol";
+    }
+
+    /**
+     * Test
+     *
+     * @protected
+     * @param {string} value
+     * @memberof Test1
+     */
+    protected onOhaInit(_value: string) {
+        // console.log(value);
     }
 }

@@ -35,7 +35,7 @@
             "babylonjs-inspector",
             "reflect-metadata"
         ],
-        "allowSyntheticDefaultImports": true,
+        "allowSyntheticDefaultImports": false,
         "experimentalDecorators": true,
         "emitDecoratorMetadata": true
     }
