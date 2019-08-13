@@ -1,5 +1,5 @@
 import { Binding } from "~bdo/lib/Binding";
-interface IMDKeys<T = any> {
+interface IMDKeys<T extends object = any> {
     /**
      * Used to go back to normal functionality on object creation.
      * Used in every object, which is decorated with baseConstructor and in
@@ -46,7 +46,7 @@ interface IMDKeys<T = any> {
      * @type {Map<string, Array<Binding<T, DefinitiveNonFunctionPropertyNames<T>>>>}
      * @memberof IMDKeys
      */
-    bindings?: Map<string, Array<Binding<T, DefinitiveNonFunctionPropertyNames<T>>>>;
+    bindings?: Map<DefinitiveNonFunctionPropertyNames<T>, Array<Binding<T, DefinitiveNonFunctionPropertyNames<T>>>>;
 
     /**
      * Stores the property descriptor created by the Binding class
@@ -125,10 +125,10 @@ interface IMDKeys<T = any> {
  * @template T
  * @param {Object} target
  * @param {T} key
- * @param {*} value
+ * @param {*} val
  */
-export function defineMetadata<T extends Object, K extends keyof IMDKeys>(target: T, key: K, value: IMDKeys<T>[K]) {
-    Reflect.defineMetadata(key, value, target); // tslint:disable-line
+export function defineMetadata<T extends object, K extends keyof IMDKeys>(target: T, key: K, val: IMDKeys<T>[K]) {
+    Reflect.defineMetadata(key, val, target); // tslint:disable-line
 }
 
 /**
@@ -140,7 +140,7 @@ export function defineMetadata<T extends Object, K extends keyof IMDKeys>(target
  * @param {T} key
  * @returns {IMDKeys[T]}
  */
-export function getMetadata<T extends Object, K extends keyof IMDKeys>(target: T, key: K): IMDKeys<T>[K] {
+export function getMetadata<T extends object, K extends keyof IMDKeys>(target: T, key: K): IMDKeys<T>[K] {
     return Reflect.getMetadata(key, target); // tslint:disable-line
 }
 
@@ -152,7 +152,7 @@ export function getMetadata<T extends Object, K extends keyof IMDKeys>(target: T
  * @param {string} key
  * @param {*} value
  */
-export function defineWildcardMetadata(target: Object, key: string, value: any) {
+export function defineWildcardMetadata(target: Object, key: strNumSym, value: any) {
     Reflect.defineMetadata(key, value, target); // tslint:disable-line
 }
 
@@ -164,6 +164,6 @@ export function defineWildcardMetadata(target: Object, key: string, value: any) 
  * @param {string} key
  * @returns
  */
-export function getWildcardMetadata(target: Object, key: string) {
+export function getWildcardMetadata(target: Object, key: strNumSym) {
     return Reflect.getMetadata(key, target); // tslint:disable-line
 }

@@ -1,4 +1,4 @@
-import { Test1 } from "~bdo/models/Test1";
+import { Test1 } from "~server/models/Test1";
 import { resolver, arg, query } from "~bdo/utils/decorators";
 
 /**

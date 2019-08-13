@@ -20,31 +20,31 @@ import { defineMetadata, getMetadata, defineWildcardMetadata, getWildcardMetadat
  * @export
  * @class Binding
  */
-export class Binding<T = any, K extends DefinitiveNonFunctionPropertyNames<T> = any> {
+export class Binding<T extends object = any, K extends DefinitiveNonFunctionPropertyNames<T> = any> {
 
     /**
      * The object instance which contains the property which should be bound
      *
-     * @type {IndexStructure}
+     * @type {T}
      * @memberof Binding
      */
-    public object: IndexStructure;
+    public object: T;
 
     /**
      * The property of the object instance which should be bound
      *
-     * @type {string}
+     * @type {K}
      * @memberof Binding
      */
-    public property: string;
+    public property: K;
 
     /**
      * The possible property descriptor of the objects property
      *
-     * @type {PropertyDescriptor}
+     * @type {PropDesc}
      * @memberof Binding
      */
-    public descriptor?: PropertyDescriptor;
+    public descriptor?: PropDesc;
 
     /**
      * The object which initiates the binding to the objects property
@@ -65,14 +65,14 @@ export class Binding<T = any, K extends DefinitiveNonFunctionPropertyNames<T> = 
     /**
      * The possible property descriptor of the initiators property
      *
-     * @type {PropertyDescriptor}
+     * @type {PropDesc}
      * @memberof Binding
      */
-    public initiatorDescriptor?: PropertyDescriptor;
+    public initiatorDescriptor?: PropDesc;
 
     constructor(object: T, property: K) {
         this.object = object;
-        this.property = property.toString();
+        this.property = property;
 
         // Save the original property descriptor only if it is not a binding descriptor
         // In case it is a binding descriptor, have a look at the bindings of this property
@@ -136,13 +136,13 @@ export class Binding<T = any, K extends DefinitiveNonFunctionPropertyNames<T> = 
      * @param {(symbol | string | number)} property
      * @memberof Binding
      */
-    public install(initiator: object, property: symbol | string | number) {
+    public install<O extends Constructor, P extends DefinitiveNonFunctionPropertyNames<O>>(initiator: O, property: P) {
         this.initiator = initiator;
         this.initiatorProperty = property.toString();
         if (!Reflect.hasMetadata("initiatorBinding", this.initiator)) {
             defineMetadata(this.initiator, "initiatorBinding", new Map());
         }
-        const initiatorMData = getMetadata(this.initiator, "initiatorBinding") as Map<string, Binding<T, K>>;
+        const initiatorMData = getMetadata(this.initiator, "initiatorBinding") || new Map();
         const initiatorBinding = initiatorMData.get(this.initiatorProperty);
         if (initiatorBinding) initiatorBinding.remove();
         this.bind();
@@ -228,13 +228,13 @@ export class Binding<T = any, K extends DefinitiveNonFunctionPropertyNames<T> = 
                 let alreadyBound = false;
                 for (const [index, binding] of definitelyDefinedBindings.entries()) {
                     if (binding.initiator === this.initiator && binding.initiatorProperty === this.initiatorProperty) {
-                        definitelyDefinedBindings[index] = <Binding>this;
+                        definitelyDefinedBindings[index] = this;
                         alreadyBound = true;
                         break;
                     }
                 }
                 // Otherwise if not already bound add it
-                if (!alreadyBound) definitelyDefinedBindings.push(<Binding>this);
+                if (!alreadyBound) definitelyDefinedBindings.push(this);
             }
         }
     }
@@ -249,11 +249,11 @@ export class Binding<T = any, K extends DefinitiveNonFunctionPropertyNames<T> = 
      * @param {PropertyDescriptor} [descriptor]
      * @memberof Binding
      */
-    private restoreDescriptor(object: IndexStructure, property: string, value: any, descriptor?: PropertyDescriptor) {
+    private restoreDescriptor(object: IndexStructure, property: strNumSym, value: any, descriptor?: PropDesc) {
         Reflect.deleteProperty(object, property);
         if (descriptor) {
             Reflect.defineProperty(this.initiator, this.initiatorProperty, descriptor);
         }
-        object[property] = value;
+        object[property.toString()] = value;
     }
 }

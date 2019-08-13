@@ -52,6 +52,8 @@ declare interface IndexStructure<K = string, V = any> {
 }
 
 // General types
+declare type strNumSym = string | number | symbol;
+
 declare type Unpacked<T> =
     T extends (infer U)[] ? U :
     T extends (...args: any[]) => infer U ? U :

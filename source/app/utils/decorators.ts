@@ -541,7 +541,7 @@ function setter(instance: any, key: string | symbol, newVal: any, params?: IAttr
     // install binding
     if (newVal instanceof Binding) {
         // Bind to thisArg object
-        newVal.install(instance, key);
+        newVal.install(instance, stringKey);
         reflect = false;
         newVal = newVal.valueOf();
         if (newVal === instance[key]) return;

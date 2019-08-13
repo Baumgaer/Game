@@ -12,8 +12,8 @@ import { getMetadata } from "~bdo/utils/metadata";
  * @abstract
  * @class BDOModel
  */
-@baseConstructor({ isAbstract: true })
-export abstract class BDOModel {
+@baseConstructor()
+export class BDOModel {
 
     /**
      * Determines the original type of this model - set by the
@@ -70,7 +70,7 @@ export abstract class BDOModel {
      * @type {Map<string, Array<Binding<this, DefinitiveNonFunctionPropertyNames<this>>>>}
      * @memberof BDOModel
      */
-    protected get bindings(): Map<string, Array<Binding<this, DefinitiveNonFunctionPropertyNames<this>>>> {
+    protected get bindings(): Map<string, Array<Binding<this>>> {
         const bindings = getMetadata(this, "bindings");
         return bindings ? bindings : new Map();
     }
@@ -83,7 +83,7 @@ export abstract class BDOModel {
      * @returns {*} The identity of the property as none primitive
      * @memberof BDOModel
      */
-    public bind<K extends Exclude<NonFunctionPropertyNames<this>, undefined>>(propName: K) {
+    public bind<K extends DefinitiveNonFunctionPropertyNames<this>>(propName: K) {
         return new Binding(this, propName) as unknown as this[K];
     }
 
