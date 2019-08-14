@@ -92,7 +92,7 @@
         "tslint": "^5.18.0",
         "tslint-no-unused-expression-chai": "^0.1.4",
         "typescript": "^3.5.3",
-        "webpack": "^4.39.1",
+        "webpack": "^4.39.2",
         "webpack-cli": "^3.3.6",
         "webpack-filter-warnings-plugin": "^1.2.1",
         "webpack-livereload-plugin": "^2.2.0"
@@ -114,7 +114,7 @@
         "express": "^4.17.1",
         "express-graphql": "^0.9.0",
         "express-session": "^1.16.2",
-        "graceful-fs": "^4.2.1",
+        "graceful-fs": "^4.2.2",
         "graphql": "^14.4.2",
         "graphql-redis-subscriptions": "^2.1.1",
         "grunt": "^1.0.4",
@@ -139,7 +139,7 @@
         "type-graphql": "^0.17.4",
         "uuid": "^3.3.2",
         "walk": "^2.3.14",
-        "ws": "^7.1.1"
+        "ws": "^7.1.2"
     },
     "optionalDependencies": {
         "bufferutil": "^4.0.1",
