@@ -4,6 +4,7 @@ const os = require('os');
 const webpack = require('webpack');
 const fs = require('graceful-fs');
 const crypto = require('crypto');
+const mkdirp = require('mkdirp');
 
 const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
 const ForkTsCheckerNotifierWebpackPlugin = require('fork-ts-checker-notifier-webpack-plugin');
@@ -46,7 +47,8 @@ module.exports = {
             const currentVirtualEntryPointHash = md5.update(fileContent).digest('hex');
             if (currentVirtualEntryPointHash != lastVirtualEntryPointHash) {
                 lastVirtualEntryPointHash = currentVirtualEntryPointHash;
-                fs.writeFileSync(virtualEntryPointFilePath, fileContent);
+                mkdirp.sync(path.dirname(virtualEntryPointFilePath));
+                fs.writeFileSync(virtualEntryPointFilePath, fileContent, { flag: "a" });
             }
             resolve(entryPoints);
         });

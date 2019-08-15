@@ -1,0 +1,34 @@
+# out js
+out/**/*.js
+!out/utils/projectStructure.js
+
+# third party libraries
+node_modules
+.vscode
+
+# Hardlinks client section
+source/app/client/audios/**/*
+source/app/client/config/**/*
+source/app/client/css/**/*
+source/app/client/images/**/*
+source/app/client/locales/**/*
+source/app/client/videos/**/*
+source/app/client/views/**/*
+
+# Hardlinks BDO section
+source/app/config/**/*
+source/app/tools/**/*
+source/app/views/**/*
+
+# Hardlinks server section
+source/app/server/config/**/*
+source/app/server/views/**/*
+
+# Third-Party created stuff
+.nyc_output
+
+# Variable content
+var/*/*
+var/*.*
+!var/README.md
+!var/**/README.md

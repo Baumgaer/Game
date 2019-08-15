@@ -7,45 +7,72 @@
     },
     "parserOptions": {
         "ecmaVersion": 6,
-        "sourceType": "commonJS",
+        "sourceType": "script",
         "ecmaFeatures": {
             "impliedStrict": true
         }
     },
     "extends": "eslint:recommended",
     "rules": {
-        "linebreak-style": ["error", "unix"],
-        "curly": ["error", "multi-line"],
-        "semi": ["error", "always"],
+        "linebreak-style": [
+            "error",
+            "unix"
+        ],
+        "curly": [
+            "error",
+            "multi-line"
+        ],
+        "semi": [
+            "error",
+            "always"
+        ],
         "no-console": "off",
-        "comma-dangle": ["error", "never"],
+        "comma-dangle": [
+            "error",
+            "never"
+        ],
         "no-trailing-spaces": "error",
-        "semi-spacing": ["error", {
-            "before": false,
-            "after": true
-        }],
-        "arrow-spacing": ["error", {
-            "before": true,
-            "after": true
-        }],
+        "semi-spacing": [
+            "error",
+            {
+                "before": false,
+                "after": true
+            }
+        ],
+        "arrow-spacing": [
+            "error",
+            {
+                "before": true,
+                "after": true
+            }
+        ],
         "no-var": "error",
         "valid-jsdoc": "error",
-        "require-jsdoc": ["error", {
-            "require": {
-                "FunctionDeclaration": true,
-                "MethodDefinition": false,
-                "ClassDeclaration": false,
-                "ArrowFunctionExpression": false,
-                "FunctionExpression": false
+        "require-jsdoc": [
+            "error",
+            {
+                "require": {
+                    "FunctionDeclaration": true,
+                    "MethodDefinition": false,
+                    "ClassDeclaration": false,
+                    "ArrowFunctionExpression": false,
+                    "FunctionExpression": false
+                }
             }
-        }],
-        "no-use-before-define": ["error", {
-            "functions": false,
-            "classes": false,
-            "variables": true
-        }],
+        ],
+        "no-use-before-define": [
+            "error",
+            {
+                "functions": false,
+                "classes": false,
+                "variables": true
+            }
+        ],
         "guard-for-in": "error",
-        "strict": ["error", "global"],
+        "strict": [
+            "error",
+            "global"
+        ],
         "camelcase": "error",
         "dot-notation": "error"
     }

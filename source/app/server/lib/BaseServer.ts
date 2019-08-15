@@ -164,11 +164,10 @@ export abstract class BaseServer {
      * @memberof BaseServer
      */
     protected async setupServer(): Promise<void> {
-        const [config, passwords, databases, ports, paths] = await Promise.all([
+        const [config, passwords, databases, paths] = await Promise.all([
             configManager.get('config'),
             configManager.get('passwords'),
             configManager.get('databases'),
-            configManager.get('ports'),
             configManager.get('paths')
         ]);
         // parse the body to get post data and so on
@@ -195,8 +194,8 @@ export abstract class BaseServer {
                 }
             }, {
                 store: new RedisStore({
-                    host: 'localhost',
-                    port: ports.redis,
+                    host: process.env.REDIS_HOST,
+                    port: +(process.env.REDIS_PORT || ""),
                     prefix: `${config.session.prefix}:`,
                     disableTTL: config.session.disableTTL,
                     logErrors: config.session.logErrors,

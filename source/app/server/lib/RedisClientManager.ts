@@ -166,8 +166,8 @@ export class RedisClientManager {
         const defaultClientSettings = {
             retryStrategy: this.retryStrategy.bind(this),
             reconnectOnError: this.reconnectOnError.bind(this),
-            host: 'localhost',
-            port: <number>config[0].redis,
+            host: process.env.REDIS_HOST,
+            port: process.env.REDIS_PORT,
             db: <number>config[1].redis.default
         };
         options = merge(defaultClientSettings, options);
