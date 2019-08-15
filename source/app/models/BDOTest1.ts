@@ -17,8 +17,8 @@ export function BDOTest1Factory<TBase extends ReturnType<typeof BDOTestFactory>>
      * @class Test1
      * @extends {Test}
      */
-    @baseConstructor()
-    class BDOTest1 extends ctor {
+    @baseConstructor({ isAbstract: true })
+    abstract class BDOTest1 extends ctor {
 
         /**
          * Test

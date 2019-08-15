@@ -1,5 +1,5 @@
 import { BDOTestFactory } from "~bdo/models/BDOTest";
-import { BDOModel } from '~bdo/lib/BDOModel';
+import { ServerModel } from '~server/lib/ServerModel';
 import { baseConstructor } from "~bdo/utils/decorators";
 
 /**
@@ -10,7 +10,7 @@ import { baseConstructor } from "~bdo/utils/decorators";
  * @extends {BDOTestFactory(BDOModel)}
  */
 @baseConstructor()
-export class Test extends BDOTestFactory(BDOModel) {
+export class Test extends BDOTestFactory(ServerModel) {
 
     constructor(_params?: ConstParams<Test>) {
         super();

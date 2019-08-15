@@ -12,8 +12,8 @@ import { getMetadata } from "~bdo/utils/metadata";
  * @abstract
  * @class BDOModel
  */
-@baseConstructor()
-export class BDOModel {
+@baseConstructor({ isAbstract: true })
+export abstract class BDOModel {
 
     /**
      * Determines the original type of this model - set by the
