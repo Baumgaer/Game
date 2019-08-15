@@ -32,7 +32,7 @@ export abstract class BDOGameLobby extends BDORoute {
      * @protected
      * @memberof GameLobby
      */
-    protected templateString: Template = require('~bdo/views/GameLobby.njk');
+    protected templateString: Template = require('~bdo/views/gameLobby.njk');
 
     /**
      * @inheritdoc

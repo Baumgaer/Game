@@ -3,7 +3,6 @@ FROM node:10.16.2
 WORKDIR /app
 
 COPY LICENSE.md ./
-
 COPY package-lock.json package.json ./
 
 RUN npm ci

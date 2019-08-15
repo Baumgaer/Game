@@ -5,7 +5,7 @@ class BDOGameLobby extends BDORoute_1.BDORoute {
     constructor() {
         super(...arguments);
         this.routerNameSpace = '/';
-        this.templateString = require('~bdo/views/GameLobby.njk');
+        this.templateString = require('~bdo/views/gameLobby.njk');
     }
     async templateParams() {
         return {

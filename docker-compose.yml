@@ -10,7 +10,7 @@ services:
         environment:
             NODE_ENV: "development"
 
-            name: "WebServer"
+            name: "GameServer"
             pm_id: "1"
 
             PORT: 3000
@@ -27,7 +27,7 @@ services:
         build:
             context: .
             dockerfile: ./Dockerfile
-        entrypoint: "node /app/out/app/WebServer.js"
+        entrypoint: "node out/app/WebServer.js"
         environment:
             NODE_ENV: "development"
 
