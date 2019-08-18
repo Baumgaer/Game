@@ -5,15 +5,24 @@ import * as Rx from "rxjs";
 import * as childProcess from "child_process";
 import * as readline from "readline";
 import { tap, catchError } from "rxjs/operators";
+import * as fs from "fs";
+import * as path from "path";
 
 program.version("0.0.1");
 
 program
     .option("-v, --verbose", "Log child processes")
 
-const execCmd = (command: string, args: string[]) => new Rx.Observable<string>(
+program
+    .option("-s, --use-swarm", "Uses Docker Swarm")
+
+const execCmd = (command: string, args: string[], stdin?: string) => new Rx.Observable<string>(
     observer => {
         const spawnee = childProcess.spawn(command, args);
+
+        if (stdin) {
+            spawnee.stdin.write(stdin);
+        }
 
         readline
             .createInterface({ input: spawnee.stdout, terminal: false })
@@ -57,31 +66,90 @@ const cmd = ([value]: TemplateStringsArray, ..._: string[]) => {
     return cmd;
 }
 
+interface OrchestratorImpl {
+    up(): Promise<void>;
+    stop(): Promise<void>;
+    down(): Promise<void>;
+}
+
+const ComposeImpl: OrchestratorImpl = {
+    async up() {
+        await cmd`docker-compose up -d`
+            .pipe(
+                catchError(err => Rx.of(err)),
+            )
+            .toPromise();
+    },
+    async stop() {
+        await cmd`docker-compose stop`
+            .pipe(
+                catchError(err => Rx.of(err)),
+            )
+            .toPromise();
+    },
+    async down() {
+        await cmd`docker-compose down`
+            .pipe(
+                catchError(err => Rx.of(err)),
+            )
+            .toPromise();
+    }
+}
+
+function getDockerStackComposeFile(): string {
+    const p = path.resolve(__dirname, "../docker-compose.yml");
+    console.log(p);
+    const file = fs.readFileSync(p);
+    return file.toString();
+}
+
+function dockerStack(command: string) {
+    const stackComposeFile = getDockerStackComposeFile();
+    return execCmd(
+        "docker",
+        ["stack", "-c", "-", ...command.split(" ")],
+        stackComposeFile
+    );
+}
+
+const SwarmImpl: OrchestratorImpl = {
+    async up() {
+        await dockerStack("deploy game")
+            .pipe(
+                catchError(err => Rx.of(err))
+            )
+            .toPromise();
+    },
+    async stop() {
+        console.error("Docker swarm does not support stopping.")
+    },
+    async down() {
+        await dockerStack("rm game")
+            .pipe(
+                catchError(err => Rx.of(err))
+            )
+            .toPromise();
+    }
+}
+
+const orchestrator: OrchestratorImpl =
+    program.useSwarm
+        ? SwarmImpl
+        : ComposeImpl;
+
 async function up() {
     console.log("Creating deployment ...");
-    await cmd`docker-compose up -d`
-        .pipe(
-            catchError(err => Rx.of(err)),
-        )
-        .toPromise();
+    await orchestrator.up();
 }
 
 async function stop() {
     console.log("Stopping deployment ...");
-    await cmd`docker-compose stop`
-        .pipe(
-            catchError(err => Rx.of(err)),
-        )
-        .toPromise();
+    await orchestrator.stop();
 }
 
 async function down() {
     console.log("Destroying deployment ...");
-    await cmd`docker-compose down`
-        .pipe(
-            catchError(err => Rx.of(err)),
-        )
-        .toPromise();
+    await orchestrator.down();
 }
 
 program
