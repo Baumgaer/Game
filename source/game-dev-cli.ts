@@ -4,7 +4,7 @@ import * as program from "commander";
 import * as Rx from "rxjs";
 import * as childProcess from "child_process";
 import * as readline from "readline";
-import { tap, catchError, concat } from "rxjs/operators";
+import { tap, catchError } from "rxjs/operators";
 import * as fs from "fs";
 import * as path from "path";
 import * as _ from "lodash";
@@ -55,7 +55,7 @@ const cmd = (v: string, stdin?: string) => {
     const cmd = execCmd(command, args, stdin);
 
     if (program.opts().verbose) {
-        return cmd.pipe(
+        return cmd.pipe<string>(
             tap(
                 console.log,
                 console.error
@@ -67,90 +67,89 @@ const cmd = (v: string, stdin?: string) => {
 }
 
 interface OrchestratorImpl {
-    up(): Promise<void>;
-    stop(): Promise<void>;
-    down(): Promise<void>;
-    ps(): Promise<void>;
+    up(): Promise<void> | Rx.Observable<any>;
+    stop(): Promise<void> | Rx.Observable<any>;
+    down(): Promise<void> | Rx.Observable<any>;
+    ps(): Promise<void> | Rx.Observable<any>;
+}
+
+function dockerCompose(command: string) {
+    const config = getComposeConfig(sanitizeConfigToCompose);
+    return cmd("docker-compose -f - " + command, config)
+            .pipe<string>(
+                catchError(err => Rx.of(err)),
+            );
 }
 
 const ComposeImpl: OrchestratorImpl = {
-    async up() {
-        await cmd("docker-compose up -d")
-            .pipe(
-                catchError(err => Rx.of(err)),
-            )
-            .toPromise();
+    up() {
+        return dockerCompose("up -d")
+                .pipe(tap(console.log));
     },
-    async stop() {
-        await cmd(`docker-compose stop`)
-            .pipe(
-                catchError(err => Rx.of(err)),
-            )
-            .toPromise();
+    stop() {
+        return dockerCompose("stop");
     },
-    async down() {
-        await cmd(`docker-compose down`)
-            .pipe(
-                catchError(err => Rx.of(err)),
-            )
-            .toPromise();
+    down() {
+        return dockerCompose("down");
     },
-    async ps() {
-        await cmd("docker-compose ps")
+    ps() {
+        return dockerCompose("ps")
             .pipe(
-                tap(
-                    console.log,
-                    console.error
-                )
-            ).toPromise();
+                tap(console.log)
+            );
     }
 }
 
-function sanitizeComposeFileToDockerStack(v: string): string {
-    const compose = yaml.safeLoad(v);
-
+function sanitizeConfigToSwarm(config: any): any {
+    const compose = Object.assign({}, config);
     delete compose.services.gameserver.build;
     delete compose.services.webserver.build;
-
-    return yaml.safeDump(compose);
+    return compose;
 }
 
-function getDockerStackComposeFile(): string {
+function sanitizeConfigToCompose(config: any): any {
+    const compose = Object.assign({}, config);
+    delete compose.services.gameserver.deploy;
+    delete compose.services.webserver.deploy;
+    return compose;
+}
+
+function getComposeConfig(sanitize: (config: any) => any): any {
     const p = path.resolve(__dirname, "../docker-compose.yml");
     const file = fs.readFileSync(p).toString();
-    return sanitizeComposeFileToDockerStack(file);
+    const config = yaml.safeLoad(file);
+    const sanitizedConfig = sanitize(config);
+    return yaml.safeDump(sanitizedConfig);
 }
 
 const DEPLOYMENT_NAME = process.env.SWARM_DEPLOYMENT_NAME || "game";
 
 const SwarmImpl: OrchestratorImpl = {
     async up() {
-        const build = cmd("docker build -t game:latest .")
-
-        const stackComposeFile = getDockerStackComposeFile();
-        const deploy = cmd(`docker stack deploy -c - ${DEPLOYMENT_NAME}`, stackComposeFile);
-
-        return build.pipe(concat(deploy)).toPromise();
+        await cmd("docker build -t game:latest .").toPromise();
+        const swarmComposeFile = getComposeConfig(sanitizeConfigToSwarm);
+        await cmd(`docker stack deploy -c - ${DEPLOYMENT_NAME}`, swarmComposeFile).toPromise();
     },
     async stop() {
         console.error("Docker swarm does not support stopping.");
     },
-    async down() {
-        await cmd(`docker stack rm ${DEPLOYMENT_NAME}`)
+    down() {
+        console.log("Destroying Swarm deployment ...");
+        return cmd(`docker stack rm ${DEPLOYMENT_NAME}`)
             .pipe(
-                catchError(err => Rx.of(err))
-            )
-            .toPromise();
+                tap({
+                    complete: () => console.log("... Done")
+                })
+            );
     },
-    async ps() {
-        await cmd(`docker stack ps ${DEPLOYMENT_NAME}`)
-            .pipe(
-                tap(
-                    console.log,
-                    console.error
-                )
-            )
-            .toPromise();
+    ps() {
+        return cmd(`docker stack ps ${DEPLOYMENT_NAME}`)
+                .pipe(
+                    tap(
+                        console.log,
+                        console.error
+                    )
+                );
     }
 }
 
@@ -160,23 +159,31 @@ const getOrchestrator = _.memoize(
         : ComposeImpl
 )
 
+async function handle(v: Promise<void> | Rx.Observable<void>) {
+    if (Rx.isObservable(v)) {
+        await v.toPromise();
+    } else {
+        await v;
+    }
+}
+
 async function up() {
     console.log("Creating deployment ...");
-    await getOrchestrator().up();
+    await handle(getOrchestrator().up());
 }
 
 async function stop() {
     console.log("Stopping deployment ...");
-    await getOrchestrator().stop();
+    await handle(getOrchestrator().stop());
 }
 
 async function down() {
     console.log("Destroying deployment ...");
-    await getOrchestrator().down();
+    await handle(getOrchestrator().down());
 }
 
 async function ps() {
-    await getOrchestrator().ps();
+    await handle(getOrchestrator().ps());
 }
 
 program
