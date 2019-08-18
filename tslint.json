@@ -18,6 +18,37 @@
                 "use ~bdo/utils/metadata defineMetadata instead"
             ]
         ],
+        "custom-import-blacklist": [
+            true,
+            {
+                "source/app/lib": [
+                    "~client",
+                    "~server"
+                ],
+                "source/app/models": [
+                    "~client",
+                    "~server"
+                ],
+                "source/app/routes": [
+                    "~client",
+                    "~server"
+                ],
+                "source/app/tools": [
+                    "~client",
+                    "~server"
+                ],
+                "source/app/utils": [
+                    "~client",
+                    "~server"
+                ],
+                "source/app/client/ts": [
+                    "~server"
+                ],
+                "source/app/server": [
+                    "~client"
+                ]
+            }
+        ],
         "semicolon": [
             true,
             "always"
@@ -117,6 +148,7 @@
         ]
     },
     "rulesDirectory": [
-        "tslint-no-unused-expression-chai"
+        "tslint-no-unused-expression-chai",
+        "./out/lintRules/"
     ]
 }
