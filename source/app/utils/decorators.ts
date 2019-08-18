@@ -5,7 +5,6 @@ import { Binding } from "~bdo/lib/Binding";
 import { ucFirst, pascalCase2kebabCase } from "~bdo/utils/util";
 import { isBrowser } from "~bdo/utils/environment";
 import { getMetadata, defineMetadata, defineWildcardMetadata, getWildcardMetadata } from "~bdo/utils/metadata";
-import { getNamespacedStorage, setUpdateNamespacedStorage } from "~client/utils/util";
 import { ReturnTypeFunc, AdvancedOptions } from "type-graphql/dist/decorators/types";
 import { ObjectOptions } from "type-graphql/dist/decorators/ObjectType";
 import {
@@ -414,8 +413,8 @@ export function baseConstructor(name?: nameOrOptsOrIndex, options?: optsOrIndex,
                 defineMetadata(this, "normalFunctionality", true);
                 let defaultSettings = getMetadata(this, "defaultSettings") || {};
                 defaultSettings = Object.assign(defaultSettings, constParams);
-                if (isBrowser()) {
-                    const cachedSettings = getNamespacedStorage(this, "*", "id", constParams.id);
+                if ("getNamespacedStorage" in this) {
+                    const cachedSettings = this.getNamespacedStorage("*", "id", constParams.id);
                     defaultSettings = Object.assign(defaultSettings, cachedSettings);
                 }
                 Object.assign(this, defaultSettings);
@@ -456,7 +455,7 @@ function shouldUpdateNsStorage(instance: any, key: string, params?: IPropertyPar
     if (!params || !params.saveInLocalStorage || !isBrowser()) return false;
     const keyShouldBeUpdated = getMetadata(instance, "keyShouldBeUpdated") || {};
     if (keyShouldBeUpdated[key]) return true;
-    if (getNamespacedStorage(instance, key) === undefined) {
+    if ("getNamespacedStorage" in instance && instance.getNamespacedStorage(key) === undefined) {
         defineMetadata(instance, "keyShouldBeUpdated", Object.assign(keyShouldBeUpdated, { [key]: true }));
         return true;
     }
@@ -502,7 +501,9 @@ function getter(instance: any, key: string | symbol, params?: IAttributeParams, 
         return propDesc.get.call(instance);
     } else {
         let value = getWildcardMetadata(instance, stringKey);
-        if (params && params.saveInLocalStorage && isBrowser()) value = getNamespacedStorage(instance, stringKey);
+        if (params && params.saveInLocalStorage && "getNamespacedStorage" in instance) {
+            value = instance.getNamespacedStorage(stringKey);
+        }
         if (value && params && params.storeTemporary) {
             if (value.expires < Date.now()) {
                 value = undefined;
@@ -568,7 +569,9 @@ function setter(instance: any, key: string | symbol, newVal: any, params?: IAttr
     if (reflect && initiatorBinding) initiatorBinding.reflectToObject(newVal);
 
     if (isBrowser()) {
-        if (shouldUpdateNsStorage(instance, stringKey, params)) setUpdateNamespacedStorage(instance, stringKey, newVal);
+        if (shouldUpdateNsStorage(instance, stringKey, params) && "setUpdateNamespacedStorage" in instance) {
+            instance.setUpdateNamespacedStorage(stringKey, newVal);
+        }
         // Prefer in DOM defined attributes on initialization
         const definedAttributes = getMetadata(instance, "definedAttributes");
         if (instance instanceof HTMLElement && definedAttributes && definedAttributes.includes(stringKey)) {

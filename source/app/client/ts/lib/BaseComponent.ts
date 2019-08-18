@@ -1,10 +1,11 @@
 import 'reflect-metadata';
 import { isString, isObject } from 'lodash';
 import { Template, renderString } from 'nunjucks';
+import { v4 as uuid } from "uuid";
 import { property, attribute } from '~bdo/utils/decorators';
 import { getMetadata } from "~bdo/utils/metadata";
 import { Binding } from "~bdo/lib/Binding";
-import { v4 as uuid } from "uuid";
+import { getNamespacedStorage, setUpdateNamespacedStorage } from "~client/utils/util";
 
 /**
  * Creates a new BaseComponent based on the HTMLTypeElement
@@ -120,6 +121,32 @@ export function BaseComponentFactory<TBase extends Constructor<HTMLElement>>(HTM
 
         constructor(...args: any[]) {
             super(...args);
+        }
+
+        /**
+         * See doc string in ~client/utils/util
+         *
+         * @param {string} key
+         * @param {string} [nsProp]
+         * @param {string} [forceNS]
+         * @returns
+         * @memberof ClientModel
+         */
+        public getNamespacedStorage(key: string, nsProp?: string, forceNS?: string) {
+            return getNamespacedStorage(this, key, nsProp, forceNS);
+        }
+
+        /**
+         * See doc string in ~client/utils/util
+         *
+         * @param {string} key
+         * @param {*} newVal
+         * @param {string} [nsProp]
+         * @returns
+         * @memberof ClientModel
+         */
+        public setUpdateNamespacedStorage(key: string, newVal: any, nsProp?: string) {
+            return setUpdateNamespacedStorage(this, key, newVal, nsProp);
         }
 
         /**
