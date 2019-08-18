@@ -54,7 +54,8 @@ module.exports = (_env, options) => {
         }),
         output: {
             filename: "bundle.js",
-            path: path.resolve(arp.path, "out", "app", "client", "js")
+            path: path.resolve(arp.path, "out", "app", "client", "js"),
+            pathinfo: options.mode !== "development"
         },
         resolve: {
             extensions: [".ts", ".tsx", ".js", ".njk"],
@@ -74,6 +75,8 @@ module.exports = (_env, options) => {
         devtool: 'inline-source-map',
         optimization: {
             noEmitOnErrors: true,
+            removeAvailableModules: options.mode !== "development",
+            removeEmptyChunks: options.mode !== "development",
             splitChunks: {
                 cacheGroups: {
                     vendor: {
@@ -127,7 +130,9 @@ module.exports = (_env, options) => {
                     {
                         loader: 'ts-loader',
                         options: {
-                            happyPackMode: true // IMPORTANT! use happyPackMode mode to speed-up compilation and reduce errors reported to webpack
+                            happyPackMode: true, // IMPORTANT! use happyPackMode mode to speed-up compilation and reduce errors reported to webpack
+                            transpileOnly: true,
+                            experimentalWatchApi: options.watch === true
                         }
                     }
                 ]
@@ -156,7 +161,6 @@ module.exports = (_env, options) => {
             }]
         }
     };
-
     if (options.watch) {
         settings.plugins.push(new webpack.WatchIgnorePlugin([path.basename(virtualEntryPointFilePath)]));
         settings.watchOptions = {
