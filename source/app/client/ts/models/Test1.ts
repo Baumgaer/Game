@@ -1,6 +1,6 @@
 
 import { BDOTest1Factory } from "~bdo/models/BDOTest1";
-import { Test } from "~server/models/Test";
+import { Test } from "~client/models/Test";
 import { baseConstructor } from "~bdo/utils/decorators";
 
 /**
