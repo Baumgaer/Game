@@ -1,17 +1,16 @@
-version: "3.7"
+version: '3.7'
 
 services:
-
     gameserver:
         build:
             context: .
             dockerfile: ./Dockerfile
-        entrypoint: "node out/app/GameServer.js"
+        entrypoint: 'node --inspect=0.0.0.0:9001 out/app/GameServer.js'
         environment:
-            NODE_ENV: "development"
+            NODE_ENV: 'development'
 
-            name: "GameServer"
-            pm_id: "1"
+            name: 'GameServer'
+            pm_id: '1'
 
             PORT: 3000
             REDIS_HOST: redis
@@ -19,20 +18,23 @@ services:
             ARANGODB_HOST: arangodb
         ports:
             - 3000:3000
+            - 9001:9001
         depends_on:
             - redis
             - arangodb
+        volumes:
+            - out/app:/app/out/app
 
     webserver:
         build:
             context: .
             dockerfile: ./Dockerfile
-        entrypoint: "node out/app/WebServer.js"
+        entrypoint: 'node --inspect=0.0.0.0:9002 out/app/WebServer.js'
         environment:
-            NODE_ENV: "development"
+            NODE_ENV: 'development'
 
-            name: "WebServer"
-            pm_id: "1"
+            name: 'WebServer'
+            pm_id: '1'
 
             PORT: 3001
             REDIS_HOST: redis
@@ -40,9 +42,12 @@ services:
             ARANGODB_HOST: arangodb
         ports:
             - 3001:3001
+            - 9002:9002
         depends_on:
             - redis
             - arangodb
+        volumes:
+            - out/app:/app/out/app
 
     redis:
         image: redis
@@ -50,4 +55,4 @@ services:
     arangodb:
         image: arangodb
         environment:
-            ARANGO_NO_AUTH: "true"
+            ARANGO_NO_AUTH: 'true'
