@@ -23,7 +23,8 @@ services:
             - redis
             - arangodb
         volumes:
-            - out/app:/app/out/app
+            - './out/app:/app/out/app'
+            - './var:/app/var'
 
     webserver:
         build:
@@ -47,7 +48,8 @@ services:
             - redis
             - arangodb
         volumes:
-            - out/app:/app/out/app
+            - './out/app:/app/out/app'
+            - './var:/app/var'
 
     redis:
         image: redis
