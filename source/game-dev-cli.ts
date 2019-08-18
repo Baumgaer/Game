@@ -1,4 +1,4 @@
-#!/usr/bin/env ts-node
+#!/usr/bin/env ts-node --transpile-only
 /* tslint:disable */
 import * as program from "commander";
 import * as Rx from "rxjs";
