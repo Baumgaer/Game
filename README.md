@@ -183,6 +183,7 @@ To get the best development experience you should install available plugins for 
 - `source/game-dev-cli.ts down` destroys it.
 - `source/game-dev-cli.ts stop` stops it (not supported in Swarm mode).
 - `source/game-dev-cli.ts ps` prints the currently running services.
+- `source/game-dev-cli.ts logs` prints the logs. Use `-f` to follow.
 
 By default, `game-dev-cli` uses `docker-compose`.
 Since it does not support clustering, you can add the `--swarm` flag, which will switch to Docker Swarm mode.
