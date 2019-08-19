@@ -25,6 +25,7 @@ services:
         volumes:
             - './out/app:/app/out/app'
             - './var:/app/var'
+        restart: unless-stopped
 
     webserver:
         build:
@@ -50,6 +51,7 @@ services:
         volumes:
             - './out/app:/app/out/app'
             - './var:/app/var'
+        restart: unless-stopped
 
     redis:
         image: redis

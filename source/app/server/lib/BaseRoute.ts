@@ -2,7 +2,10 @@ import { Request, Response, NextFunction, Router } from 'express';
 import { merge } from 'lodash';
 import { globalTemplateVars } from '~server/utils/environment';
 import { BDORoute } from '~bdo/lib/BDORoute';
+import { BaseServer } from "~server/lib/BaseServer";
+import { Logger } from "~server/lib/Logger";
 
+const logger = new Logger();
 /**
  * Test
  *
@@ -37,7 +40,7 @@ export function BaseRouteFactory<TBase extends AbstractConstructor<BDORoute>>(Ro
          * @type {Router}
          * @memberof BaseRoute
          */
-        get router(): Router {
+        public get router(): Router {
             const expressRouter = Router();
             for (const route of this.routes) {
                 expressRouter.get(route, this.handleGet.bind(this));
@@ -47,6 +50,20 @@ export function BaseRouteFactory<TBase extends AbstractConstructor<BDORoute>>(Ro
                 expressRouter.patch(route, this.handlePatch.bind(this));
             }
             return expressRouter;
+        }
+
+        /**
+         * Holds a reference to the current server instance
+         *
+         * @protected
+         * @type {BaseServer}
+         * @memberof BaseRoute
+         */
+        protected serverInstance!: BaseServer;
+
+        constructor(serverInstance: BaseServer) {
+            super();
+            this.serverInstance = serverInstance;
         }
 
         /**
@@ -74,6 +91,18 @@ export function BaseRouteFactory<TBase extends AbstractConstructor<BDORoute>>(Ro
         protected async handleGet(request: Request, response: Response, next: NextFunction): Promise<void> {
             let templateParams: IndexStructure;
             let content: string | null = null;
+            if (request.query.flush === "server" && process.env.NODE_ENV === "development") {
+                const redirectURL = request.baseUrl + request.path + Object.keys(request.query).map((key) => {
+                    if (key === "flush") return '';
+                    return key + '=' + request.query[key];
+                }).join('&');
+                logger.debug("restarting server");
+                response.redirect(redirectURL);
+                setTimeout(() => {
+                    process.exit();
+                }, 500);
+                return;
+            }
 
             try {
                 templateParams = await this.templateParams(request);

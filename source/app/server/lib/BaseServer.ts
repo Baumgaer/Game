@@ -234,7 +234,7 @@ export abstract class BaseServer {
         try {
             const Route = require(file).default;
             if (!includesMemberOfList(<string[]>Route.attachToServers, [<string>process.env.name, '*'])) return;
-            const RouteClass = new Route();
+            const RouteClass = new Route(this);
             if (!RouteClass.isServerRoute) throw new Error(`${file} is not instance of ~server/lib/BaseRoute`);
             this.app.use(RouteClass.routerNameSpace, <express.Router>RouteClass.router);
         } catch (error) {

@@ -22,6 +22,7 @@ export abstract class BDORoute {
      * @memberof BaseRoute
      */
     public static attachToServers: string[] = ['*'];
+
     /**
      * Namespace for the express router as entry point
      *
