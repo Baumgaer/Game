@@ -4,7 +4,7 @@ import * as program from "commander";
 import * as Rx from "rxjs";
 import * as childProcess from "child_process";
 import * as readline from "readline";
-import { tap, catchError } from "rxjs/operators";
+import { tap, catchError, map, reduce, flatMap, mergeMap } from "rxjs/operators";
 import * as fs from "fs";
 import * as path from "path";
 import * as _ from "lodash";
@@ -13,7 +13,8 @@ import * as yaml from "js-yaml";
 program
     .version("0.0.1")
     .option("-v, --verbose", "Log child processes")
-    .option("-s, --swarm", "Uses Docker Swarm");
+    .option("-s, --swarm", "Uses Docker Swarm")
+    .option("-f, --follow", "Follow logs");
 
 const execCmd = (command: string, args: string[], stdin?: string) => new Rx.Observable<string>(
     observer => {
@@ -71,13 +72,14 @@ interface OrchestratorImpl {
     stop(): Promise<void> | Rx.Observable<any>;
     down(): Promise<void> | Rx.Observable<any>;
     ps(): Promise<void> | Rx.Observable<any>;
+    logs(): Promise<void> | Rx.Observable<any>;
 }
 
 function dockerCompose(command: string) {
     const config = getComposeConfig(sanitizeConfigToCompose);
     return cmd("docker-compose -f - " + command, config)
             .pipe<string>(
-                catchError(err => Rx.of(err)),
+                convertErrorsToSuccess,
             );
 }
 
@@ -97,6 +99,13 @@ const ComposeImpl: OrchestratorImpl = {
             .pipe(
                 tap(console.log)
             );
+    },
+    logs() {
+        return dockerCompose(`logs ${program.follow ? "-f" : ""}`)
+                .pipe(
+                    convertErrorsToSuccess,
+                    tap(console.log)
+                );
     }
 }
 
@@ -150,7 +159,7 @@ const logTask =
 }
 
 const handleSwarmErrors =
-    tap({
+    tap<string>({
         error: (e: string) => {
             if (e.toLowerCase().startsWith("nothing found in stack:")) {
                 console.error("No deployment found.")
@@ -162,6 +171,8 @@ const handleSwarmErrors =
     })
 
 const convertErrorsToSuccess = catchError(err => Rx.of(err))
+
+const concatToSingleString = reduce((acc, curr) => acc + "\n" + curr, "");
 
 const SwarmImpl: OrchestratorImpl = {
     async up() {
@@ -202,6 +213,28 @@ const SwarmImpl: OrchestratorImpl = {
                         console.log
                     )
                 );
+    },
+    logs() {
+        const follow = program.follow;
+        return execCmd("docker", ["stack", "ps", DEPLOYMENT_NAME,  "--format={{json .}}"])
+                .pipe(
+                    handleSwarmErrors,
+                    map(v => JSON.parse(v)),
+                    mergeMap(({ ID, Name }) =>
+                        execCmd("docker", ["inspect", ID, "--format={{json .}}"])
+                            .pipe(
+                                map(v => JSON.parse(v)),
+                                mergeMap(({ Status: { ContainerStatus: { ContainerID }}}) => {
+                                    return cmd(`docker logs ${ContainerID}${follow ? " -f" : ""}`)
+                                            .pipe(
+                                                convertErrorsToSuccess,
+                                                map(line => `${Name} | ${line}`),
+                                            );
+                                })
+                            )
+                    ),
+                    tap(console.log)
+                );
     }
 }
 
@@ -238,6 +271,10 @@ async function ps() {
     await handle(getOrchestrator().ps());
 }
 
+async function logs() {
+    await handle(getOrchestrator().logs());
+}
+
 program
     .command("up")
     .description("Start the dev environment")
@@ -257,5 +294,10 @@ program
     .command("ps")
     .description("List containers")
     .action(ps);
+
+program
+    .command("logs")
+    .description("Print logs")
+    .action(logs);
 
 program.parse(process.argv);
