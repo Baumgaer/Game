@@ -8,7 +8,8 @@ Welcome to the "Game". At the moment there is no good name for this project beca
 2. [Architecture of the Game](#architecture-of-the-game)
 3. [Getting started](#getting-started)
 4. [Toolchain](#toolchain)
-5. [Best practices](#best-practices)
+5. [Development CLI](#development-cli)
+6. [Best practices](#best-practices)
 
 ## The Idea of the Game
 
@@ -173,6 +174,19 @@ To get the best development experience you should install available plugins for 
 
     - [Redis Commander](http://joeferner.github.io/redis-commander/): View the current content of the redis cache
     - Integrated terminal ([Atom](https://github.com/jeremyramin/terminal-plus)): This is very useful because of the used subsystem and less opened windows
+
+## Development CLI
+
+`source/game-dev-cli.ts` can be used to manage your dev deployment of `game`.
+
+- `source/game-dev-cli.ts up` creates / updates it.
+- `source/game-dev-cli.ts down` destroys it.
+- `source/game-dev-cli.ts stop` stops it (not supported in Swarm mode).
+- `source/game-dev-cli.ts ps` prints the currently running services.
+
+By default, `game-dev-cli` uses `docker-compose`.
+Since it does not support clustering, you can add the `--swarm` flag, which will switch to Docker Swarm mode.
+This some downsides: Volumes are not supported and the Docker image needs to be rebuilt on each change.
 
 ## Best practices
 
