@@ -13,7 +13,7 @@ import * as yaml from "js-yaml";
 program
     .version("0.0.1")
     .option("-v, --verbose", "Log child processes")
-    .option("-s, --use-swarm", "Uses Docker Swarm");
+    .option("-s, --swarm", "Uses Docker Swarm");
 
 const execCmd = (command: string, args: string[], stdin?: string) => new Rx.Observable<string>(
     observer => {
@@ -124,37 +124,89 @@ function getComposeConfig(sanitize: (config: any) => any): any {
 
 const DEPLOYMENT_NAME = process.env.SWARM_DEPLOYMENT_NAME || "game";
 
+const logTask =
+    (str: TemplateStringsArray) =>
+    <T extends Promise<any> | Rx.Observable<any>>(task: () => T): T => {
+    console.log(str.join("") + " ...");
+    function logDone() {
+        if (program.verbose) {
+            console.log("... done.");
+        }
+    }
+    const t = task();
+    if (Rx.isObservable(t)) {
+        return t.pipe(
+            tap({
+                complete: logDone
+            })
+        ) as T;
+    } else {
+        return (async () => {
+            const v = await t;
+            logDone();
+            return v;
+        })() as T;
+    }
+}
+
+const handleSwarmErrors =
+    tap({
+        error: (e: string) => {
+            if (e.toLowerCase().startsWith("nothing found in stack:")) {
+                console.error("No deployment found.")
+            }
+            if (e.startsWith("this node is not a swarm manager")) {
+                console.error(e);
+            }
+        }
+    })
+
+const convertErrorsToSuccess = catchError(err => Rx.of(err))
+
 const SwarmImpl: OrchestratorImpl = {
     async up() {
-        await cmd("docker build -t game:latest .").toPromise();
-        const swarmComposeFile = getComposeConfig(sanitizeConfigToSwarm);
-        await cmd(`docker stack deploy -c - ${DEPLOYMENT_NAME}`, swarmComposeFile).toPromise();
+        await logTask`Building game:latest`(
+            () => cmd("docker build -t game:latest .").toPromise()
+        );
+
+        await logTask`Deploying to Swarm`(
+            () => {
+                const swarmComposeFile = getComposeConfig(sanitizeConfigToSwarm);
+                return cmd(`docker stack deploy -c - ${DEPLOYMENT_NAME}`, swarmComposeFile)
+                        .pipe(
+                            handleSwarmErrors,
+                            convertErrorsToSuccess,
+                        )
+                        .toPromise();
+            }
+        );
     },
     async stop() {
         console.error("Docker swarm does not support stopping.");
     },
     down() {
-        console.log("Destroying Swarm deployment ...");
-        return cmd(`docker stack rm ${DEPLOYMENT_NAME}`)
-            .pipe(
-                tap({
-                    complete: () => console.log("... Done")
-                })
-            );
+        return logTask`Destroying Swarm deployment`(
+            () => cmd(`docker stack rm ${DEPLOYMENT_NAME}`)
+                .pipe(
+                    handleSwarmErrors,
+                    convertErrorsToSuccess
+                )
+        );
     },
     ps() {
         return cmd(`docker stack ps ${DEPLOYMENT_NAME}`)
                 .pipe(
+                    handleSwarmErrors,
+                    convertErrorsToSuccess,
                     tap(
-                        console.log,
-                        console.error
+                        console.log
                     )
                 );
     }
 }
 
 const getOrchestrator = _.memoize(
-    (): OrchestratorImpl => program.useSwarm
+    (): OrchestratorImpl => program.swarm
         ? SwarmImpl
         : ComposeImpl
 )
