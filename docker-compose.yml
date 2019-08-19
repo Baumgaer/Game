@@ -2,10 +2,13 @@ version: '3.7'
 
 services:
     gameserver:
+        image: game:latest
         build:
             context: .
             dockerfile: ./Dockerfile
         entrypoint: 'node --inspect=0.0.0.0:9001 out/app/GameServer.js'
+        deploy:
+            replicas: 2
         environment:
             NODE_ENV: 'development'
 
@@ -28,6 +31,7 @@ services:
         restart: unless-stopped
 
     webserver:
+        image: game:latest
         build:
             context: .
             dockerfile: ./Dockerfile

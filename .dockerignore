@@ -1,3 +1,6 @@
+# cli
+source/game-dev-cli.ts
+
 # out js
 out/**/*.js
 !out/utils/projectStructure.js
