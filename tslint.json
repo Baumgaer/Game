@@ -73,7 +73,8 @@
                 "~bdo",
                 "chai",
                 "less",
-                "less-plugin-clean-css"
+                "less-plugin-clean-css",
+                "source-map-support"
             ]
         ],
         "no-unused-expression-chai": true,

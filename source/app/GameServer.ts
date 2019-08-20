@@ -1,6 +1,9 @@
 import './../utils/requireOverride';
+import { install } from "source-map-support";
 import { WebSocketServer } from '~server/lib/WebSocketServer';
 import { Request } from 'express';
+
+if (process.env.NODE_ENV === "development") install();
 
 /**
  * This server serves a static html page to the client which initializes
