@@ -506,7 +506,8 @@ function getter(instance: any, key: string | symbol, params?: IAttributeParams, 
         }
         if (value && params && params.storeTemporary) {
             if (value.expires < Date.now()) {
-                value = undefined;
+                const defaultSettings = getMetadata(instance, "defaultSettings");
+                value = defaultSettings ? defaultSettings[stringKey] : undefined;
             } else value = value.value;
         }
         return value;
@@ -537,8 +538,6 @@ function setter(instance: any, key: string | symbol, newVal: any, params?: IAttr
     const initiatorBinding = initiatorMData ? initiatorMData.get(stringKey) : undefined;
     let reflect = true;
 
-    if (newVal === instance[stringKey]) return;
-
     // install binding
     if (newVal instanceof Binding) {
         // Bind to thisArg object
@@ -550,6 +549,8 @@ function setter(instance: any, key: string | symbol, newVal: any, params?: IAttr
 
     if (newVal instanceof Deletion) newVal = newVal.valueOf();
 
+    if (newVal === instance[stringKey]) return;
+
     // Add expiration
     if (newVal && params && params.storeTemporary) {
         newVal = { value: newVal, expires: Date.now() + params.storeTemporary };
@@ -557,7 +558,8 @@ function setter(instance: any, key: string | symbol, newVal: any, params?: IAttr
         clearTimeout(expirationTimeouts[stringKey]);
         defineMetadata(instance, "expirationTimeout", Object.assign(expirationTimeouts, {
             [stringKey]: setTimeout(() => {
-                instance[key] = new Deletion();
+                const defaultSettings = getMetadata(instance, "defaultSettings");
+                instance[key] = new Deletion(defaultSettings ? defaultSettings[stringKey] : undefined);
             }, params.storeTemporary)
         }));
     }
@@ -600,12 +602,25 @@ function setter(instance: any, key: string | symbol, newVal: any, params?: IAttr
 class Deletion {
 
     /**
+     * The value which should be used to reset the property
+     *
+     * @private
+     * @type {*}
+     * @memberof Deletion
+     */
+    private value: any;
+
+    constructor(value: any) {
+        this.value = value;
+    }
+
+    /**
      * Returns the original value
      *
      * @returns
      * @memberof Deletion
      */
     public valueOf() {
-        return undefined;
+        return this.value;
     }
 }
