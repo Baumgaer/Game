@@ -140,6 +140,8 @@ interface IPropertyParams {
     /**
      * Decides wether to be able to set values null or undefined on a property.
      * It is also used to generate a graphQL schema when used in an attribute.
+     * It also has effects to storeTemporary option. If this is true the value
+     * will be set to undefined and defaultSetting else.
      *
      * @default false
      * @type {boolean}
