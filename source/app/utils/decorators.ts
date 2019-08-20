@@ -5,7 +5,7 @@ import { Binding } from "~bdo/lib/Binding";
 import { ucFirst, pascalCase2kebabCase } from "~bdo/utils/util";
 import { isBrowser } from "~bdo/utils/environment";
 import { getMetadata, defineMetadata, defineWildcardMetadata, getWildcardMetadata } from "~bdo/utils/metadata";
-import { ReturnTypeFunc, AdvancedOptions } from "type-graphql/dist/decorators/types";
+import { ReturnTypeFunc, AdvancedOptions, NullableListOptions } from "type-graphql/dist/decorators/types";
 import { ObjectOptions } from "type-graphql/dist/decorators/ObjectType";
 import {
     Field,
@@ -136,6 +136,16 @@ interface IPropertyParams {
      * @type {boolean}
      */
     saveInLocalStorage?: boolean;
+
+    /**
+     * Decides wether to be able to set values null or undefined on a property.
+     * It is also used to generate a graphQL schema when used in an attribute.
+     *
+     * @default false
+     * @type {boolean}
+     * @memberof IPropertyParams
+     */
+    nullable?: boolean | NullableListOptions;
 }
 
 /**
@@ -144,7 +154,7 @@ interface IPropertyParams {
  *
  * @interface IAttributeParams
  */
-interface IAttributeParams extends AdvancedOptions, IPropertyParams {
+interface IAttributeParams extends IPropertyParams, AdvancedOptions {
     /**
      * If true the value will not be sent to server if value is set
      * or save() will be called.
@@ -507,7 +517,7 @@ function getter(instance: any, key: string | symbol, params?: IAttributeParams, 
         if (value && params && params.storeTemporary) {
             if (value.expires < Date.now()) {
                 const defaultSettings = getMetadata(instance, "defaultSettings");
-                value = defaultSettings ? defaultSettings[stringKey] : undefined;
+                value = defaultSettings && !params.nullable ? defaultSettings[stringKey] : undefined;
             } else value = value.value;
         }
         return value;
@@ -546,9 +556,9 @@ function setter(instance: any, key: string | symbol, newVal: any, params?: IAttr
         newVal = newVal.valueOf();
         if (newVal === instance[key]) return;
     }
-
+    // Get new value in case of a forced deletion of the property's value
     if (newVal instanceof Deletion) newVal = newVal.valueOf();
-
+    // Execute setter only, when value differs to avoid loops
     if (newVal === instance[stringKey]) return;
 
     // Add expiration
@@ -559,7 +569,8 @@ function setter(instance: any, key: string | symbol, newVal: any, params?: IAttr
         defineMetadata(instance, "expirationTimeout", Object.assign(expirationTimeouts, {
             [stringKey]: setTimeout(() => {
                 const defaultSettings = getMetadata(instance, "defaultSettings");
-                instance[key] = new Deletion(defaultSettings ? defaultSettings[stringKey] : undefined);
+                const delValue = defaultSettings && !params.nullable ? defaultSettings[stringKey] : undefined;
+                instance[key] = new Deletion(delValue);
             }, params.storeTemporary)
         }));
     }
