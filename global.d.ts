@@ -7,26 +7,26 @@ declare type IfNotEquals<X, Y, A, B> = (<T>() => T extends X ? 1 : 2) extends (<
 declare type NoneWritableKeysOf<T> = { [P in keyof T]: IfNotEquals<{ [Q in P]: T[P] }, { -readonly [Q in P]: T[P] }, P, never> }[keyof T];
 
 // Filer all properties out which are not a function
-declare type FunctionPropertyNames<T> = { [K in keyof T]: T[K] extends Function ? K : never }[keyof T];
+declare type FuncPropNames<T> = { [K in keyof T]: T[K] extends Function ? K : never }[keyof T];
 
 // Filters all properties out which are undefined or a function
-declare type NonFunctionPropertyNames<T> = { [K in keyof T]: T[K] extends (...args: any) => any ? never : K }[keyof T];
-// Filters all properties out which are a function
-declare type DefinitiveNonFunctionPropertyNames<T> = Exclude<NonFunctionPropertyNames<T>, undefined>
+declare type NonFuncPropNames<T> = { [K in keyof T]: T[K] extends (...args: any) => any ? never : K }[keyof T];
+// Filters all properties out which are a function and not undefined
+declare type DefNonFuncPropNames<T> = Exclude<NonFuncPropNames<T>, undefined>
 
 // Collects all properties of a class except native functions and readonly properties and wraps them in an object with their types
 declare type ConstParams<T> = Partial<
     Pick<T, T extends HTMLElement ?
         Exclude<
             Exclude<
-                NonFunctionPropertyNames<T>,
-                NonFunctionPropertyNames<HTMLElement & HTMLAnchorElement & HTMLCanvasElement>
+                NonFuncPropNames<T>,
+                NonFuncPropNames<HTMLElement & HTMLAnchorElement & HTMLCanvasElement>
             >,
             NoneWritableKeysOf<T>
         >
         :
         Exclude<
-            NonFunctionPropertyNames<T>,
+            NonFuncPropNames<T>,
             NoneWritableKeysOf<T>
         >
     >

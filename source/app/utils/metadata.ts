@@ -35,18 +35,18 @@ interface IMDKeys<T extends object = any> {
     /**
      * Stores the bindings of the binding initiator for each property in a map
      *
-     * @type {Map<string, Binding<T, DefinitiveNonFunctionPropertyNames<T>>>}
+     * @type {Map<string, Binding<T, DefNonFuncPropNames<T>>>}
      * @memberof IMDKeys
      */
-    initiatorBinding?: Map<string, Binding<T, DefinitiveNonFunctionPropertyNames<T>>>;
+    initiatorBinding?: Map<string, Binding<T, DefNonFuncPropNames<T>>>;
 
     /**
      * Stores all bindings of a property of any object
      *
-     * @type {Map<string, Array<Binding<T, DefinitiveNonFunctionPropertyNames<T>>>>}
+     * @type {Map<string, Array<Binding<T, DefNonFuncPropNames<T>>>>}
      * @memberof IMDKeys
      */
-    bindings?: Map<DefinitiveNonFunctionPropertyNames<T>, Array<Binding<T, DefinitiveNonFunctionPropertyNames<T>>>>;
+    bindings?: Map<DefNonFuncPropNames<T>, Array<Binding<T, DefNonFuncPropNames<T>>>>;
 
     /**
      * Stores the property descriptor created by the Binding class
@@ -68,28 +68,28 @@ interface IMDKeys<T extends object = any> {
      * Stores if an attribute of a DOM element has been initialized.
      * This is used in decorators util.
      *
-     * @type {IndexStructure<DefinitiveNonFunctionPropertyNames<T>, boolean>}
+     * @type {IndexStructure<DefNonFuncPropNames<T>, boolean>}
      * @memberof IMDKeys
      */
-    attrInitialized?: IndexStructure<DefinitiveNonFunctionPropertyNames<T>, boolean>;
+    attrInitialized?: IndexStructure<DefNonFuncPropNames<T>, boolean>;
 
     /**
      * stores all defined properties of an object which is decorated with the
      * baseConstructor decorator and makes use of property decorator.
      *
-     * @type {Array<DefinitiveNonFunctionPropertyNames<T>>}
+     * @type {Array<DefNonFuncPropNames<T>>}
      * @memberof IMDKeys
      */
-    definedProperties?: Array<DefinitiveNonFunctionPropertyNames<T>>;
+    definedProperties?: Array<DefNonFuncPropNames<T>>;
 
     /**
      * stores all defined attributes of an object which is decorated with the
      * baseConstructor decorator and makes use of attribute decorator.
      *
-     * @type {Array<DefinitiveNonFunctionPropertyNames<T>>}
+     * @type {Array<DefNonFuncPropNames<T>>}
      * @memberof IMDKeys
      */
-    definedAttributes?: Array<DefinitiveNonFunctionPropertyNames<T>>;
+    definedAttributes?: Array<DefNonFuncPropNames<T>>;
 
     /**
      * Indicates in a property which is NOT cached in localStorage but marked
@@ -98,24 +98,33 @@ interface IMDKeys<T extends object = any> {
      * @type {boolean}
      * @memberof IMDKeys
      */
-    keyShouldBeUpdated?: IndexStructure<DefinitiveNonFunctionPropertyNames<T>, boolean>;
+    keyShouldBeUpdated?: IndexStructure<DefNonFuncPropNames<T>, boolean>;
 
     /**
      * Holds all timeouts of properties and attributes which are marked as "storeTemporary"
      *
-     * @type {IndexStructure<DefinitiveNonFunctionPropertyNames<T>, boolean>}
+     * @type {IndexStructure<DefNonFuncPropNames<T>, boolean>}
      * @memberof IMDKeys
      */
-    expirationTimeout?: IndexStructure<DefinitiveNonFunctionPropertyNames<T>, boolean>;
+    expirationTimeout?: IndexStructure<DefNonFuncPropNames<T>, boolean>;
 
     /**
      * Marks all initialized properties and attributes to force onInit function
      * in watched decorator only fired once.
      *
-     * @type {IndexStructure<DefinitiveNonFunctionPropertyNames<T>, boolean>}
+     * @type {IndexStructure<DefNonFuncPropNames<T>, boolean>}
      * @memberof IMDKeys
      */
-    initPropMarker?: IndexStructure<DefinitiveNonFunctionPropertyNames<T>, boolean>;
+    initPropMarker?: IndexStructure<DefNonFuncPropNames<T>, boolean>;
+
+    /**
+     * Holds information about changes in a model (or maybe other objects) in a dictionary.
+     * Should be clears on save or discard
+     *
+     * @type {IndexStructure<DefNonFuncPropNames<T>, any>}
+     * @memberof IMDKeys
+     */
+    unsavedChanges?: IndexStructure<DefNonFuncPropNames<T>, any>;
 }
 
 /**

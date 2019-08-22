@@ -111,10 +111,10 @@ export function BaseComponentFactory<TBase extends Constructor<HTMLElement>>(HTM
          *
          * @readonly
          * @protected
-         * @type {Map<string, Binding<this, DefinitiveNonFunctionPropertyNames<this>>>}
+         * @type {Map<string, Binding<this, DefNonFuncPropNames<this>>>}
          * @memberof BaseComponent
          */
-        @property() protected get bindings(): Map<string, Binding<this, DefinitiveNonFunctionPropertyNames<this>>> {
+        @property() protected get bindings(): Map<string, Binding<this, DefNonFuncPropNames<this>>> {
             const bindings = getMetadata(this, "initiatorBinding");
             return bindings ? bindings : new Map();
         }

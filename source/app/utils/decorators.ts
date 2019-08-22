@@ -4,6 +4,7 @@ import { isObject } from 'lodash';
 import { Binding } from "~bdo/lib/Binding";
 import { ucFirst, pascalCase2kebabCase } from "~bdo/utils/util";
 import { isBrowser } from "~bdo/utils/environment";
+import { Deletion } from "~bdo/lib/Deletion";
 import { getMetadata, defineMetadata, defineWildcardMetadata, getWildcardMetadata } from "~bdo/utils/metadata";
 import { ReturnTypeFunc, AdvancedOptions, NullableListOptions } from "type-graphql/dist/decorators/types";
 import { ObjectOptions } from "type-graphql/dist/decorators/ObjectType";
@@ -512,10 +513,13 @@ function getter(instance: any, key: string | symbol, params?: IAttributeParams, 
     if (propDesc && propDesc.get) {
         return propDesc.get.call(instance);
     } else {
+        // Get from Reflect storage
         let value = getWildcardMetadata(instance, stringKey);
+        // Get from localStorage if saveInLocalStorage in params
         if (params && params.saveInLocalStorage && "getNamespacedStorage" in instance) {
             value = instance.getNamespacedStorage(stringKey);
         }
+        // Execute expiration
         if (value && params && params.storeTemporary) {
             if (value.expires < Date.now()) {
                 const defaultSettings = getMetadata(instance, "defaultSettings");
@@ -558,10 +562,16 @@ function setter(instance: any, key: string | symbol, newVal: any, params?: IAttr
         newVal = newVal.valueOf();
         if (newVal === instance[key]) return;
     }
+
+    let forceExecution = false;
     // Get new value in case of a forced deletion of the property's value
-    if (newVal instanceof Deletion) newVal = newVal.valueOf();
+    if (newVal instanceof Deletion) {
+        newVal = newVal.valueOf();
+        if (newVal === undefined) forceExecution = true;
+    }
+
     // Execute setter only, when value differs to avoid loops
-    if (newVal === instance[stringKey]) return;
+    if (!forceExecution && newVal === instance[stringKey]) return;
 
     // Add expiration
     if (newVal && params && params.storeTemporary) {
@@ -577,13 +587,16 @@ function setter(instance: any, key: string | symbol, newVal: any, params?: IAttr
         }));
     }
 
-    // Call other property descriptors or set metadata
+    // Call other property descriptors or set Reflect storage
     if (propDesc && propDesc.set) {
         propDesc.set.call(instance, newVal);
     } else defineWildcardMetadata(instance, stringKey, newVal);
+
+    // Reflect to component or other model which initiates a binding
     if (reflect && initiatorBinding) initiatorBinding.reflectToObject(newVal);
 
     if (isBrowser()) {
+        // save in localStorage if saveInLocalStorage is in params and construction is complete
         if (shouldUpdateNsStorage(instance, stringKey, params) && "setUpdateNamespacedStorage" in instance) {
             instance.setUpdateNamespacedStorage(stringKey, newVal);
         }
@@ -604,36 +617,5 @@ function setter(instance: any, key: string | symbol, newVal: any, params?: IAttr
             // Reflect property changes to attribute
             if (attrValue !== newVal) instance.setAttribute(stringKey, newVal);
         }
-    }
-}
-
-/**
- * Forces the setter to use the newVal (undefined) event it's equal to the old value
- *
- * @class Deletion
- */
-class Deletion {
-
-    /**
-     * The value which should be used to reset the property
-     *
-     * @private
-     * @type {*}
-     * @memberof Deletion
-     */
-    private value: any;
-
-    constructor(value: any) {
-        this.value = value;
-    }
-
-    /**
-     * Returns the original value
-     *
-     * @returns
-     * @memberof Deletion
-     */
-    public valueOf() {
-        return this.value;
     }
 }

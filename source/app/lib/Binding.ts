@@ -1,5 +1,9 @@
 import { removeElementFromArray } from "~bdo/utils/util";
+import { Deletion } from "~bdo/lib/Deletion";
 import { defineMetadata, getMetadata, defineWildcardMetadata, getWildcardMetadata } from "~bdo/utils/metadata";
+
+export type writeRights = "ReadWrite" | "ReadOnly" | "WriteOnly";
+
 /**
  * Creates a Binding object for watched attributes / properties.
  * Should not be used outside the watched-decorator or the bind-function of an Object.
@@ -20,7 +24,7 @@ import { defineMetadata, getMetadata, defineWildcardMetadata, getWildcardMetadat
  * @export
  * @class Binding
  */
-export class Binding<T extends object = any, K extends DefinitiveNonFunctionPropertyNames<T> = any> {
+export class Binding<T extends object = any, K extends DefNonFuncPropNames<T> = any> {
 
     /**
      * The object instance which contains the property which should be bound
@@ -70,9 +74,19 @@ export class Binding<T extends object = any, K extends DefinitiveNonFunctionProp
      */
     public initiatorDescriptor?: PropDesc;
 
-    constructor(object: T, property: K) {
+    /**
+     * Locks reading or writing prom object property or both is allowed
+     *
+     * @protected
+     * @type {writeRights}
+     * @memberof Binding
+     */
+    protected mode: writeRights;
+
+    constructor(object: T, property: K, mode: writeRights = "ReadWrite") {
         this.object = object;
         this.property = property;
+        this.mode = mode;
 
         // Save the original property descriptor only if it is not a binding descriptor
         // In case it is a binding descriptor, have a look at the bindings of this property
@@ -101,7 +115,8 @@ export class Binding<T extends object = any, K extends DefinitiveNonFunctionProp
      * @returns {*} The original value
      * @memberof Binding
      */
-    public valueOf(): T[K] {
+    public valueOf(): T[K] | undefined {
+        if (this.mode === "WriteOnly") return new Deletion(undefined) as unknown as undefined;
         return this.object[this.property];
     }
 
@@ -111,6 +126,7 @@ export class Binding<T extends object = any, K extends DefinitiveNonFunctionProp
      * @memberof Binding
      */
     public reflectToInitiators(newVal: T[K]) {
+        if (this.mode === "WriteOnly") return;
         const mData = getMetadata(this.object, "bindings");
         if (mData) {
             const bindings = mData.get(this.property);
@@ -125,7 +141,7 @@ export class Binding<T extends object = any, K extends DefinitiveNonFunctionProp
      * @memberof Binding
      */
     public reflectToObject(newVal: T[K]) {
-        if (this.object[this.property] === newVal) return;
+        if (this.object[this.property] === newVal || this.mode === "ReadOnly") return;
         this.object[this.property] = newVal;
     }
 
@@ -136,7 +152,7 @@ export class Binding<T extends object = any, K extends DefinitiveNonFunctionProp
      * @param {(symbol | string | number)} property
      * @memberof Binding
      */
-    public install<O extends Constructor, P extends DefinitiveNonFunctionPropertyNames<O>>(initiator: O, property: P) {
+    public install<O extends Constructor, P extends DefNonFuncPropNames<O>>(initiator: O, property: P) {
         this.initiator = initiator;
         this.initiatorProperty = property.toString();
         if (!Reflect.hasMetadata("initiatorBinding", this.initiator)) {
