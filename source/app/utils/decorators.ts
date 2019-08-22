@@ -567,7 +567,7 @@ function setter(instance: any, key: string | symbol, newVal: any, params?: IAttr
     // Get new value in case of a forced deletion of the property's value
     if (newVal instanceof Deletion) {
         newVal = newVal.valueOf();
-        if (newVal === undefined) forceExecution = true;
+        forceExecution = true;
     }
 
     // Execute setter only, when value differs to avoid loops
