@@ -1,5 +1,5 @@
-import { BaseRouteFactory } from '~server/lib/BaseRoute';
-import { BDOConfig } from '~bdo/routes/BDOConfig';
+import { ServerRoute } from '~root/app/server/lib/ServerRoute';
+import { BDOConfigFactory } from '~bdo/routes/BDOConfig';
 import { ConfigManager } from '~server/lib/ConfigManager';
 import { Request } from 'express';
 
@@ -11,7 +11,7 @@ const configManager = ConfigManager.getInstance();
  * @class Config
  * @extends {BaseRoute}
  */
-export default class Config extends BaseRouteFactory(BDOConfig) {
+export default class Config extends BDOConfigFactory(ServerRoute) {
 
     /**
      * @inheritdoc

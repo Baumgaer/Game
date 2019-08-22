@@ -1,5 +1,5 @@
-import { BaseRouteFactory } from '~client/lib/BaseRoute';
-import { BDOConfig } from '~bdo/routes/BDOConfig';
+import { ClientRoute } from '~client/lib/ClientRoute';
+import { BDOConfigFactory } from '~bdo/routes/BDOConfig';
 
 /**
  * Test
@@ -8,4 +8,4 @@ import { BDOConfig } from '~bdo/routes/BDOConfig';
  * @class GameLobby
  * @extends {BaseRouteFactory(RouteType)}
  */
-export default class Config extends BaseRouteFactory(BDOConfig) { }
+export default class Config extends BDOConfigFactory(ClientRoute) { }

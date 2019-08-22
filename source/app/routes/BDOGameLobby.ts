@@ -2,48 +2,60 @@ import { BDORoute } from '~bdo/lib/BDORoute';
 import { Template } from 'nunjucks';
 
 /**
- * Serves the game lobby to the client
+ * Test
  *
  * @export
- * @class GameLobby
- * @extends {BaseRoute}
+ * @template TBase
+ * @param {TBase} ctor
  */
-export abstract class BDOGameLobby extends BDORoute {
+export function BDOGameLobbyFactory<TBase extends Constructor<BDORoute>>(ctor: TBase) {
 
     /**
-     * @inheritdoc
+     * Serves the game lobby to the client
      *
-     * @static
-     * @type {string[]}
-     * @memberof GameLobby
+     * @export
+     * @class GameLobby
+     * @extends {BaseRoute}
      */
-    public static attachToServers: string[] = ["GameServer"];
+    abstract class BDOGameLobby extends ctor {
 
-    /**
-     * @inheritdoc
-     *
-     * @memberof GameLobby
-     */
-    public routerNameSpace = '/';
+        /**
+         * @inheritdoc
+         *
+         * @static
+         * @type {string[]}
+         * @memberof GameLobby
+         */
+        public static attachToServers: string[] = ["GameServer"];
 
-    /**
-     * @inheritdoc
-     *
-     * @protected
-     * @memberof GameLobby
-     */
-    protected templateString: Template = require('~bdo/views/gameLobby.njk');
+        /**
+         * @inheritdoc
+         *
+         * @memberof GameLobby
+         */
+        public routerNameSpace = '/';
 
-    /**
-     * @inheritdoc
-     *
-     * @protected
-     * @returns {Promise<IndexStructure>}
-     * @memberof GameLobby
-     */
-    protected async templateParams(): Promise<IndexStructure> {
-        return {
-            oha: 'OOOOOHAAAAAAAA!!!'
-        };
+        /**
+         * @inheritdoc
+         *
+         * @protected
+         * @memberof GameLobby
+         */
+        protected templateString: Template = require('~bdo/views/gameLobby.njk');
+
+        /**
+         * @inheritdoc
+         *
+         * @protected
+         * @returns {Promise<IndexStructure>}
+         * @memberof GameLobby
+         */
+        protected async templateParams(): Promise<IndexStructure> {
+            return {
+                oha: 'OOOOOHAAAAAAAA!!!'
+            };
+        }
     }
+
+    return BDOGameLobby;
 }

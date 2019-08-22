@@ -1,5 +1,5 @@
-import { BaseRouteFactory } from '~client/lib/BaseRoute';
-import { BDOHome } from '~bdo/routes/BDOHome';
+import { ClientRoute } from '~client/lib/ClientRoute';
+import { BDOHomeFactory } from '~bdo/routes/BDOHome';
 
 /**
  * Test
@@ -8,4 +8,4 @@ import { BDOHome } from '~bdo/routes/BDOHome';
  * @class GameLobby
  * @extends {BaseRouteFactory(RouteType)}
  */
-export default class Home extends BaseRouteFactory(BDOHome) { }
+export default class Home extends BDOHomeFactory(ClientRoute) { }

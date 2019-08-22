@@ -1,5 +1,5 @@
-import { BDOGameLobby } from '~bdo/routes/BDOGameLobby';
-import { BaseRouteFactory } from '~server/lib/BaseRoute';
+import { BDOGameLobbyFactory } from '~bdo/routes/BDOGameLobby';
+import { ServerRoute } from '~root/app/server/lib/ServerRoute';
 
 /**
  * Test
@@ -8,4 +8,4 @@ import { BaseRouteFactory } from '~server/lib/BaseRoute';
  * @class GameLobby
  * @extends {BaseRouteFactory(BDOGameLobby)}
  */
-export default class GameLobby extends BaseRouteFactory(BDOGameLobby) { }
+export default class GameLobby extends BDOGameLobbyFactory(ServerRoute) { }

@@ -2,48 +2,60 @@ import { BDORoute } from '~bdo/lib/BDORoute';
 import { Template } from 'nunjucks';
 
 /**
- * Serves the game lobby to the client
+ * Test
  *
  * @export
- * @class GameLobby
- * @extends {BaseRoute}
+ * @template TBase
+ * @param {TBase} ctor
  */
-export abstract class BDOHome extends BDORoute {
+export function BDOHomeFactory<TBase extends Constructor<BDORoute>>(ctor: TBase) {
 
     /**
-     * @inheritdoc
+     * Serves the game lobby to the client
      *
-     * @static
-     * @type {string[]}
-     * @memberof GameLobby
+     * @export
+     * @class GameLobby
+     * @extends {BaseRoute}
      */
-    public static attachToServers: string[] = ["WebServer"];
+    abstract class BDOHome extends ctor {
 
-    /**
-     * @inheritdoc
-     *
-     * @memberof GameLobby
-     */
-    public routerNameSpace = '/';
+        /**
+         * @inheritdoc
+         *
+         * @static
+         * @type {string[]}
+         * @memberof BDOHome
+         */
+        public static attachToServers: string[] = ["WebServer"];
 
-    /**
-     * @inheritdoc
-     *
-     * @protected
-     * @memberof GameLobby
-     */
-    protected templateString: Template = require('~bdo/views/home.njk');
+        /**
+         * @inheritdoc
+         *
+         * @memberof BDOHome
+         */
+        public routerNameSpace = '/';
 
-    /**
-     * @inheritdoc
-     *
-     * @protected
-     * @returns {Promise<IndexStructure>}
-     * @memberof GameLobby
-     */
-    protected async templateParams(): Promise<IndexStructure> {
-        return {
-            oha: 'endlich zu Hause =)'
-        };
+        /**
+         * @inheritdoc
+         *
+         * @protected
+         * @memberof BDOHome
+         */
+        protected templateString: Template = require('~bdo/views/home.njk');
+
+        /**
+         * @inheritdoc
+         *
+         * @protected
+         * @returns {Promise<IndexStructure>}
+         * @memberof BDOHome
+         */
+        protected async templateParams(): Promise<IndexStructure> {
+            return {
+                oha: 'endlich zu Hause =)'
+            };
+        }
     }
+
+    return BDOHome;
 }
