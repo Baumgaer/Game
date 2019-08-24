@@ -592,7 +592,7 @@ function setter(instance: any, key: string | symbol, newVal: any, params?: IAttr
         propDesc.set.call(instance, newVal);
     } else defineWildcardMetadata(instance, stringKey, newVal);
 
-    // Reflect to component or other model which initiates a binding
+    // Reflect to component or other model which gives a binding
     if (reflect && initiatorBinding) initiatorBinding.reflectToObject(newVal);
 
     if (isBrowser()) {
