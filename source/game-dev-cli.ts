@@ -4,7 +4,7 @@ import * as program from "commander";
 import * as Rx from "rxjs";
 import * as childProcess from "child_process";
 import * as readline from "readline";
-import { tap, catchError, map, reduce, flatMap, mergeMap } from "rxjs/operators";
+import { tap, catchError, map, reduce, mergeMap } from "rxjs/operators";
 import * as fs from "fs";
 import * as path from "path";
 import * as _ from "lodash";
@@ -78,15 +78,15 @@ interface OrchestratorImpl {
 function dockerCompose(command: string) {
     const config = getComposeConfig(sanitizeConfigToCompose);
     return cmd("docker-compose -f - " + command, config)
-            .pipe<string>(
-                convertErrorsToSuccess,
-            );
+        .pipe<string>(
+            convertErrorsToSuccess,
+        );
 }
 
 const ComposeImpl: OrchestratorImpl = {
     up() {
         return dockerCompose("up -d")
-                .pipe(tap(console.log));
+            .pipe(tap(console.log));
     },
     stop() {
         return dockerCompose("stop");
@@ -102,10 +102,10 @@ const ComposeImpl: OrchestratorImpl = {
     },
     logs() {
         return dockerCompose(`logs ${program.follow ? "-f" : ""}`)
-                .pipe(
-                    convertErrorsToSuccess,
-                    tap(console.log)
-                );
+            .pipe(
+                convertErrorsToSuccess,
+                tap(console.log)
+            );
     }
 }
 
@@ -135,28 +135,28 @@ const DEPLOYMENT_NAME = process.env.SWARM_DEPLOYMENT_NAME || "game";
 
 const logTask =
     (str: TemplateStringsArray) =>
-    <T extends Promise<any> | Rx.Observable<any>>(task: () => T): T => {
-    console.log(str.join("") + " ...");
-    function logDone() {
-        if (program.verbose) {
-            console.log("... done.");
+        <T extends Promise<any> | Rx.Observable<any>>(task: () => T): T => {
+            console.log(str.join("") + " ...");
+            function logDone() {
+                if (program.verbose) {
+                    console.log("... done.");
+                }
+            }
+            const t = task();
+            if (Rx.isObservable(t)) {
+                return t.pipe(
+                    tap({
+                        complete: logDone
+                    })
+                ) as T;
+            } else {
+                return (async () => {
+                    const v = await t;
+                    logDone();
+                    return v;
+                })() as T;
+            }
         }
-    }
-    const t = task();
-    if (Rx.isObservable(t)) {
-        return t.pipe(
-            tap({
-                complete: logDone
-            })
-        ) as T;
-    } else {
-        return (async () => {
-            const v = await t;
-            logDone();
-            return v;
-        })() as T;
-    }
-}
 
 const handleSwarmErrors =
     tap<string>({
@@ -172,7 +172,7 @@ const handleSwarmErrors =
 
 const convertErrorsToSuccess = catchError(err => Rx.of(err))
 
-const concatToSingleString = reduce((acc, curr) => acc + "\n" + curr, "");
+reduce((acc, curr) => acc + "\n" + curr, "");
 
 const SwarmImpl: OrchestratorImpl = {
     async up() {
@@ -184,11 +184,11 @@ const SwarmImpl: OrchestratorImpl = {
             () => {
                 const swarmComposeFile = getComposeConfig(sanitizeConfigToSwarm);
                 return cmd(`docker stack deploy -c - ${DEPLOYMENT_NAME}`, swarmComposeFile)
-                        .pipe(
-                            handleSwarmErrors,
-                            convertErrorsToSuccess,
-                        )
-                        .toPromise();
+                    .pipe(
+                        handleSwarmErrors,
+                        convertErrorsToSuccess,
+                    )
+                    .toPromise();
             }
         );
     },
@@ -206,35 +206,35 @@ const SwarmImpl: OrchestratorImpl = {
     },
     ps() {
         return cmd(`docker stack ps ${DEPLOYMENT_NAME}`)
-                .pipe(
-                    handleSwarmErrors,
-                    convertErrorsToSuccess,
-                    tap(
-                        console.log
-                    )
-                );
+            .pipe(
+                handleSwarmErrors,
+                convertErrorsToSuccess,
+                tap(
+                    console.log
+                )
+            );
     },
     logs() {
         const follow = program.follow;
-        return execCmd("docker", ["stack", "ps", DEPLOYMENT_NAME,  "--format={{json .}}"])
-                .pipe(
-                    handleSwarmErrors,
-                    map(v => JSON.parse(v)),
-                    mergeMap(({ ID, Name }) =>
-                        execCmd("docker", ["inspect", ID, "--format={{json .}}"])
-                            .pipe(
-                                map(v => JSON.parse(v)),
-                                mergeMap(({ Status: { ContainerStatus: { ContainerID }}}) => {
-                                    return cmd(`docker logs ${ContainerID}${follow ? " -f" : ""}`)
-                                            .pipe(
-                                                convertErrorsToSuccess,
-                                                map(line => `${Name} | ${line}`),
-                                            );
-                                })
-                            )
-                    ),
-                    tap(console.log)
-                );
+        return execCmd("docker", ["stack", "ps", DEPLOYMENT_NAME, "--format={{json .}}"])
+            .pipe(
+                handleSwarmErrors,
+                map(v => JSON.parse(v)),
+                mergeMap(({ ID, Name }) =>
+                    execCmd("docker", ["inspect", ID, "--format={{json .}}"])
+                        .pipe(
+                            map(v => JSON.parse(v)),
+                            mergeMap(({ Status: { ContainerStatus: { ContainerID } } }) => {
+                                return cmd(`docker logs ${ContainerID}${follow ? " -f" : ""}`)
+                                    .pipe(
+                                        convertErrorsToSuccess,
+                                        map(line => `${Name} | ${line}`),
+                                    );
+                            })
+                        )
+                ),
+                tap(console.log)
+            );
     }
 }
 
