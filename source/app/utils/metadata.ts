@@ -109,15 +109,6 @@ interface IMDKeys<T extends object = any> {
     expirationTimeout?: IndexStructure<DefNonFuncPropNames<T>, boolean>;
 
     /**
-     * Marks all initialized properties and attributes to force onInit function
-     * in watched decorator only fired once.
-     *
-     * @type {IndexStructure<DefNonFuncPropNames<T>, boolean>}
-     * @memberof IMDKeys
-     */
-    initPropMarker?: IndexStructure<DefNonFuncPropNames<T>, boolean>;
-
-    /**
      * Holds information about changes in a model (or maybe other objects) in a dictionary.
      * Should be clears on save or discard
      *

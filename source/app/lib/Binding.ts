@@ -1,6 +1,6 @@
 import { removeElementFromArray } from "~bdo/utils/util";
 import { Deletion } from "~bdo/lib/Deletion";
-import { defineMetadata, getMetadata, defineWildcardMetadata, getWildcardMetadata } from "~bdo/utils/metadata";
+import { defineMetadata, getMetadata, getWildcardMetadata } from "~bdo/utils/metadata";
 
 export type writeRights = "ReadWrite" | "ReadOnly" | "WriteOnly";
 
@@ -126,7 +126,7 @@ export class Binding<T extends object = any, K extends DefNonFuncPropNames<T> = 
      * @memberof Binding
      */
     public reflectToInitiators(newVal: T[K]) {
-        if (this.mode === "WriteOnly") return;
+        if (this.initiator[this.initiatorProperty] === newVal || this.mode === "WriteOnly") return;
         const mData = getMetadata(this.object, "bindings");
         if (mData) {
             const bindings = mData.get(this.property);
@@ -220,15 +220,13 @@ export class Binding<T extends object = any, K extends DefNonFuncPropNames<T> = 
                         // available otherwise simply get the value
                         if (that.descriptor && that.descriptor.get) {
                             return that.descriptor.get.call(that.object);
-                        } else return getWildcardMetadata(that.object, that.property) || initialValue;
+                        } else return getWildcardMetadata(that.object, that.property).valueOf() || initialValue;
                     },
                     set: function modelSet(newVal: T[K]) {
                         if (newVal === that.object[that.property]) return;
                         // Call other descriptors of this object property if
                         // available otherwise simply set the value
-                        if (that.descriptor && that.descriptor.set) {
-                            that.descriptor.set.call(that.object, newVal);
-                        } else defineWildcardMetadata(that.object, that.property, newVal);
+                        if (that.descriptor && that.descriptor.set) that.descriptor.set.call(that.object, newVal);
                         // Reflect changes to every bound initiator of this object
                         that.reflectToInitiators(newVal);
                     },

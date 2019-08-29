@@ -34,7 +34,7 @@ export default class ViewLink extends BaseComponentFactory(HTMLAnchorElement) {
      * @type {string}
      * @memberof ViewLink
      */
-    @attribute() public test: string = this.model.bind("title");
+    @watched() @attribute() public test: string = this.model.bind("title");
 
     /**
      * Test
@@ -68,8 +68,8 @@ export default class ViewLink extends BaseComponentFactory(HTMLAnchorElement) {
      * @param {string} added
      * @memberof ViewLink
      */
-    protected onTesterAdd(_added: string): void {
-        // console.log(added);
+    protected onTesterAdd(_added: this["tester"]): void {
+        // console.log("tester added", added);
     }
 
     /**
@@ -79,8 +79,19 @@ export default class ViewLink extends BaseComponentFactory(HTMLAnchorElement) {
      * @param {string} changed
      * @memberof ViewLink
      */
-    protected onTesterChange(_changed: string): void {
-        // console.log(changed);
+    protected onTesterChange(_changed: this["tester"]): void {
+        // console.log("tester changed", this, changed);
+    }
+
+    /**
+     * Test
+     *
+     * @protected
+     * @param {this["test"]} changed
+     * @memberof ViewLink
+     */
+    protected onTestChange(_changed: this["test"]) {
+        // console.log("title changed", changed);
     }
 
     /**

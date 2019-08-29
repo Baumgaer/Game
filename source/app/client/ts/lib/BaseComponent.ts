@@ -3,8 +3,9 @@ import { isString, isObject } from 'lodash';
 import { Template, renderString } from 'nunjucks';
 import { v4 as uuid } from "uuid";
 import { property, attribute } from '~bdo/utils/decorators';
-import { getMetadata } from "~bdo/utils/metadata";
+import { getMetadata, getWildcardMetadata } from "~bdo/utils/metadata";
 import { Binding } from "~bdo/lib/Binding";
+import { Property } from "~bdo/lib/Property";
 import { getNamespacedStorage, setUpdateNamespacedStorage } from "~client/utils/util";
 
 /**
@@ -48,14 +49,16 @@ export function BaseComponentFactory<TBase extends Constructor<HTMLElement>>(HTM
         /**
          * Gives access to the properties similar to element.attributes
          *
-         * @type {Map<string, any>}
+         * @readonly
          * @memberof BaseComponent
          */
-        public get properties() {
-            const props = new Map<string, any>();
-            const properties = getMetadata(this, "definedProperties") as string[];
-            for (const prop of properties) {
-                props.set(prop, (<IndexStructure>this)[prop]);
+        public get properties(): Map<string, Property<this>> {
+            const props = new Map();
+            const properties = getMetadata(this, "definedProperties") as Array<DefNonFuncPropNames<this>>;
+            if (properties) {
+                for (const prop of properties) {
+                    props.set(prop, getWildcardMetadata(this, prop));
+                }
             }
             return props;
         }
