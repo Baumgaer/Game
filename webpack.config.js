@@ -47,7 +47,7 @@ module.exports = (_env, options) => {
                 if (currentVirtualEntryPointHash != lastVirtualEntryPointHash) {
                     lastVirtualEntryPointHash = currentVirtualEntryPointHash;
                     mkdirp.sync(path.dirname(virtualEntryPointFilePath));
-                    fs.writeFileSync(virtualEntryPointFilePath, fileContent, { flag: "a" });
+                    fs.writeFileSync(virtualEntryPointFilePath, fileContent);
                 }
                 resolve(entryPoints);
             });
