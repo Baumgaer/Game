@@ -5,7 +5,8 @@ import { Logger } from '~client/lib/Logger';
 const logger = new Logger();
 
 /**
- * Test
+ * provides basic functionality for routes on client side and adds a special
+ * header which will be sent to the server to avoid server side rendering.
  *
  * @abstract
  * @class BaseRoute

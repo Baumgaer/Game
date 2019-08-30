@@ -55,7 +55,8 @@ export interface IAttributeParams extends IPropertyParams, AdvancedOptions {
 }
 
 /**
- * Test
+ * Holds all the logic for the parameters of attribute() decorator and manages
+ * getting/setting the right value.
  *
  * @export
  * @class Attribute

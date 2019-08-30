@@ -1,7 +1,7 @@
 import { BDORoute } from '~bdo/lib/BDORoute';
 
 /**
- * Test
+ * constructs the base for the config route on server and client
  *
  * @export
  * @template TBase
@@ -10,7 +10,7 @@ import { BDORoute } from '~bdo/lib/BDORoute';
 export function BDOConfigFactory<TBase extends Constructor<BDORoute>>(ctor: TBase) {
 
     /**
-     * Test
+     * Provides basic functionality for the special config route on server and client
      *
      * @export
      * @abstract

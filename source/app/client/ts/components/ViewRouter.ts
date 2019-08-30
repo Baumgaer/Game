@@ -6,7 +6,7 @@ import { property } from '~bdo/utils/decorators';
 import Navigo = require('navigo');
 
 /**
- * Test
+ * Manages routing on client side, switches views and collects routes for client.
  *
  * @export
  * @class GameView
@@ -16,7 +16,8 @@ import Navigo = require('navigo');
 export default class ViewRouter extends BaseComponentFactory(HTMLElement) {
 
     /**
-     * Test
+     * Provides the possibility to react on anchor tag clicks, catch the default
+     * behavior and starts routing.
      *
      * @private
      * @memberof ViewRouter

@@ -1,3 +1,4 @@
+// @ts-ignore
 import ms = require('ms');
 import { BDOMapCache } from '~bdo/lib/BDOMapCache';
 /**

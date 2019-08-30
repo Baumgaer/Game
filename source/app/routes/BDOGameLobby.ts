@@ -2,7 +2,7 @@ import { BDORoute } from '~bdo/lib/BDORoute';
 import { Template } from 'nunjucks';
 
 /**
- * Test
+ * constructs the base for the gameLobby route on server and client
  *
  * @export
  * @template TBase
@@ -15,7 +15,7 @@ export function BDOGameLobbyFactory<TBase extends Constructor<BDORoute>>(ctor: T
      *
      * @export
      * @class GameLobby
-     * @extends {BaseRoute}
+     * @extends { BDORoute }
      */
     abstract class BDOGameLobby extends ctor {
 

@@ -4,7 +4,8 @@ import { isString, isObject } from 'lodash';
 import { templateEnvironment } from '~bdo/utils/environment';
 
 /**
- * Test
+ * Provides basic functionality for ALL routes on server and client and
+ * especially provides a template for client and server route.
  *
  * @export
  * @class BDORoute

@@ -102,7 +102,8 @@ interface ICaseDetectParams {
     keys2: string[];
 
     /**
-     * Test
+     * The changed value (the value not the name of the value) of an object or
+     * array which is observed.
      *
      * @type {*}
      * @memberof ICaseDetectParams
@@ -110,7 +111,8 @@ interface ICaseDetectParams {
     changedValue: any;
 
     /**
-     * Test
+     * The path of the changed value inside an object
+     * (THIS is is name of the value with path).
      *
      * @type {string}
      * @memberof ICaseDetectParams
@@ -119,7 +121,9 @@ interface ICaseDetectParams {
 }
 
 /**
- * Test
+ * Holds all the logic of the watched decorator. If the decorator is used with
+ * property or attribute, the corresponding decorator logic musst be passed into
+ * this logic with setSubObject.
  *
  * @export
  * @class Watched
@@ -234,7 +238,8 @@ export class Watched<T extends object = any, K extends DefNonFuncPropNames<T> = 
     }
 
     /**
-     * Test
+     * Sets the value depending on the parameters which are passed into the
+     * decorator and stops early if the value is not changed.
      *
      * @param {T[K]} value
      * @returns
@@ -262,7 +267,9 @@ export class Watched<T extends object = any, K extends DefNonFuncPropNames<T> = 
     }
 
     /**
-     * Test
+     * Follows the convention of the valueOf() method of most native objects.
+     * This method will be called by some other objects and will get a managed
+     * value depending on the parameters which are passed into the decorator.
      *
      * @returns
      * @memberof Watched
@@ -273,7 +280,9 @@ export class Watched<T extends object = any, K extends DefNonFuncPropNames<T> = 
     }
 
     /**
-     * Test
+     * Sets the sub object (Attribute or Property) to cooperate with this
+     * decorators in the right way and to avoid multiple calls of methods of
+     * this decorators.
      *
      * @param {Property} subObject
      * @memberof Watched
@@ -287,7 +296,8 @@ export class Watched<T extends object = any, K extends DefNonFuncPropNames<T> = 
     }
 
     /**
-     * Test
+     * Constructs a proxy object around arrays and objects to get information
+     * about changes inside of the watched objects.
      *
      * @private
      * @param {(any[] | object)} value

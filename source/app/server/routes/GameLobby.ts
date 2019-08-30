@@ -1,11 +1,11 @@
 import { BDOGameLobbyFactory } from '~bdo/routes/BDOGameLobby';
-import { ServerRoute } from '~root/app/server/lib/ServerRoute';
+import { ServerRoute } from '~server/lib/ServerRoute';
 
 /**
- * Test
+ * serves the game window to the client where the game will be executed in.
  *
  * @export
  * @class GameLobby
- * @extends {BaseRouteFactory(BDOGameLobby)}
+ * @extends {BDOGameLobbyFactory(ServerRoute)}
  */
 export default class GameLobby extends BDOGameLobbyFactory(ServerRoute) { }

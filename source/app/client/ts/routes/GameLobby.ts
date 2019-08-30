@@ -2,7 +2,7 @@ import { ClientRoute } from '~client/lib/ClientRoute';
 import { BDOGameLobbyFactory } from '~bdo/routes/BDOGameLobby';
 
 /**
- * Test
+ * Represents the game window which initializes the logic of the game itself.
  *
  * @export
  * @class GameLobby

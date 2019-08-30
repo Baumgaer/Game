@@ -1,9 +1,14 @@
 import { BDOConfigManager } from '~bdo/lib/BDOConfigManager';
+
 /**
- * Test
+ * Adds the possibility to load a config from server, set a config as
+ * administrator or refresh the config cache.
+ *
+ * @see BDOConfigManager for more information
  *
  * @export
  * @class ConfigManager
+ * @extends {BDOConfigManager}
  */
 export class ConfigManager extends BDOConfigManager {
 

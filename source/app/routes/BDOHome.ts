@@ -2,7 +2,7 @@ import { BDORoute } from '~bdo/lib/BDORoute';
 import { Template } from 'nunjucks';
 
 /**
- * Test
+ * constructs the base for the home route on server and client
  *
  * @export
  * @template TBase
@@ -11,7 +11,7 @@ import { Template } from 'nunjucks';
 export function BDOHomeFactory<TBase extends Constructor<BDORoute>>(ctor: TBase) {
 
     /**
-     * Serves the game lobby to the client
+     * Provides basic functionality for the "home page" of the website
      *
      * @export
      * @class GameLobby

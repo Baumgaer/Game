@@ -43,7 +43,8 @@ function walkDir(dir, dirList) {
 }
 
 /**
- * Test
+ * Creates junctions from all folders in out to source, which are not contained
+ * in source at the same place except it is contained in "ignoredPaths".
  *
  * @returns {void}
  */

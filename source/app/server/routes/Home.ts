@@ -1,11 +1,11 @@
 import { BDOHomeFactory } from '~bdo/routes/BDOHome';
-import { ServerRoute } from '~root/app/server/lib/ServerRoute';
+import { ServerRoute } from '~server/lib/ServerRoute';
 
 /**
- * Test
+ * Serves the "home page" of the website to the client
  *
  * @export
- * @class GameLobby
- * @extends {BaseRouteFactory(BDOGameLobby)}
+ * @class Home
+ * @extends {BDOHomeFactory(ServerRoute)}
  */
 export default class Home extends BDOHomeFactory(ServerRoute) { }

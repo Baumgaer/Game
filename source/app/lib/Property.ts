@@ -42,7 +42,8 @@ export interface IPropertyParams {
 }
 
 /**
- * Test
+ * Holds all the logic for the parameters of property() decorator and manages
+ * getting/setting the right value.
  *
  * @export
  * @class Property
@@ -123,7 +124,8 @@ export class Property<T extends object = any, K extends DefNonFuncPropNames<T> =
     }
 
     /**
-     * Test
+     * Sets the value depending on the parameters which are passed into the
+     * decorator and stops early if the value is not changed.
      *
      * @param {T[K]} value
      * @memberof Property
@@ -138,7 +140,9 @@ export class Property<T extends object = any, K extends DefNonFuncPropNames<T> =
     }
 
     /**
-     * Test
+     * Follows the convention of the valueOf() method of most native objects.
+     * This method will be called by some other objects and will get a managed
+     * value depending on the parameters which are passed into the decorator.
      *
      * @returns
      * @memberof Property
@@ -162,7 +166,8 @@ export class Property<T extends object = any, K extends DefNonFuncPropNames<T> =
     }
 
     /**
-     * Test
+     * If the value should be stored temporary in the property descriptor,
+     * then here the expiration date in unix timestamp will be added.
      *
      * @protected
      * @param {T[K]} newVal

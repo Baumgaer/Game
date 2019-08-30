@@ -41,7 +41,8 @@ export interface IWSCall {
     data: string;
 }
 /**
- * Test
+ * Implements the standard websocket behavior, manages broadcasting to other
+ * server instances and a framework to use network functionality.
  *
  * @export
  * @abstract
