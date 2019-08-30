@@ -1,6 +1,6 @@
 import { baseConstructor, property } from "~bdo/utils/decorators";
 import { BDOModel } from "~bdo/lib/BDOModel";
-import { getNamespacedStorage, setUpdateNamespacedStorage } from "~client/utils/util";
+import { getNamespacedStorage, setUpdateNamespacedStorage, deleteFromNamespacedStorage } from "~client/utils/util";
 
 /**
  * Provides basic functionality and fields for each Model on each side
@@ -55,6 +55,18 @@ export class ClientModel extends BDOModel {
      */
     public setUpdateNamespacedStorage(key: string, newVal: any, nsProp?: string) {
         return setUpdateNamespacedStorage(this, key, newVal, nsProp);
+    }
+
+    /**
+     * see doc string in ~client/utils/util
+     *
+     * @param {string} key
+     * @param {string} [nsProp]
+     * @returns
+     * @memberof ClientModel
+     */
+    public deleteFromNamespacedStorage(key: string, nsProp?: string) {
+        return deleteFromNamespacedStorage(this, key, nsProp);
     }
 
 }

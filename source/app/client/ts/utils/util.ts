@@ -9,6 +9,8 @@ import { getMetadata, defineMetadata } from "~bdo/utils/metadata";
  * @param {*} newVal
  */
 export function setUpdateNamespacedStorage(instance: any, key: string, newVal: any, nsProp: string = "id") {
+    if (key === "*") throw new Error("* is a special character and does not follow the property convention");
+
     // Get basic information
     const nsPrefix = Object.getPrototypeOf(instance.constructor).name;
     let nsSuffix = getMetadata(instance, "oldStorageNsSuffix");
@@ -71,4 +73,22 @@ export function getNamespacedStorage(instance: any, key: string, nsProp: string 
     if (storageValue && key === "*") return storageValue;
     if (storageValue && key in storageValue) return storageValue[key];
     return undefined;
+}
+
+/**
+ * Deletes a key from namespaced storage depending on a property
+ * name of the instance. If key is "*" the namespaced storage will be cleared.
+ *
+ * @export
+ * @param {*} instance
+ * @param {string} key
+ * @param {string} [nsProp="id"]
+ */
+export function deleteFromNamespacedStorage(instance: any, key: string, nsProp: string = "id") {
+    if (key === "*") {
+        const storage = getNamespacedStorage(instance, key, nsProp);
+        for (const prop in storage) {
+            if (storage.hasOwnProperty(prop)) setUpdateNamespacedStorage(instance, prop, undefined, nsProp);
+        }
+    } else setUpdateNamespacedStorage(instance, key, undefined, nsProp);
 }

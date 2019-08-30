@@ -6,7 +6,7 @@ import { property, attribute } from '~bdo/utils/decorators';
 import { getMetadata, getWildcardMetadata } from "~bdo/utils/metadata";
 import { Binding } from "~bdo/lib/Binding";
 import { Property } from "~bdo/lib/Property";
-import { getNamespacedStorage, setUpdateNamespacedStorage } from "~client/utils/util";
+import { getNamespacedStorage, setUpdateNamespacedStorage, deleteFromNamespacedStorage } from "~client/utils/util";
 
 /**
  * Creates a new BaseComponent based on the HTMLTypeElement
@@ -150,6 +150,18 @@ export function BaseComponentFactory<TBase extends Constructor<HTMLElement>>(HTM
          */
         public setUpdateNamespacedStorage(key: string, newVal: any, nsProp?: string) {
             return setUpdateNamespacedStorage(this, key, newVal, nsProp);
+        }
+
+        /**
+         * see doc string in ~client/utils/util
+         *
+         * @param {string} key
+         * @param {string} [nsProp]
+         * @returns
+         * @memberof ClientModel
+         */
+        public deleteFromNamespacedStorage(key: string, nsProp?: string) {
+            return deleteFromNamespacedStorage(this, key, nsProp);
         }
 
         /**
