@@ -9,6 +9,11 @@ services:
         entrypoint: 'node --inspect=0.0.0.0:9001 out/app/GameServer.js'
         deploy:
             replicas: 2
+            restart_policy:
+                condition: unless-stopped
+                delay: 5s
+                max_attempts: 3
+                window: 120s
         environment:
             NODE_ENV: 'development'
 
@@ -19,6 +24,7 @@ services:
             REDIS_HOST: redis
             REDIS_PORT: 6379
             ARANGODB_HOST: arangodb
+            ARANGODB_PORT: 8529
         ports:
             - 3000:3000
             - 9001:9001
@@ -36,6 +42,13 @@ services:
             context: .
             dockerfile: ./Dockerfile
         entrypoint: 'node --inspect=0.0.0.0:9002 out/app/WebServer.js'
+        deploy:
+            replicas: 2
+            restart_policy:
+                condition: unless-stopped
+                delay: 5s
+                max_attempts: 3
+                window: 120s
         environment:
             NODE_ENV: 'development'
 
@@ -46,6 +59,7 @@ services:
             REDIS_HOST: redis
             REDIS_PORT: 6379
             ARANGODB_HOST: arangodb
+            ARANGODB_PORT: 8529
         ports:
             - 3001:3001
             - 9002:9002
@@ -59,8 +73,38 @@ services:
 
     redis:
         image: redis
+        deploy:
+            replicas: 1
+            restart_policy:
+                condition: unless-stopped
+                delay: 5s
+                max_attempts: 3
+                window: 120s
+        ports:
+            - 6379:6379
+        restart: unless-stopped
 
     arangodb:
         image: arangodb
+        deploy:
+            replicas: 1
+            restart_policy:
+                condition: unless-stopped
+                delay: 5s
+                max_attempts: 3
+                window: 120s
         environment:
             ARANGO_NO_AUTH: 'true'
+            ARANGO_STORAGE_ENGINE: 'mmfiles'
+        ports:
+            - 8529:8529
+        volumes:
+            - type: volume
+              source: dbPersist
+              target: /var/lib/arangodb3
+              volume:
+                  nocopy: true
+        restart: unless-stopped
+
+volumes:
+    dbPersist:
