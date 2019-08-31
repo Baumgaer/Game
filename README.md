@@ -7,8 +7,8 @@ Welcome to the "Game". At the moment there is no good name for this project beca
 1. [The Idea of the Game](#the-idea-of-the-game)
 2. [Architecture of the Game](#architecture-of-the-game)
 3. [Getting started](#getting-started)
-4. [Toolchain](#toolchain)
-5. [Development CLI](#development-cli)
+4. [Development CLI](#development-cli)
+5. [Toolchain](#toolchain)
 6. [Best practices](#best-practices)
 
 ## The Idea of the Game
@@ -49,26 +49,13 @@ To persist the data we will use [ArangoDB](https://www.arangodb.com/).
 
 ## Getting started
 
-1. Install a subsystem (Optional):
-
-    - Windows: <https://docs.microsoft.com/en-us/windows/wsl/install-win10>
-    - MacOS: <https://github.com/linux-noah/noah>
-
-2. Install [Docker](https://www.docker.com/) (on your subsystem and native OS):
+1. Install [Docker](https://www.docker.com/) (on your subsystem and native OS):
 
     - Window: <https://download.docker.com/win/stable/Docker%20for%20Windows%20Installer.exe>
     - MacOS: <https://download.docker.com/mac/stable/Docker.dmg>
-    - Linux/Unix: will be installed later automatically
+    - Linux/Unix: <https://docs.docker.com/install/linux/docker-ce/ubuntu/>
 
-3. Configure docker on your native OS (optional):
-
-    To enable access from the subsystem to the native docker host, go to:
-
-    `Settings => General => expose daemon on tcp://localhost:2375 without TLS`
-
-    Don't be afraid because of the "without TLS". We will never access this over the web. This is just for development.
-
-4. install NodeJS:
+2. install NodeJS:
 
     **Windows** and **MacOS** user download the installer: <https://nodejs.org/en/>
 
@@ -82,7 +69,7 @@ To persist the data we will use [ArangoDB](https://www.arangodb.com/).
 
     or do this [installation instructions](https://github.com/nodesource/distributions).
 
-5. Configure git:
+3. Configure git:
 
     ```bash
     git config --global pull.rebase true
@@ -91,13 +78,13 @@ To persist the data we will use [ArangoDB](https://www.arangodb.com/).
     git config --global user.email "<email>"
     ```
 
-6. Create SSH key if you use SSH:
+4. Create SSH key if you use SSH:
 
     ```bash
     ssh-keygen -t rsa -C "<your email>"
     ```
 
-7. Clone the repository:
+5. Clone the repository:
 
     ```bash
     git clone https://github.com/Eluminati/Game.git .
@@ -105,40 +92,31 @@ To persist the data we will use [ArangoDB](https://www.arangodb.com/).
 
     - Notice the "." at the End. It is best to clone it in a folder named Game
 
-8. Change into the Game directory:
+6. Change into the Game directory:
 
     ```bash
     cd Game
     ```
 
-9. Install the Project via NPM:
-
-    **Native** os user do:
+7. Install the Project via NPM:
 
     ```bash
-    npm run install:nativesystem
+    npm run install
     ```
 
-    **Subsystem** user do:
-
-    ```bash
-    export DOCKER_HOST=tcp://localhost:2375" >> ~/.bashrc && source ~/.bashrc
-    npm run install:subsystem
-    ```
-
-10. Create junctions in your ORIGINAL operating system (optional):
+8. Create junctions (optional but recommended):
 
     ```bash
     node setup.js -j
     ```
 
-11. start the development server:
+9. start the development server:
 
     ```bash
     npm run dev
     ```
 
-12. start the application:
+10. start the application:
 
     ```bash
     npm start
@@ -148,7 +126,22 @@ To persist the data we will use [ArangoDB](https://www.arangodb.com/).
 
 ## Start and stop the application
 
-To start the app type: `npm start` and to stop the app type `npm stop`. For more commands type `npx pm2` which is our process manager. Or you have a look to the [package.json](./package.json) to see the start and stop scripts.
+To start the app type: `npm start` and to stop the app just interrupt it. Have a
+look to the [package.json](./package.json) to see the start and stop scripts.
+
+## Development CLI
+
+`npm run dev:cli` can be used to manage your dev deployment of `game`.
+
+-   `npm run dev:cli up` creates / updates it.
+-   `npm run dev:cli down` destroys it.
+-   `npm run dev:cli stop` stops it (not supported in Swarm mode).
+-   `npm run dev:cli ps` prints the currently running services.
+-   `npm run dev:cli logs` prints the logs. Use `-f` to follow.
+
+By default, `npm run dev:cli` uses `docker-compose`.
+Since it does not support clustering, you can add the `--swarm` flag, which will switch to Docker Swarm mode.
+This some downsides: Volumes are not supported and the Docker image needs to be rebuilt on each change.
 
 ## Toolchain
 
@@ -174,20 +167,6 @@ To get the best development experience you should install available plugins for 
 
     - [Redis Commander](http://joeferner.github.io/redis-commander/): View the current content of the redis cache
     - Integrated terminal ([Atom](https://github.com/jeremyramin/terminal-plus)): This is very useful because of the used subsystem and less opened windows
-
-## Development CLI
-
-`source/game-dev-cli.ts` can be used to manage your dev deployment of `game`.
-
-- `source/game-dev-cli.ts up` creates / updates it.
-- `source/game-dev-cli.ts down` destroys it.
-- `source/game-dev-cli.ts stop` stops it (not supported in Swarm mode).
-- `source/game-dev-cli.ts ps` prints the currently running services.
-- `source/game-dev-cli.ts logs` prints the logs. Use `-f` to follow.
-
-By default, `game-dev-cli` uses `docker-compose`.
-Since it does not support clustering, you can add the `--swarm` flag, which will switch to Docker Swarm mode.
-This some downsides: Volumes are not supported and the Docker image needs to be rebuilt on each change.
 
 ## Best practices
 

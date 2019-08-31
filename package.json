@@ -12,7 +12,8 @@
         "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\" \"npm run dev:tasks\"",
         "dev:server": "tsc -w -p ./tsconfig.json",
         "dev:client": "webpack --watch --progress --color --mode development --config webpack.config.js",
-        "dev:tasks": "grunt cleanup compile watchChokidar"
+        "dev:tasks": "grunt cleanup compile watchChokidar",
+        "dev:cli": "node ./out/game-dev-cli.js"
     },
     "keywords": [
         "Game",
