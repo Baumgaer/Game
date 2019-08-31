@@ -1,3 +1,4 @@
+import * as os from "os";
 /**
  * Provides a minimal interface for the frontend, which is passed by the server
  * to access process information.
@@ -5,7 +6,7 @@
 export const proc = {
     env: {
         name: process.env.name,
-        pm_id: process.env.pm_id,
+        hostname: os.hostname(),
         NODE_ENV: process.env.NODE_ENV
     },
     pid: process.pid

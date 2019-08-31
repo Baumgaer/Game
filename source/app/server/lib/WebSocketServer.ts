@@ -1,5 +1,6 @@
 import { BaseServer } from '~server/lib/BaseServer';
 import * as ws from 'ws';
+import * as os from "os";
 import { IncomingMessage } from 'http';
 import { Request, Response } from 'express';
 import { Logger } from '~server/lib/Logger';
@@ -79,7 +80,7 @@ export abstract class WebSocketServer extends BaseServer {
         ]);
 
         sub.subscribe('WebsocketServer:broadcast', (message: string, serverID: string) => {
-            if (serverID === <string>process.env.pm_id) return;
+            if (serverID === os.hostname()) return;
             this.broadcast(message);
         });
 
@@ -234,7 +235,7 @@ export abstract class WebSocketServer extends BaseServer {
         }
         switch ((<string>data.type).toLowerCase()) {
             case 'broadcast':
-                pub.publish('WebsocketServer:broadcast', [data.data, <string>process.env.pm_id]);
+                pub.publish('WebsocketServer:broadcast', [data.data, os.hostname()]);
                 this.broadcast(data.data, socket);
                 break;
             case 'api':

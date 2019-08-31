@@ -143,7 +143,7 @@ export abstract class BDOLogger {
      * @memberof BDOLogger
      */
     protected getProcInfo(): string {
-        return `${global.process.env.name || ''} ${global.process.env.pm_id || ''} ${global.process.pid}`;
+        return `${global.process.env.name || ''} ${global.process.env.hostname || ''} ${global.process.pid}`;
     }
 
     /**
