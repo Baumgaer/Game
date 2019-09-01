@@ -69,4 +69,13 @@ export class ClientModel extends BDOModel {
         return deleteFromNamespacedStorage(this, key, nsProp);
     }
 
+    /**
+     * Stores the unsaved changes into the corresponding collection of the model
+     *
+     * @memberof ClientModel
+     */
+    public async save() {
+
+    }
+
 }
