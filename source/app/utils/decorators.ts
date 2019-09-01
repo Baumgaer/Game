@@ -23,9 +23,19 @@ import {
     InputType
 } from "type-graphql";
 
+interface IBaseConstructorOpts extends ObjectOptions {
+    /**
+     * Defines the name of the collection where a model is saved in
+     *
+     * @type {string}
+     * @memberof baseConstructorOpts
+     */
+    collectionName?: string;
+}
+
 type FuncOrAttrParams = ReturnTypeFunc | IAttributeParams;
-type nameOrOptsOrIndex = string | ObjectOptions | number;
-type optsOrIndex = ObjectOptions | number;
+type nameOrOptsOrIndex = string | IBaseConstructorOpts | number;
+type optsOrIndex = IBaseConstructorOpts | number;
 type defPropOrAttr = "definedProperties" | "definedAttributes";
 
 /**
@@ -175,6 +185,10 @@ export function baseConstructor(name?: nameOrOptsOrIndex, options?: optsOrIndex,
             } else if (options && (typeof options === "object")) {
                 ObjectType(options)(ctor);
             } else ObjectType()(ctor);
+            // set collection name
+            if (options && (typeof options === "object") && options.collectionName) {
+                defineMetadata(ctor, "collectionName", options.collectionName);
+            }
         }
 
         if (options && (typeof options === "object" && options.isAbstract)) return ctor;
@@ -192,8 +206,27 @@ export function baseConstructor(name?: nameOrOptsOrIndex, options?: optsOrIndex,
              * baseConstructor - for the GraphQL resolver
              *
              * @static
+             * @type {*}
+             * @memberof BaseConstructor
              */
             public static readonly graphQLType: any = ctor;
+
+            /**
+             * Used to define the name of the database collection where a BDOModel is stored in
+             *
+             * @static
+             * @type {string}
+             * @memberof BaseConstructor
+             */
+            public static readonly collectionName?: string = getMetadata(BaseConstructor, "collectionName");
+
+            /**
+             * The instance version of the static property collectionName
+             *
+             * @type {string}
+             * @memberof BaseConstructor
+             */
+            public readonly collectionName?: string = BaseConstructor.collectionName;
 
             constructor(...params: any[]) {
                 super(...params);

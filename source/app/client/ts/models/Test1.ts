@@ -10,7 +10,7 @@ import { baseConstructor } from "~bdo/utils/decorators";
  * @class Test1
  * @extends {BDOTest1Factory()}
  */
-@baseConstructor()
+@baseConstructor({ collectionName: "Test1" })
 export class Test1 extends BDOTest1Factory(Test) {
 
     constructor(params?: ConstParams<Test1>) {

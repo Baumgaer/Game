@@ -9,7 +9,7 @@ import { baseConstructor } from "~bdo/utils/decorators";
  * @class Test
  * @extends {BDOTestFactory(BDOModel)}
  */
-@baseConstructor()
+@baseConstructor({ collectionName: "Test" })
 export class Test extends BDOTestFactory(ClientModel) {
 
     constructor(_params?: ConstParams<Test>) {

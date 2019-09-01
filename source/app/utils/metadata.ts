@@ -116,6 +116,14 @@ interface IMDKeys<T extends object = any> {
      * @memberof IMDKeys
      */
     unsavedChanges?: IndexStructure<DefNonFuncPropNames<T>, any>;
+
+    /**
+     * Used to define the name of the database collection where a BDOModel is stored in
+     *
+     * @type {string}
+     * @memberof IMDKeys
+     */
+    collectionName?: string;
 }
 
 /**

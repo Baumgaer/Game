@@ -26,6 +26,15 @@ export abstract class BDOModel {
     public static readonly graphQLType: any = Object.getPrototypeOf(BDOModel.constructor);
 
     /**
+     * Used to define the name of the database collection where a BDOModel is stored in
+     *
+     * @static
+     * @type {string}
+     * @memberof BDOModel
+     */
+    public static readonly collectionName?: string;
+
+    /**
      * This is just a BDOModel identifier in case you want to know if a not
      * initialized class is a model.
      *
@@ -61,6 +70,14 @@ export abstract class BDOModel {
      * @memberof BDOModel
      */
     @property() public readonly isBDOModel: boolean = true;
+
+    /**
+     * The instance version of the static property collectionName
+     *
+     * @type {string}
+     * @memberof BDOModel
+     */
+    @property() public readonly collectionName?: string = BDOModel.collectionName;
 
     /**
      * Holds a list of all bindings to all components

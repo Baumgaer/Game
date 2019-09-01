@@ -16,7 +16,7 @@ export function BDOTestFactory<TBase extends Constructor<BDOModel>>(ctor: TBase)
      * @export
      * @class Test
      */
-    @baseConstructor({ isAbstract: true })
+    @baseConstructor({ isAbstract: true, collectionName: "BDOTest" })
     abstract class BDOTest extends ctor {
 
         /**
