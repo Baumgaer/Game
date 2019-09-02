@@ -10,17 +10,23 @@
         "tsBuildInfoFile": "var/buildcache/.backend",
         "baseUrl": ".",
         "paths": {
-            "~root/*": [
-                "source/*"
+            "~server/*": [
+                "source/app/server/*"
             ],
             "~client/*": [
                 "source/app/client/ts/*"
             ],
+            "~static": [
+                "source/app/client/*"
+            ],
             "~bdo/*": [
                 "source/app/*"
             ],
-            "~server/*": [
-                "source/app/server/*"
+            "~root/*": [
+                "source/*"
+            ],
+            "~project/*": [
+                "./*"
             ]
         }
     },
