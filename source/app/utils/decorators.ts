@@ -61,9 +61,12 @@ export function watched(params: IWatchedParams = {}): PropertyDecorator {
             },
             set: function set(newVal: any) {
                 const stringKey = key.toString();
-                if (!Reflect.hasMetadata(stringKey, this)) {
-                    defineWildcardMetadata(this, stringKey, new Watched(<any>this, stringKey, params));
-                }
+                const mData = getWildcardMetadata(this, stringKey);
+                const prop = new Watched(<any>this, stringKey, params);
+                if (mData instanceof Attribute || mData instanceof Property) {
+                    prop.setSubObject(mData);
+                    defineWildcardMetadata(this, stringKey, prop);
+                } else if (!mData) defineWildcardMetadata(this, stringKey, prop);
                 setter(this, key, newVal, propDesc);
             },
             enumerable: true,
