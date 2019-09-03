@@ -121,7 +121,9 @@ export class ServerRoute extends BDORoute {
      * @param {NextFunction} _next
      * @memberof BaseRoute
      */
-    private async handlePost(_request: Request, _response: Response, _next: NextFunction): Promise<void> { }
+    private async handlePost(_request: Request, _response: Response, _next: NextFunction): Promise<void> {
+        throw new Error("Not implemented");
+    }
 
     /**
      * Handles HTTP put requests
@@ -132,7 +134,9 @@ export class ServerRoute extends BDORoute {
      * @param {NextFunction} _next
      * @memberof BaseRoute
      */
-    private async handlePut(_request: Request, _response: Response, _next: NextFunction): Promise<void> { }
+    private async handlePut(_request: Request, _response: Response, _next: NextFunction): Promise<void> {
+        throw new Error("Not implemented");
+    }
 
     /**
      * Handles HTTP Patch requests
@@ -143,7 +147,9 @@ export class ServerRoute extends BDORoute {
      * @param {NextFunction} _next
      * @memberof BaseRoute
      */
-    private async handlePatch(_request: Request, _response: Response, _next: NextFunction): Promise<void> { }
+    private async handlePatch(_request: Request, _response: Response, _next: NextFunction): Promise<void> {
+        throw new Error("Not implemented");
+    }
 
     /**
      * Handles HTTP delete requests
@@ -154,5 +160,7 @@ export class ServerRoute extends BDORoute {
      * @param {NextFunction} _next
      * @memberof BaseRoute
      */
-    private async handleDelete(_request: Request, _response: Response, _next: NextFunction): Promise<void> { }
+    private async handleDelete(_request: Request, _response: Response, _next: NextFunction): Promise<void> {
+        throw new Error("Not implemented");
+    }
 }
