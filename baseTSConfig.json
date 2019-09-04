@@ -7,6 +7,7 @@
             "esnext.asynciterable"
         ],
         "skipLibCheck": true,
+        "esModuleInterop": true,
         "removeComments": true,
         "importHelpers": true,
         "isolatedModules": false,
@@ -35,7 +36,7 @@
             "babylonjs-inspector",
             "reflect-metadata"
         ],
-        "allowSyntheticDefaultImports": false,
+        "allowSyntheticDefaultImports": true,
         "experimentalDecorators": true,
         "emitDecoratorMetadata": true
     }

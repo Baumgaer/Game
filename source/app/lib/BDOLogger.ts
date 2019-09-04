@@ -1,5 +1,5 @@
 /* tslint:disable:no-console*/
-import * as moment from 'moment';
+import moment from 'moment';
 import { sep } from 'path';
 import { includesMemberOfList, getPrototypeNamesRecursive } from '~bdo/utils/util';
 

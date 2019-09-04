@@ -1,5 +1,5 @@
 import { Redis, messageType } from '~server/lib/Redis';
-import * as IORedis from 'ioredis';
+import IORedis from 'ioredis';
 import { merge } from 'lodash';
 import { Logger } from '~server/lib/Logger';
 import { ConfigManager } from '~server/lib/ConfigManager';

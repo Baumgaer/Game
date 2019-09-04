@@ -2,8 +2,7 @@ import { BaseComponentFactory } from '~client/lib/BaseComponent';
 import { includesMemberOfList } from '~bdo/utils/util';
 import { baseConstructor } from '~bdo/utils/decorators';
 import { property } from '~bdo/utils/decorators';
-// @ts-ignore
-import Navigo = require('navigo');
+import Navigo from "navigo";
 
 /**
  * Manages routing on client side, switches views and collects routes for client.

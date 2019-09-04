@@ -1,4 +1,4 @@
-import * as IORedis from 'ioredis';
+import IORedis from 'ioredis';
 import { merge, isUndefined, pickBy, omit } from 'lodash';
 
 export type callbackType = (err: Error, res: number) => void;
@@ -7,12 +7,12 @@ export type messageType = Array<
     | boolean
     | IMessageType
     | {
-          [name: string]: keyof any | boolean | messageType;
-      }
+        [name: string]: keyof any | boolean | messageType;
+    }
 >;
 
 // tslint:disable-next-line: no-empty-interface
-interface IMessageType extends messageType {}
+interface IMessageType extends messageType { }
 
 /**
  * Extends the IORedis class by saving all subscribed topics to execute them

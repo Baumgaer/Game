@@ -2,7 +2,8 @@ import { Property } from "~bdo/lib/Property";
 import { ucFirst } from "~bdo/utils/util";
 import onChange from "on-change";
 import { isObject } from 'lodash';
-import cloneDeep = require("clone-deep");
+import cloneDeep from "clone-deep";
+// import cloneDeep = require("clone-deep");
 
 /**
  * This parameters are in fact for all objects with or without baseConstructor

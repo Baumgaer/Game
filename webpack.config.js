@@ -95,6 +95,7 @@ module.exports = (_env, options) => {
         plugins: [
             new ForkTsCheckerWebpackPlugin({
                 useTypescriptIncrementalApi: true,
+                checkSyntacticErrors: true,
                 tsconfig: path.resolve(arp.path, "source", "app", "client", "ts", "tsconfig.json")
             }),
             new webpack.NormalModuleReplacementPlugin(/type-graphql$/, resource => {

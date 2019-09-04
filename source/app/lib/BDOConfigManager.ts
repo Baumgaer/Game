@@ -1,5 +1,4 @@
-// @ts-ignore
-import ms = require('ms');
+import ms from "ms";
 import { BDOMapCache } from '~bdo/lib/BDOMapCache';
 /**
  * Manages the configuration on client and server side.
