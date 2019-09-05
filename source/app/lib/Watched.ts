@@ -1,4 +1,5 @@
 import { Property } from "~bdo/lib/Property";
+import { Modification } from '~bdo/lib/Modification';
 import { ucFirst } from "~bdo/utils/util";
 import onChange from "on-change";
 import { isObject } from 'lodash';
@@ -250,20 +251,23 @@ export class Watched<T extends object = any, K extends DefNonFuncPropNames<T> = 
         let oldVal = this.valueOf();
         if (oldVal === value) return;
 
+        let valueToPass = value;
+        if (value instanceof Modification) valueToPass = value.valueOf();
+
         // Make a deep copy of old value to pass an unchanged version to the onChange function
         oldVal = cloneDeep(oldVal);
 
         // Process array and object modification
-        value = this.getArrayObjectProxy(value);
+        valueToPass = this.getArrayObjectProxy(valueToPass);
 
         if (this.subObject) {
             this.subObject.setValue(value);
-        } else this.value = value;
+        } else this.value = valueToPass;
 
         // React on variable changes
         if (this.onChange in this.object && this.isInitialized) (<IndexStructure>this.object)[this.onChange](oldVal);
         // React on initialization
-        if (this.onInit in this.object && !this.isInitialized) (<IndexStructure>this.object)[this.onInit](value);
+        if (this.onInit in this.object && !this.isInitialized) (<IndexStructure>this.object)[this.onInit](valueToPass);
         this.isInitialized = true;
     }
 

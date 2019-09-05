@@ -1,5 +1,5 @@
 import { NullableListOptions } from "type-graphql/dist/decorators/types";
-import { Deletion } from "~bdo/lib/Deletion";
+import { Modification } from "~bdo/lib/Modification";
 import { getMetadata, defineMetadata } from "~bdo/utils/metadata";
 import { isBrowser } from "~bdo/utils/environment";
 
@@ -11,7 +11,8 @@ import { isBrowser } from "~bdo/utils/environment";
  */
 export interface IPropertyParams {
     /**
-     * If set > 0 the value will expire after x milliseconds
+     * If set > 0 the value will expire after x milliseconds.
+     * NOTE: On attributes this will turn on "doNotePersist" implicitly.
      *
      * @default 0 Means will stored permanently
      * @type {number}
@@ -64,7 +65,7 @@ export class Property<T extends object = any, K extends DefNonFuncPropNames<T> =
      * @type {string}
      * @memberof Property
      */
-    public property: K | Deletion;
+    public property: K | Modification<any>;
 
     /**
      * @inheritdoc
@@ -132,10 +133,12 @@ export class Property<T extends object = any, K extends DefNonFuncPropNames<T> =
      */
     public setValue(value: T[K]) {
         if (this.valueOf() === value) return;
-        this.value = value;
+        let valueToPass = value;
+        if (value instanceof Modification) valueToPass = value.valueOf();
+        this.value = valueToPass;
         this.addExpiration();
         if (this.shouldUpdateNsStorage() && "setUpdateNamespacedStorage" in this.object) {
-            (<IndexStructure>this.object).setUpdateNamespacedStorage(this.property.toString(), value);
+            (<IndexStructure>this.object).setUpdateNamespacedStorage(this.property.toString(), valueToPass);
         }
     }
 
@@ -184,7 +187,7 @@ export class Property<T extends object = any, K extends DefNonFuncPropNames<T> =
         this.expirationTimeout = setTimeout(() => {
             const defaultSettings = getMetadata(this.object, "defaultSettings") as IndexStructure;
             const delValue = defaultSettings && !this.nullable ? defaultSettings[stringKey] : undefined;
-            (<IndexStructure>this.object)[stringKey] = new Deletion(delValue);
+            (<IndexStructure>this.object)[stringKey] = new Modification(delValue);
         }, this.storeTemporary);
     }
 

@@ -1,5 +1,5 @@
 import { removeElementFromArray } from "~bdo/utils/util";
-import { Deletion } from "~bdo/lib/Deletion";
+import { Modification } from "~bdo/lib/Modification";
 import { defineMetadata, getMetadata, getWildcardMetadata } from "~bdo/utils/metadata";
 
 export type writeRights = "ReadWrite" | "ReadOnly" | "WriteOnly";
@@ -116,7 +116,7 @@ export class Binding<T extends object = any, K extends DefNonFuncPropNames<T> = 
      * @memberof Binding
      */
     public valueOf(): T[K] | undefined {
-        if (this.mode === "WriteOnly") return new Deletion(undefined) as unknown as undefined;
+        if (this.mode === "WriteOnly") return new Modification(undefined) as unknown as undefined;
         return this.object[this.property];
     }
 
@@ -126,6 +126,7 @@ export class Binding<T extends object = any, K extends DefNonFuncPropNames<T> = 
      * @memberof Binding
      */
     public reflectToInitiators(newVal: T[K]) {
+        if (newVal instanceof Modification) newVal = newVal.valueOf();
         if (this.initiator[this.initiatorProperty] === newVal || this.mode === "WriteOnly") return;
         const mData = getMetadata(this.object, "bindings");
         if (mData) {
@@ -141,6 +142,7 @@ export class Binding<T extends object = any, K extends DefNonFuncPropNames<T> = 
      * @memberof Binding
      */
     public reflectToObject(newVal: T[K]) {
+        if (newVal instanceof Modification) newVal = newVal.valueOf();
         if (this.object[this.property] === newVal || this.mode === "ReadOnly") return;
         this.object[this.property] = newVal;
     }

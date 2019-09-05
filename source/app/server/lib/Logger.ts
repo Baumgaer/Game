@@ -1,5 +1,5 @@
 /* tslint:disable:no-console*/
-import * as colors from 'colors';
+import colors from 'colors';
 import { createWriteStream } from 'graceful-fs';
 import { sync as mkDirSync } from "mkdirp";
 import { resolve, dirname } from 'path';

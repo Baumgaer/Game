@@ -109,15 +109,6 @@ interface IMDKeys<T extends object = any> {
     expirationTimeout?: IndexStructure<DefNonFuncPropNames<T>, boolean>;
 
     /**
-     * Holds information about changes in a model (or maybe other objects) in a dictionary.
-     * Should be clears on save or discard
-     *
-     * @type {IndexStructure<DefNonFuncPropNames<T>, any>}
-     * @memberof IMDKeys
-     */
-    unsavedChanges?: IndexStructure<DefNonFuncPropNames<T>, any>;
-
-    /**
      * Used to define the name of the database collection where a BDOModel is stored in
      *
      * @type {string}

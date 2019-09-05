@@ -1,6 +1,7 @@
 import { Property, IPropertyParams } from "~bdo/lib/Property";
 import { AdvancedOptions } from "type-graphql/dist/decorators/types";
-import { isBrowser } from '../utils/environment';
+import { isBrowser } from '~bdo/utils/environment';
+import { Modification } from "~bdo/lib/Modification";
 
 type prop<T> = DefNonFuncPropNames<T>;
 
@@ -52,6 +53,14 @@ export interface IAttributeParams extends IPropertyParams, AdvancedOptions {
      * @memberof IAttributeParams
      */
     autoSave?: boolean | number;
+
+    /**
+     * Defines wether to persist data in a Database like ArangoDB or IndexedDB.
+     *
+     * @type {boolean}
+     * @memberof IAttributeParams
+     */
+    doNotPersist?: boolean;
 }
 
 /**
@@ -97,6 +106,23 @@ export class Attribute<T extends object = any, K extends prop<T> = any> extends 
     public autoSave?: boolean | number;
 
     /**
+     * @inheritdoc
+     *
+     * @type {boolean}
+     * @memberof Attribute
+     */
+    public doNotPersist?: boolean;
+
+    /**
+     * holds changes of the attribute which are not saved or discarded
+     *
+     * @public
+     * @type {T[K]}
+     * @memberof Attribute
+     */
+    public unsavedChange?: T[K];
+
+    /**
      * Marks if an attribute is initialized on a DOM element
      *
      * @protected
@@ -117,8 +143,22 @@ export class Attribute<T extends object = any, K extends prop<T> = any> extends 
      */
     public setValue(value: T[K]) {
         if (this.valueOf() === value) return;
+        // let valueToPass = value;
+        // if (value instanceof Modification) valueToPass = value.valueOf();
         super.setValue(value);
         this.reflectToDOMAttribute();
+        this.storeInUnsavedChanges(value);
+    }
+
+    /**
+     * valueOf
+     */
+    public valueOf() {
+        let value = super.valueOf();
+        if (!this.storeTemporary && !this.doNotPersist && this.object.isBDOModel) {
+            value = this.unsavedChange;
+        }
+        return value;
     }
 
     /**
@@ -145,5 +185,23 @@ export class Attribute<T extends object = any, K extends prop<T> = any> extends 
             // Reflect property changes to attribute
             if (attrValue !== this.value) this.object.setAttribute(stringKey, this.value);
         }
+    }
+
+    /**
+     * Stores values in unsavedChanges if object is an BDOModel. Normally this
+     * will be used in methods called save() or discard(). If a modification of
+     * type fromServer is passed in it will not update the unsaved changes
+     *
+     * @protected
+     * @param {*} value
+     * @returns
+     * @memberof Attribute
+     */
+    protected storeInUnsavedChanges(value: any) {
+        let valueToPass = value;
+        if (value instanceof Modification) valueToPass = value.valueOf();
+        if (!this.object.isBDOModel || this.storeTemporary || this.doNotPersist || (
+            value instanceof Modification && value.type === "fromServer")) return;
+        this.unsavedChange = valueToPass;
     }
 }

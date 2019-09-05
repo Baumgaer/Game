@@ -2,7 +2,6 @@ import 'reflect-metadata';
 import { Binding } from "~bdo/lib/Binding";
 import { pascalCase2kebabCase } from "~bdo/utils/util";
 import { isBrowser } from "~bdo/utils/environment";
-import { Deletion } from "~bdo/lib/Deletion";
 import { IPropertyParams, Property } from "~bdo/lib/Property";
 import { IAttributeParams, Attribute } from "~bdo/lib/Attribute";
 import { IWatchedParams, Watched } from "~bdo/lib/Watched";
@@ -345,12 +344,10 @@ function setter(instance: any, key: string | symbol, newVal: any, propDesc?: Pro
         newVal.install(instance, stringKey);
         newVal = newVal.valueOf();
     }
-    // Get new value in case of a forced deletion of the property's value
-    if (newVal instanceof Deletion) newVal = newVal.valueOf();
     // Set new value to the attribute or property
     mData.setValue(newVal);
     // Reflect to component or other model which gives a binding
     if (initiatorBinding) initiatorBinding.reflectToObject(newVal);
-    // Call other property descriptors or set Reflect storage
+    // Call other property descriptors
     if (propDesc && propDesc.set) propDesc.set.call(instance, newVal);
 }
