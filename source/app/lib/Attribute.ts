@@ -155,6 +155,7 @@ export class Attribute<T extends object = any, K extends prop<T> = any> extends 
         if (this.valueOf() === value) return;
         this.doSetValue(value);
         this.reflectToDOMAttribute(value);
+        this.doAutoSave();
     }
 
     /**
@@ -218,16 +219,26 @@ export class Attribute<T extends object = any, K extends prop<T> = any> extends 
             if (valueToPass === undefined && valueToPass !== super.valueOf()) {
                 this.unsavedChange = new Modification() as unknown as T[K];
             } else this.unsavedChange = valueToPass;
-            if (this.autoSave) {
-                if (typeof this.autoSave === "boolean") this.object.save(this.property);
-                if (typeof this.autoSave === "number" && !this.autoSaveTimeout) {
-                    this.autoSaveTimeout = setTimeout(() => {
-                        this.object.save(this.property);
-                        delete this.autoSaveTimeout;
-                    }, Math.abs(this.autoSave));
-                }
-            }
         }
         if (value === super.valueOf()) this.unsavedChange = undefined;
+    }
+
+    /**
+     * Saves the attribute automatically if autoSave is defined and debounces
+     * it if autosave is a number.
+     *
+     * @protected
+     * @returns
+     * @memberof Attribute
+     */
+    protected doAutoSave() {
+        if (!this.autoSave) return;
+        if (typeof this.autoSave === "boolean") this.object.save(this.property);
+        if (typeof this.autoSave === "number" && !this.autoSaveTimeout) {
+            this.autoSaveTimeout = setTimeout(() => {
+                this.object.save(this.property);
+                delete this.autoSaveTimeout;
+            }, Math.abs(this.autoSave));
+        }
     }
 }
