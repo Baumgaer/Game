@@ -1,6 +1,7 @@
-import * as Lint from "tslint"; // tslint:disable-line
-import { findImports, ImportKind } from "tsutils";  // tslint:disable-line
-import * as TS from "typescript";  // tslint:disable-line
+/* tslint:disable no-implicit-dependencies  */
+import { Rules, RuleFailure, WalkContext } from "tslint";
+import { findImports, ImportKind } from "tsutils";
+import TS from "typescript";
 
 interface IOptions {
     [fileOrDir: string]: string[];
@@ -11,9 +12,9 @@ interface IOptions {
  *
  * @export
  * @class Rule
- * @extends {Lint.Rules.AbstractRule}
+ * @extends {Rules.AbstractRule}
  */
-export class Rule extends Lint.Rules.AbstractRule {
+export class Rule extends Rules.AbstractRule {
 
     /**
      * @inheritdoc
@@ -22,13 +23,13 @@ export class Rule extends Lint.Rules.AbstractRule {
      * @returns {Lint.RuleFailure[]}
      * @memberof Rule
      */
-    public apply(sourceFile: TS.SourceFile): Lint.RuleFailure[] {
+    public apply(sourceFile: TS.SourceFile): RuleFailure[] {
         return this.applyWithFunction(sourceFile, walk, this
             .ruleArguments[0] as IOptions);
     }
 }
 
-const walk = (ctx: Lint.WalkContext<IOptions>) => {
+const walk = (ctx: WalkContext<IOptions>) => {
     for (const file in ctx.options) {
         if (ctx.options.hasOwnProperty(file) && ctx.sourceFile.fileName.includes(file)) {
             const forbiddenImports = (<any>ctx.options)[file];

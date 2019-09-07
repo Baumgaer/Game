@@ -204,6 +204,14 @@ export function baseConstructor(name?: nameOrOptsOrIndex, options?: optsOrIndex,
         class BaseConstructor extends ctor {
 
             /**
+             * Represents the original class name of the constructor
+             *
+             * @static
+             * @memberof BaseConstructor
+             */
+            public static readonly className = Object.getPrototypeOf(BaseConstructor).name;
+
+            /**
              * Determines the original type of this model - set by the
              * baseConstructor - for the GraphQL resolver
              *

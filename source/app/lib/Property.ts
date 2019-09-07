@@ -1,7 +1,8 @@
 import { NullableListOptions } from "type-graphql/dist/decorators/types";
 import { Modification } from "~bdo/lib/Modification";
-import { getMetadata, defineMetadata } from "~bdo/utils/metadata";
+import { getMetadata, defineMetadata, getDesignType } from "~bdo/utils/metadata";
 import { isBrowser } from "~bdo/utils/environment";
+import { isPrimitive } from "~bdo/utils/util";
 
 /**
  * This parameters should only be used in models and components other objects
@@ -40,6 +41,14 @@ export interface IPropertyParams {
      * @memberof IPropertyParams
      */
     nullable?: boolean | NullableListOptions;
+
+    /**
+     * Disables the type guard on runtime. The TypeGuard of the API stays active!
+     *
+     * @type {boolean}
+     * @memberof IPropertyParams
+     */
+    disableTypeGuard?: boolean;
 }
 
 /**
@@ -92,6 +101,14 @@ export class Property<T extends object = any, K extends DefNonFuncPropNames<T> =
     public nullable?: boolean | NullableListOptions;
 
     /**
+     * @inheritdoc
+     *
+     * @type {boolean}
+     * @memberof Property
+     */
+    public disableTypeGuard?: boolean;
+
+    /**
      * The value of the property / attribute
      *
      * @protected
@@ -132,6 +149,7 @@ export class Property<T extends object = any, K extends DefNonFuncPropNames<T> =
      * @memberof Property
      */
     public setValue(value: T[K]) {
+        if (!this.disableTypeGuard) this.typeGuard(value);
         this.doSetValue(value, true);
     }
 
@@ -159,6 +177,24 @@ export class Property<T extends object = any, K extends DefNonFuncPropNames<T> =
             } else value = this.value;
         }
         return value;
+    }
+
+    /**
+     * Checks if the given type is the required type and throws an error if not
+     *
+     * @protected
+     * @param {T[K]} value
+     * @memberof Property
+     */
+    protected typeGuard(value: T[K]) {
+        let valueToPass = value;
+        if (value instanceof Modification) valueToPass = value.valueOf();
+        const designType = getDesignType(this.object, this.property.toString());
+        const errorMessage = new Error(`${valueToPass} is not type of ${designType.className || designType.name}`);
+        if (this.nullable && valueToPass === undefined) return;
+        if (isPrimitive(valueToPass)) {
+            if (typeof valueToPass !== designType.name.toLowerCase()) throw errorMessage;
+        } else if (!(valueToPass instanceof designType)) throw errorMessage;
     }
 
     /**

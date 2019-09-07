@@ -7,7 +7,7 @@ import { getMetadata, getWildcardMetadata } from "~bdo/utils/metadata";
 import { Binding } from "~bdo/lib/Binding";
 import { Property } from "~bdo/lib/Property";
 import { getNamespacedStorage, setUpdateNamespacedStorage, deleteFromNamespacedStorage } from "~client/utils/util";
-import { constructTypeOfHTMLAttribute } from '~client/../../utils/util';
+import { constructTypeOfHTMLAttribute } from '~bdo/utils/util';
 
 /**
  * Creates a new BaseComponent based on the HTMLTypeElement
@@ -91,13 +91,13 @@ export function BaseComponentFactory<TBase extends Constructor<HTMLElement>>(HTM
 
         /**
          * Defines the template of the of the component.
-         * Musst have exactly one root node and can be a string or a Template
+         * Must have exactly one root node and can be a string or a Template
          * for e.g. require("./path/to/template.njk")
          *
          * @type {(string | Template)}
          * @memberof BaseComponent
          */
-        @property() protected readonly templateString: string | Template = '<div><slot></slot></div>';
+        @property({ disableTypeGuard: true }) protected readonly templateString: string | Template = '<div><slot></slot></div>';
 
         /**
          * Contains an object which keys matches the interpolations of the template.

@@ -1,6 +1,6 @@
 import { baseConstructor, property } from "~bdo/utils/decorators";
 import { BDOModel } from "~bdo/lib/BDOModel";
-import { getWildcardMetadata } from "~bdo/utils/metadata";
+// import { getWildcardMetadata } from "~bdo/utils/metadata";
 
 /**
  * Provides basic functionality and fields for each Model on each side

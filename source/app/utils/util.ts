@@ -114,3 +114,14 @@ export function constructTypeOfHTMLAttribute(object: HTMLElement, key: string) {
     if (valueToSet && type && valueToSet.constructor.name !== type.name) throw new Error("attribute type equals not defined type");
     return valueToSet;
 }
+
+/**
+ * Checks if a value is a primitive type or not
+ *
+ * @export
+ * @param {*} test
+ * @returns
+ */
+export function isPrimitive(test: any) {
+    return (test !== Object(test));
+}
