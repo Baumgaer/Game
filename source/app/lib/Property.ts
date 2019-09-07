@@ -2,7 +2,7 @@ import { NullableListOptions } from "type-graphql/dist/decorators/types";
 import { Modification } from "~bdo/lib/Modification";
 import { getMetadata, defineMetadata, getDesignType } from "~bdo/utils/metadata";
 import { isBrowser } from "~bdo/utils/environment";
-import { isPrimitive } from "~bdo/utils/util";
+import { isPrimitive, ucFirst } from "~bdo/utils/util";
 
 /**
  * This parameters should only be used in models and components other objects
@@ -49,6 +49,35 @@ export interface IPropertyParams {
      * @memberof IPropertyParams
      */
     disableTypeGuard?: boolean;
+
+    /**
+     * The name of the function which will be executed after basic type checking
+     * and before final determination. The function must return true if everything
+     * is ok and false else.
+     *
+     * @type {string}
+     * @memberof IPropertyParams
+     */
+    onTypeCheck?: string;
+
+    /**
+     * Defines the name of the function which should be called when the type check fails.
+     * By default it is onPropertyNameTypeCheckFail
+     *
+     * @type {string}
+     * @memberof IPropertyParams
+     */
+    onTypeCheckFail?: string;
+
+    /**
+     * Defines the name of the function which will be executed if all type
+     * checks are succeeded.
+     *
+     * @type {string}
+     * @memberof IPropertyParams
+     */
+    onTypeCheckSuccess?: string;
+
 }
 
 /**
@@ -109,6 +138,30 @@ export class Property<T extends object = any, K extends DefNonFuncPropNames<T> =
     public disableTypeGuard?: boolean;
 
     /**
+     * @inheritdoc
+     *
+     * @type {string}
+     * @memberof Property
+     */
+    public onTypeCheckFail: string;
+
+    /**
+     * @inheritdoc
+     *
+     * @type {string}
+     * @memberof Property
+     */
+    public onTypeCheck: string;
+
+    /**
+     * @inheritdoc
+     *
+     * @type {string}
+     * @memberof Property
+     */
+    public onTypeCheckSuccess: string;
+
+    /**
      * The value of the property / attribute
      *
      * @protected
@@ -139,6 +192,15 @@ export class Property<T extends object = any, K extends DefNonFuncPropNames<T> =
         this.object = object;
         this.property = property;
         Object.assign(this, params);
+
+        const capitalizedProp = ucFirst(property as string);
+        const onTypeCheckFail = `on${capitalizedProp}TypeCheckFail`;
+        const onTypeCheck = `on${capitalizedProp}TypeCheck`;
+        const onTypeCheckSuccess = `on${capitalizedProp}TypeCheckSuccess`;
+
+        this.onTypeCheckFail = params ? params.onTypeCheckFail || onTypeCheckFail : onTypeCheckFail;
+        this.onTypeCheck = params ? params.onTypeCheck || onTypeCheck : onTypeCheck;
+        this.onTypeCheckSuccess = params ? params.onTypeCheckSuccess || onTypeCheckSuccess : onTypeCheckSuccess;
     }
 
     /**
@@ -149,7 +211,6 @@ export class Property<T extends object = any, K extends DefNonFuncPropNames<T> =
      * @memberof Property
      */
     public setValue(value: T[K]) {
-        if (!this.disableTypeGuard) this.typeGuard(value);
         this.doSetValue(value, true);
     }
 
@@ -189,12 +250,34 @@ export class Property<T extends object = any, K extends DefNonFuncPropNames<T> =
     protected typeGuard(value: T[K]) {
         let valueToPass = value;
         if (value instanceof Modification) valueToPass = value.valueOf();
+
         const designType = getDesignType(this.object, this.property.toString());
         const errorMessage = new Error(`${valueToPass} is not type of ${designType.className || designType.name}`);
-        if (this.nullable && valueToPass === undefined) return;
-        if (isPrimitive(valueToPass)) {
-            if (typeof valueToPass !== designType.name.toLowerCase()) throw errorMessage;
-        } else if (!(valueToPass instanceof designType)) throw errorMessage;
+
+        let successful = false;
+
+        // Do basic type checking depending on annotated types in script
+        if (this.nullable && valueToPass === undefined) successful = true;
+
+        if (!successful) {
+            if (isPrimitive(valueToPass)) {
+                if (typeof valueToPass === designType.name.toLowerCase()) successful = true;
+            } else if (valueToPass instanceof designType) successful = true;
+        }
+
+        // Do custom type checking
+        if (successful && this.onTypeCheck in this.object) {
+            successful = (<IndexStructure>this.object)[this.onTypeCheck](valueToPass);
+        }
+
+        // React on success or error
+        if (!successful) {
+            if (this.onTypeCheckFail in this.object) {
+                (<IndexStructure>this.object)[this.onTypeCheckFail]();
+            } else throw errorMessage;
+        } else if (this.onTypeCheckSuccess in this.object) (<IndexStructure>this.object)[this.onTypeCheckSuccess]();
+
+        return successful;
     }
 
     /**
@@ -208,7 +291,7 @@ export class Property<T extends object = any, K extends DefNonFuncPropNames<T> =
      * @memberof Property
      */
     protected doSetValue(value: T[K], modifyValue: boolean) {
-        if (this.valueOf() === value) return;
+        if (this.valueOf() === value || !this.disableTypeGuard && this.typeGuard(value)) return;
         let valueToPass = value;
         if (value instanceof Modification) valueToPass = value.valueOf();
         if (modifyValue) this.value = valueToPass;

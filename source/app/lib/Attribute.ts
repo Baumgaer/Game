@@ -152,7 +152,7 @@ export class Attribute<T extends object = any, K extends prop<T> = any> extends 
      * @memberof Attribute
      */
     public setValue(value: T[K]) {
-        if (this.valueOf() === value) return;
+        if (this.valueOf() === value || !this.disableTypeGuard && this.typeGuard(value)) return;
         this.doSetValue(value);
         this.reflectToDOMAttribute(value);
         this.doAutoSave();
