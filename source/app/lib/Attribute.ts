@@ -2,6 +2,7 @@ import { Property, IPropertyParams } from "~bdo/lib/Property";
 import { AdvancedOptions } from "type-graphql/dist/decorators/types";
 import { isBrowser } from '~bdo/utils/environment';
 import { Modification } from "~bdo/lib/Modification";
+import { constructTypeOfHTMLAttribute } from '~bdo/utils/util';
 
 type prop<T> = DefNonFuncPropNames<T>;
 
@@ -143,11 +144,8 @@ export class Attribute<T extends object = any, K extends prop<T> = any> extends 
      */
     public setValue(value: T[K]) {
         if (this.valueOf() === value) return;
-        // let valueToPass = value;
-        // if (value instanceof Modification) valueToPass = value.valueOf();
-        super.setValue(value);
-        this.reflectToDOMAttribute();
-        this.storeInUnsavedChanges(value);
+        this.doSetValue(value);
+        this.reflectToDOMAttribute(value);
     }
 
     /**
@@ -155,7 +153,7 @@ export class Attribute<T extends object = any, K extends prop<T> = any> extends 
      */
     public valueOf() {
         let value = super.valueOf();
-        if (!this.storeTemporary && !this.doNotPersist && this.object.isBDOModel) {
+        if (this.unsavedChange && !this.storeTemporary && !this.doNotPersist && this.object.isBDOModel) {
             value = this.unsavedChange;
         }
         return value;
@@ -169,22 +167,25 @@ export class Attribute<T extends object = any, K extends prop<T> = any> extends 
      * @returns
      * @memberof Attribute
      */
-    protected reflectToDOMAttribute() {
-        if (!isBrowser()) return;
+    protected reflectToDOMAttribute(value: any) {
+        if (!isBrowser() || !(this.object instanceof HTMLElement)) return;
+        let valueToPass = value;
+        if (value instanceof Modification) valueToPass = value.valueOf();
+
         const stringKey = this.property.toString();
+        const attrValue = this.object.getAttribute(stringKey);
+        let setAttribute = true;
 
-        if (this.object instanceof HTMLElement) {
-            const attrValue = this.object.getAttribute(stringKey);
-
-            if (!this.inDOMInitialized && attrValue) {
-                this.inDOMInitialized = true;
-                // Set the real value and redo setter
-                (<IndexStructure>this.object)[stringKey] = attrValue;
-                return;
-            } else this.inDOMInitialized = true;
-            // Reflect property changes to attribute
-            if (attrValue !== this.value) this.object.setAttribute(stringKey, this.value);
+        if (!this.inDOMInitialized && attrValue) {
+            // Determine type of attribute
+            const valueToSet = constructTypeOfHTMLAttribute(this.object, this.property);
+            // Set the real value and redo setter
+            (<IndexStructure>this.object)[stringKey] = valueToSet;
+            this.inDOMInitialized = true;
+            setAttribute = false;
         }
+        // Reflect property changes to attribute
+        if (setAttribute && attrValue !== JSON.stringify(valueToPass)) this.object.setAttribute(stringKey, valueToPass);
     }
 
     /**
@@ -197,11 +198,18 @@ export class Attribute<T extends object = any, K extends prop<T> = any> extends 
      * @returns
      * @memberof Attribute
      */
-    protected storeInUnsavedChanges(value: any) {
+    protected doSetValue(value: T[K]) {
         let valueToPass = value;
         if (value instanceof Modification) valueToPass = value.valueOf();
+        super.doSetValue(value, false);
         if (!this.object.isBDOModel || this.storeTemporary || this.doNotPersist || (
-            value instanceof Modification && value.type === "fromServer")) return;
-        this.unsavedChange = valueToPass;
+            value instanceof Modification && value.type === "update")) {
+            this.value = valueToPass;
+        } else {
+            if (valueToPass === undefined && valueToPass !== super.valueOf()) {
+                this.unsavedChange = new Modification() as unknown as T[K];
+            } else this.unsavedChange = valueToPass;
+        }
+        if (value === super.valueOf()) this.unsavedChange = undefined;
     }
 }

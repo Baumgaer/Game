@@ -6,7 +6,7 @@
  *
  * @class Modification
  */
-export class Modification<T extends "delete" | "update" | "fromServer"> {
+export class Modification<T extends "delete" | "update"> {
 
     /**
      * Represents the type of the modification. Things should happen depending in this.
@@ -25,7 +25,7 @@ export class Modification<T extends "delete" | "update" | "fromServer"> {
      */
     private value: any;
 
-    constructor(value: any, type: T | "delete" = "delete") {
+    constructor(value?: any, type: T | "delete" = "delete") {
         this.value = value;
         this.type = <T>type;
     }

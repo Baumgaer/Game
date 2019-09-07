@@ -7,6 +7,7 @@ import { getMetadata, getWildcardMetadata } from "~bdo/utils/metadata";
 import { Binding } from "~bdo/lib/Binding";
 import { Property } from "~bdo/lib/Property";
 import { getNamespacedStorage, setUpdateNamespacedStorage, deleteFromNamespacedStorage } from "~client/utils/util";
+import { constructTypeOfHTMLAttribute } from '~client/../../utils/util';
 
 /**
  * Creates a new BaseComponent based on the HTMLTypeElement
@@ -176,9 +177,10 @@ export function BaseComponentFactory<TBase extends Constructor<HTMLElement>>(HTM
             if (this.properties && this.properties.has(qualifiedName)) {
                 throw new Error(`"${qualifiedName}" can't be set as attribute because it is a defined property`);
             }
-            (<any>this)[qualifiedName] = value;
             if (value) {
                 super.setAttribute(qualifiedName, value);
+                const valueToSet = constructTypeOfHTMLAttribute(this, qualifiedName);
+                (<any>this)[qualifiedName] = valueToSet;
             } else this.removeAttribute(qualifiedName);
         }
 

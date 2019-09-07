@@ -1,3 +1,6 @@
+import { getDesignType } from "~bdo/utils/metadata";
+import { isBrowser } from '~bdo/utils/environment';
+
 /**
  * Capitalizes only the first letter of a string
  *
@@ -77,4 +80,37 @@ export function includesMemberOfList(search: string | string[], list: string[], 
         }
     }
     return false;
+}
+
+/**
+ * Constructs the type of an attribute of a HTMLElement depending on an EXISTING
+ * attribute and a given Type in the component.
+ *
+ * @export
+ * @param {HTMLElement} object
+ * @param {string} key
+ * @returns
+ */
+export function constructTypeOfHTMLAttribute(object: HTMLElement, key: string) {
+    if (!isBrowser()) return;
+    const type = getDesignType(object, key);
+    const attrValue = object.getAttribute(key);
+
+    if (attrValue === null) throw new Error("No attribute set");
+
+    let valueToSet: any = attrValue;
+    if (type.name !== undefined) {
+        if (["Number", "Boolean", "Object", "Array"].includes(type.name)) {
+            valueToSet = JSON.parse(attrValue);
+        }
+        if (type.name === "BaseConstructor") {
+            const obj = JSON.parse(attrValue);
+            const className = obj.className;
+            if (!className) throw new Error("ClassName is missing in component attribute value");
+            delete obj.className;
+            valueToSet = new (type.name)(obj);
+        }
+    }
+    if (valueToSet.constructor.name !== type.name) throw new Error("attribute type equals not defined type");
+    return valueToSet;
 }

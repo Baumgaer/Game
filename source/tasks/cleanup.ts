@@ -1,7 +1,7 @@
 import { resolve } from 'path';
 import { path as rootPath } from 'app-root-path';
 import { existsSync, unlinkSync } from 'graceful-fs';
-import * as colors from 'colors';
+import colors from 'colors';
 import {
     getCorrespondingFile,
     isSourceFile,

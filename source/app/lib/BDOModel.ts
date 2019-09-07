@@ -45,6 +45,22 @@ export abstract class BDOModel {
     public static readonly isBDOModel: boolean = true;
 
     /**
+     * This is for better identification of BDO models and instance check
+     *
+     * @type {boolean}
+     * @memberof BDOModel
+     */
+    @property() public readonly isBDOModel: boolean = true;
+
+    /**
+     * The instance version of the static property collectionName
+     *
+     * @type {string}
+     * @memberof BDOModel
+     */
+    @property() public readonly collectionName?: string = BDOModel.collectionName;
+
+    /**
      * Provides a unique id for each model. If there is no id given, a unique
      * dummy id will be generated.
      *
@@ -62,22 +78,6 @@ export abstract class BDOModel {
      * @memberof BDOModel
      */
     @attribute() public readonly className: string = Object.getPrototypeOf(this.constructor).name;
-
-    /**
-     * This is for better identification of BDO models and instance check
-     *
-     * @type {boolean}
-     * @memberof BDOModel
-     */
-    @property() public readonly isBDOModel: boolean = true;
-
-    /**
-     * The instance version of the static property collectionName
-     *
-     * @type {string}
-     * @memberof BDOModel
-     */
-    @property() public readonly collectionName?: string = BDOModel.collectionName;
 
     /**
      * Holds a list of all bindings to all components

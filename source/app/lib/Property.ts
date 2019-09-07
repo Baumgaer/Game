@@ -132,14 +132,7 @@ export class Property<T extends object = any, K extends DefNonFuncPropNames<T> =
      * @memberof Property
      */
     public setValue(value: T[K]) {
-        if (this.valueOf() === value) return;
-        let valueToPass = value;
-        if (value instanceof Modification) valueToPass = value.valueOf();
-        this.value = valueToPass;
-        this.addExpiration();
-        if (this.shouldUpdateNsStorage() && "setUpdateNamespacedStorage" in this.object) {
-            (<IndexStructure>this.object).setUpdateNamespacedStorage(this.property.toString(), valueToPass);
-        }
+        this.doSetValue(value, true);
     }
 
     /**
@@ -169,6 +162,27 @@ export class Property<T extends object = any, K extends DefNonFuncPropNames<T> =
     }
 
     /**
+     * Executes value setting depending on modifyValue parameter and initialization
+     * properties.
+     *
+     * @protected
+     * @param {T[K]} value
+     * @param {boolean} modifyValue
+     * @returns
+     * @memberof Property
+     */
+    protected doSetValue(value: T[K], modifyValue: boolean) {
+        if (this.valueOf() === value) return;
+        let valueToPass = value;
+        if (value instanceof Modification) valueToPass = value.valueOf();
+        if (modifyValue) this.value = valueToPass;
+        this.addExpiration(valueToPass);
+        if (this.shouldUpdateNsStorage() && "setUpdateNamespacedStorage" in this.object) {
+            (<IndexStructure>this.object).setUpdateNamespacedStorage(this.property.toString(), valueToPass);
+        }
+    }
+
+    /**
      * If the value should be stored temporary in the property descriptor,
      * then here the expiration date in unix timestamp will be added.
      *
@@ -177,8 +191,8 @@ export class Property<T extends object = any, K extends DefNonFuncPropNames<T> =
      * @returns
      * @memberof Property
      */
-    protected addExpiration() {
-        if (this.value === undefined || !this.storeTemporary) return;
+    protected addExpiration(value: T[K]) {
+        if (value === undefined || !this.storeTemporary) return;
         const stringKey = this.property.toString();
 
         this.expires = Date.now() + this.storeTemporary;

@@ -1,4 +1,4 @@
-import { baseConstructor, attribute } from '~bdo/utils/decorators';
+import { baseConstructor, attribute, property } from '~bdo/utils/decorators';
 import { BDOModel } from '~bdo/lib/BDOModel';
 
 /**
@@ -34,6 +34,14 @@ export function BDOTestFactory<TBase extends Constructor<BDOModel>>(ctor: TBase)
          * @memberof Test
          */
         @attribute({ nullable: true }) public description?: string;
+
+        /**
+         * Test
+         *
+         * @type {Object}
+         * @memberof BDOTest
+         */
+        @property({ nullable: true }) public testObj?: Object = {};
 
     }
     return BDOTest;

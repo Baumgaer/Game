@@ -3,7 +3,7 @@ import { path as rootPath } from 'app-root-path';
 import { resolve as resolvePath } from 'path';
 import { readFileSync, writeFileSync } from 'graceful-fs';
 // @ts-ignore
-import * as lessPluginCleanCSS from 'less-plugin-clean-css';
+import lessPluginCleanCSS from 'less-plugin-clean-css';
 
 /**
  * Compiles several formats in source folder to corresponding compilation in out folder

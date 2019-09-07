@@ -166,3 +166,15 @@ export function defineWildcardMetadata(target: Object, key: strNumSym, value: an
 export function getWildcardMetadata(target: Object, key: strNumSym) {
     return Reflect.getMetadata(key, target); // tslint:disable-line
 }
+
+/**
+ * Returns the type of a property of an Object
+ *
+ * @export
+ * @param {Object} target
+ * @param {string} key
+ * @returns
+ */
+export function getDesignType(target: Object, key: string) {
+    return Reflect.getMetadata("design:type", target, key); // tslint:disable-line
+}
