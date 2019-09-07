@@ -132,6 +132,15 @@ export class Attribute<T extends object = any, K extends prop<T> = any> extends 
      */
     protected inDOMInitialized: boolean = false;
 
+    /**
+     * Stores the timeout which is used to debounce the autosave of the attribute
+     *
+     * @private
+     * @type {NodeJS.Timeout}
+     * @memberof Attribute
+     */
+    private autoSaveTimeout?: NodeJS.Timeout;
+
     constructor(object: T, property: K, params?: IAttributeParams) {
         super(object, property, params);
     }
@@ -209,6 +218,15 @@ export class Attribute<T extends object = any, K extends prop<T> = any> extends 
             if (valueToPass === undefined && valueToPass !== super.valueOf()) {
                 this.unsavedChange = new Modification() as unknown as T[K];
             } else this.unsavedChange = valueToPass;
+            if (this.autoSave) {
+                if (typeof this.autoSave === "boolean") this.object.save(this.property);
+                if (typeof this.autoSave === "number" && !this.autoSaveTimeout) {
+                    this.autoSaveTimeout = setTimeout(() => {
+                        this.object.save(this.property);
+                        delete this.autoSaveTimeout;
+                    }, Math.abs(this.autoSave));
+                }
+            }
         }
         if (value === super.valueOf()) this.unsavedChange = undefined;
     }

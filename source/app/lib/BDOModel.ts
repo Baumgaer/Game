@@ -134,4 +134,12 @@ export abstract class BDOModel {
         }
         return data;
     }
+
+    /**
+     * Stores the unsaved changes into the corresponding collection of the model.
+     * It is also possible to save only a single attribute.
+     *
+     * @memberof BDOModel
+     */
+    public abstract async save(prop: string): Promise<any>;
 }

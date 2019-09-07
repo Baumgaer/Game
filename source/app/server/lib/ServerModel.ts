@@ -1,5 +1,6 @@
 import { baseConstructor, property } from "~bdo/utils/decorators";
 import { BDOModel } from "~bdo/lib/BDOModel";
+import { getWildcardMetadata } from "~bdo/utils/metadata";
 
 /**
  * Provides basic functionality and fields for each Model on each side
@@ -29,5 +30,19 @@ export class ServerModel extends BDOModel {
      * @memberof BDOModel
      */
     @property() public readonly isServerModel: boolean = true;
+
+    /**
+     * @inheritdoc
+     *
+     * @param {string} prop
+     * @returns {Promise<any>}
+     * @memberof ServerModel
+     */
+    public async save(_prop: string): Promise<any> {
+        return new Promise((resolve, _reject) => {
+            // console.log(`saved ${_prop} with val ${getWildcardMetadata(this, _prop).unsavedChange}!`);
+            resolve();
+        });
+    }
 
 }
