@@ -99,7 +99,7 @@ export function constructTypeOfHTMLAttribute(object: HTMLElement, key: string) {
     if (attrValue === null) throw new Error("No attribute set");
 
     let valueToSet: any = attrValue;
-    if (type.name !== undefined) {
+    if (type && type.name !== undefined) {
         if (["Number", "Boolean", "Object", "Array"].includes(type.name)) {
             valueToSet = JSON.parse(attrValue);
         }
@@ -111,6 +111,6 @@ export function constructTypeOfHTMLAttribute(object: HTMLElement, key: string) {
             valueToSet = new (type.name)(obj);
         }
     }
-    if (valueToSet.constructor.name !== type.name) throw new Error("attribute type equals not defined type");
+    if (valueToSet && type && valueToSet.constructor.name !== type.name) throw new Error("attribute type equals not defined type");
     return valueToSet;
 }
