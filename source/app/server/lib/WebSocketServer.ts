@@ -1,6 +1,6 @@
 import { BaseServer } from '~server/lib/BaseServer';
-import * as ws from 'ws';
-import * as os from "os";
+import ws from 'ws';
+import os from "os";
 import { IncomingMessage } from 'http';
 import { Request, Response } from 'express';
 import { Logger } from '~server/lib/Logger';

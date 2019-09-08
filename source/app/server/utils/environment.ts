@@ -1,4 +1,4 @@
-import * as os from "os";
+import os from "os";
 /**
  * Provides a minimal interface for the frontend, which is passed by the server
  * to access process information.
