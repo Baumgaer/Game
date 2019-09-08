@@ -152,14 +152,17 @@ export class Attribute<T extends object = any, K extends prop<T> = any> extends 
      * @memberof Attribute
      */
     public setValue(value: T[K]) {
-        if (this.valueOf() === value || !this.disableTypeGuard && this.typeGuard(value)) return;
+        if (this.valueOf() === value || (!this.disableTypeGuard && !this.typeGuard(value))) return;
         this.doSetValue(value);
         this.reflectToDOMAttribute(value);
         this.doAutoSave();
     }
 
     /**
-     * valueOf
+     * @inheritdoc
+     *
+     * @returns
+     * @memberof Attribute
      */
     public valueOf() {
         let value = super.valueOf();
@@ -199,6 +202,8 @@ export class Attribute<T extends object = any, K extends prop<T> = any> extends 
     }
 
     /**
+     * @inheritdoc
+     *
      * Stores values in unsavedChanges if object is an BDOModel. Normally this
      * will be used in methods called save() or discard(). If a modification of
      * type fromServer is passed in it will not update the unsaved changes

@@ -3,6 +3,7 @@ import { Modification } from "~bdo/lib/Modification";
 import { getMetadata, defineMetadata, getDesignType } from "~bdo/utils/metadata";
 import { isBrowser } from "~bdo/utils/environment";
 import { isPrimitive, ucFirst } from "~bdo/utils/util";
+import { TypeError } from "~bdo/lib/Errors";
 
 /**
  * This parameters should only be used in models and components other objects
@@ -241,43 +242,43 @@ export class Property<T extends object = any, K extends DefNonFuncPropNames<T> =
     }
 
     /**
-     * Checks if the given type is the required type and throws an error if not
+     * Checks if the given type is the required type and throws an error if not.
+     * returns true if everything is OK and false else.
      *
-     * @protected
+     * @public
      * @param {T[K]} value
      * @memberof Property
      */
-    protected typeGuard(value: T[K]) {
+    public typeGuard(value: T[K]) {
         let valueToPass = value;
         if (value instanceof Modification) valueToPass = value.valueOf();
 
         const designType = getDesignType(this.object, this.property.toString());
-        const errorMessage = new Error(`${valueToPass} is not type of ${designType.className || designType.name}`);
+        const typeError = new TypeError(`${valueToPass} is not type of ${designType.className || designType.name}`);
 
-        let successful = false;
+        let error;
 
         // Do basic type checking depending on annotated types in script
-        if (this.nullable && valueToPass === undefined) successful = true;
+        if (!this.nullable && valueToPass === undefined) error = typeError;
 
-        if (!successful) {
+        if (!error) {
             if (isPrimitive(valueToPass)) {
-                if (typeof valueToPass === designType.name.toLowerCase()) successful = true;
-            } else if (valueToPass instanceof designType) successful = true;
+                if (typeof valueToPass !== designType.name.toLowerCase()) error = typeError;
+            } else if (!(valueToPass instanceof designType)) error = typeError;
         }
 
         // Do custom type checking
-        if (successful && this.onTypeCheck in this.object) {
-            successful = (<IndexStructure>this.object)[this.onTypeCheck](valueToPass);
+        if (!error && this.onTypeCheck in this.object) {
+            error = (<IndexStructure>this.object)[this.onTypeCheck](valueToPass);
         }
 
         // React on success or error
-        if (!successful) {
+        if (error) {
             if (this.onTypeCheckFail in this.object) {
                 (<IndexStructure>this.object)[this.onTypeCheckFail]();
-            } else throw errorMessage;
+            } else throw error;
         } else if (this.onTypeCheckSuccess in this.object) (<IndexStructure>this.object)[this.onTypeCheckSuccess]();
-
-        return successful;
+        return !(Boolean(error).valueOf());
     }
 
     /**
@@ -291,11 +292,11 @@ export class Property<T extends object = any, K extends DefNonFuncPropNames<T> =
      * @memberof Property
      */
     protected doSetValue(value: T[K], modifyValue: boolean) {
-        if (this.valueOf() === value || !this.disableTypeGuard && this.typeGuard(value)) return;
+        if (this.valueOf() === value || (!this.disableTypeGuard && !this.typeGuard(value))) return;
         let valueToPass = value;
         if (value instanceof Modification) valueToPass = value.valueOf();
         if (modifyValue) this.value = valueToPass;
-        this.addExpiration(valueToPass);
+        this.addExpiration(value);
         if (this.shouldUpdateNsStorage() && "setUpdateNamespacedStorage" in this.object) {
             (<IndexStructure>this.object).setUpdateNamespacedStorage(this.property.toString(), valueToPass);
         }
@@ -311,9 +312,11 @@ export class Property<T extends object = any, K extends DefNonFuncPropNames<T> =
      * @memberof Property
      */
     protected addExpiration(value: T[K]) {
-        if (value === undefined || !this.storeTemporary) return;
-        const stringKey = this.property.toString();
+        if (value === undefined || !this.storeTemporary || (value instanceof Modification && value.type === "delete")) {
+            return;
+        }
 
+        const stringKey = this.property.toString();
         this.expires = Date.now() + this.storeTemporary;
 
         if (this.expirationTimeout) clearTimeout(this.expirationTimeout);
@@ -331,7 +334,7 @@ export class Property<T extends object = any, K extends DefNonFuncPropNames<T> =
      * @returns {boolean}
      * @memberof Property
      */
-    protected shouldUpdateNsStorage(): boolean {
+    protected shouldUpdateNsStorage() {
         if (!this.saveInLocalStorage || !isBrowser()) return false;
         const stringKey = this.property.toString();
         const keyShouldBeUpdated = getMetadata(this.object, "keyShouldBeUpdated") || {};

@@ -4,7 +4,6 @@ import { ucFirst } from "~bdo/utils/util";
 import onChange from "on-change";
 import { isObject } from 'lodash';
 import cloneDeep from "clone-deep";
-// import cloneDeep = require("clone-deep");
 
 /**
  * This parameters are in fact for all objects with or without baseConstructor
@@ -249,21 +248,24 @@ export class Watched<T extends object = any, K extends DefNonFuncPropNames<T> = 
      */
     public setValue(value: T[K]) {
         let oldVal = this.valueOf();
-        if (oldVal === value) return;
+        if (oldVal === value || (
+            this.subObject && !this.subObject.disableTypeGuard && !this.subObject.typeGuard(value))) return;
 
         let valueToPass = value;
         if (value instanceof Modification) valueToPass = value.valueOf();
-
         // Make a deep copy of old value to pass an unchanged version to the onChange function
         oldVal = cloneDeep(oldVal);
-
         // Process array and object modification
         valueToPass = this.getArrayObjectProxy(valueToPass);
-
+        // Update modifications value to behold the proxy functionality
+        if (value instanceof Modification) {
+            value.setValue(valueToPass);
+            valueToPass = value;
+        }
+        // Set new Value
         if (this.subObject) {
-            this.subObject.setValue(value);
+            this.subObject.setValue(valueToPass);
         } else this.value = valueToPass;
-
         // React on variable changes
         if (this.onChange in this.object && this.isInitialized) (<IndexStructure>this.object)[this.onChange](oldVal);
         // React on initialization
@@ -293,7 +295,8 @@ export class Watched<T extends object = any, K extends DefNonFuncPropNames<T> = 
      * @memberof Watched
      */
     public setSubObject(subObject: Property) {
-        let value = onChange.unsubscribe(this.valueOf());
+        let value = this.valueOf();
+        if (value) value = onChange.unsubscribe(value);
         // Process array and object modification
         value = this.getArrayObjectProxy(value);
         this.subObject = subObject;
