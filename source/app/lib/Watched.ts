@@ -1,4 +1,5 @@
 import { Property } from "~bdo/lib/Property";
+import { Attribute } from '~bdo/lib/Attribute';
 import { Modification } from '~bdo/lib/Modification';
 import { ucFirst } from "~bdo/utils/util";
 import onChange from "on-change";
@@ -153,7 +154,7 @@ export class Watched<T extends object = any, K extends DefNonFuncPropNames<T> = 
      * @type {Attribute}
      * @memberof Watched
      */
-    public subObject?: Property;
+    public subObject?: Property<T, K> | Attribute<T, K>;
 
     /**
      * @inheritdoc
@@ -267,9 +268,13 @@ export class Watched<T extends object = any, K extends DefNonFuncPropNames<T> = 
             this.subObject.setValue(valueToPass);
         } else this.value = valueToPass;
         // React on variable changes
-        if (this.onChange in this.object && this.isInitialized) (<IndexStructure>this.object)[this.onChange](oldVal);
+        if (this.executeReactionFunction(value) && this.onChange in this.object && this.isInitialized) {
+            (<IndexStructure>this.object)[this.onChange](oldVal);
+        }
         // React on initialization
-        if (this.onInit in this.object && !this.isInitialized) (<IndexStructure>this.object)[this.onInit](valueToPass);
+        if (this.executeReactionFunction(value) && this.onInit in this.object && !this.isInitialized) {
+            (<IndexStructure>this.object)[this.onInit](valueToPass);
+        }
         this.isInitialized = true;
     }
 
@@ -294,13 +299,28 @@ export class Watched<T extends object = any, K extends DefNonFuncPropNames<T> = 
      * @param {Property} subObject
      * @memberof Watched
      */
-    public setSubObject(subObject: Property) {
+    public setSubObject(subObject: Property<T, K> | Attribute<T, K>) {
         let value = this.valueOf();
         if (value) value = onChange.unsubscribe(value);
         // Process array and object modification
         value = this.getArrayObjectProxy(value);
         this.subObject = subObject;
         this.subObject.setValue(value);
+    }
+
+    /**
+     * Decides wether to execute the reaction functions depending on unsaved changes and the incoming value
+     *
+     * @private
+     * @param {*} value
+     * @returns
+     * @memberof Watched
+     */
+    private executeReactionFunction(value: any) {
+        if ((<any>this.object).isBDOModel && value instanceof Modification && value.type === "update") {
+            if (this.subObject && this.subObject instanceof Attribute && this.subObject.unsavedChange) return false;
+        }
+        return true;
     }
 
     /**
