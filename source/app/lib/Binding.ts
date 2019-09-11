@@ -125,7 +125,7 @@ export class Binding<T extends object = any, K extends DefNonFuncPropNames<T> = 
      *
      * @memberof Binding
      */
-    public reflectToInitiators(newVal: T[K]) {
+    public reflectToInitiators(newVal: T[K] | Modification<any>) {
         if (newVal instanceof Modification) newVal = newVal.valueOf();
         if (this.initiator[this.initiatorProperty] === newVal || this.mode === "WriteOnly") return;
         const mData = getMetadata(this.object, "bindings");
@@ -141,10 +141,10 @@ export class Binding<T extends object = any, K extends DefNonFuncPropNames<T> = 
      * @param {T[K]} newVal
      * @memberof Binding
      */
-    public reflectToObject(newVal: T[K]) {
+    public reflectToObject(newVal: T[K] | Modification<any>) {
         if (newVal instanceof Modification) newVal = newVal.valueOf();
         if (this.object[this.property] === newVal || this.mode === "ReadOnly") return;
-        this.object[this.property] = newVal;
+        this.object[this.property] = newVal as T[K];
     }
 
     /**

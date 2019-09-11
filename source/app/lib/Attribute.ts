@@ -151,7 +151,7 @@ export class Attribute<T extends object = any, K extends prop<T> = any> extends 
      * @param {T[K]} value
      * @memberof Attribute
      */
-    public setValue(value: T[K]) {
+    public setValue(value: T[K] | Modification<any>) {
         if (this.valueOf() === value || (!this.disableTypeGuard && !this.typeGuard(value))) return;
         this.doSetValue(value);
         this.reflectToDOMAttribute(value);
@@ -213,9 +213,11 @@ export class Attribute<T extends object = any, K extends prop<T> = any> extends 
      * @returns
      * @memberof Attribute
      */
-    protected doSetValue(value: T[K]) {
-        let valueToPass = value;
-        if (value instanceof Modification) valueToPass = value.valueOf();
+    protected doSetValue(value: T[K] | Modification<any>) {
+        let valueToPass: T[K];
+        if (value instanceof Modification) {
+            valueToPass = value.valueOf();
+        } else valueToPass = value;
         super.doSetValue(value, false);
         if (!this.object.isBDOModel || this.storeTemporary || this.doNotPersist || (
             value instanceof Modification && value.type === "update")) {

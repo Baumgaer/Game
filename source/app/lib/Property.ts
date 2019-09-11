@@ -211,7 +211,7 @@ export class Property<T extends object = any, K extends DefNonFuncPropNames<T> =
      * @param {T[K]} value
      * @memberof Property
      */
-    public setValue(value: T[K]) {
+    public setValue(value: T[K] | Modification<any>) {
         this.doSetValue(value, true);
     }
 
@@ -249,7 +249,7 @@ export class Property<T extends object = any, K extends DefNonFuncPropNames<T> =
      * @param {T[K]} value
      * @memberof Property
      */
-    public typeGuard(value: T[K]) {
+    public typeGuard(value: T[K] | Modification<any>) {
         let valueToPass = value;
         if (value instanceof Modification) valueToPass = value.valueOf();
 
@@ -291,10 +291,12 @@ export class Property<T extends object = any, K extends DefNonFuncPropNames<T> =
      * @returns
      * @memberof Property
      */
-    protected doSetValue(value: T[K], modifyValue: boolean) {
+    protected doSetValue(value: T[K] | Modification<any>, modifyValue: boolean) {
         if (this.valueOf() === value || (!this.disableTypeGuard && !this.typeGuard(value))) return;
-        let valueToPass = value;
-        if (value instanceof Modification) valueToPass = value.valueOf();
+        let valueToPass: T[K];
+        if (value instanceof Modification) {
+            valueToPass = value.valueOf();
+        } else valueToPass = value;
         if (modifyValue) this.value = valueToPass;
         this.addExpiration(value);
         if (this.shouldUpdateNsStorage() && "setUpdateNamespacedStorage" in this.object) {
@@ -311,7 +313,7 @@ export class Property<T extends object = any, K extends DefNonFuncPropNames<T> =
      * @returns
      * @memberof Property
      */
-    protected addExpiration(value: T[K]) {
+    protected addExpiration(value: T[K] | Modification<any>) {
         if (value === undefined || !this.storeTemporary || (value instanceof Modification && value.type === "delete")) {
             return;
         }

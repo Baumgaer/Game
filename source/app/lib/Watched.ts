@@ -247,25 +247,28 @@ export class Watched<T extends object = any, K extends DefNonFuncPropNames<T> = 
      * @returns
      * @memberof Watched
      */
-    public setValue(value: T[K]) {
+    public setValue(value: T[K] | Modification<any>) {
         let oldVal = this.valueOf();
         if (oldVal === value || (
             this.subObject && !this.subObject.disableTypeGuard && !this.subObject.typeGuard(value))) return;
 
-        let valueToPass = value;
-        if (value instanceof Modification) valueToPass = value.valueOf();
+        let valueToPass: T[K];
+        if (value instanceof Modification) {
+            valueToPass = value.valueOf();
+        } else valueToPass = value;
         // Make a deep copy of old value to pass an unchanged version to the onChange function
         oldVal = cloneDeep(oldVal);
         // Process array and object modification
         valueToPass = this.getArrayObjectProxy(valueToPass);
         // Update modifications value to behold the proxy functionality
+        let useValue = false;
         if (value instanceof Modification) {
             value.setValue(valueToPass);
-            valueToPass = value;
+            useValue = true;
         }
         // Set new Value
         if (this.subObject) {
-            this.subObject.setValue(valueToPass);
+            this.subObject.setValue(useValue ? value : valueToPass);
         } else this.value = valueToPass;
         // React on variable changes
         if (this.executeReactionFunction(value) && this.onChange in this.object && this.isInitialized) {
