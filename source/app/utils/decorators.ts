@@ -1,11 +1,11 @@
 import 'reflect-metadata';
-import { Binding } from "~bdo/lib/Binding";
 import { pascalCase2kebabCase } from "~bdo/utils/util";
 import { isBrowser } from "~bdo/utils/environment";
 import { IPropertyParams, Property } from "~bdo/lib/Property";
 import { IAttributeParams, Attribute } from "~bdo/lib/Attribute";
 import { IWatchedParams, Watched } from "~bdo/lib/Watched";
 import { getMetadata, defineMetadata, defineWildcardMetadata, getWildcardMetadata } from "~bdo/utils/metadata";
+import { beforePropertyDescriptors, setter, getter } from "~bdo/utils/framework";
 import { ReturnTypeFunc } from "type-graphql/dist/decorators/types";
 import { ObjectOptions } from "type-graphql/dist/decorators/ObjectType";
 import {
@@ -35,7 +35,6 @@ interface IBaseConstructorOpts extends ObjectOptions {
 type FuncOrAttrParams = ReturnTypeFunc | IAttributeParams;
 type nameOrOptsOrIndex = string | IBaseConstructorOpts | number;
 type optsOrIndex = IBaseConstructorOpts | number;
-type defPropOrAttr = "definedProperties" | "definedAttributes";
 
 /**
  * reacts on several types of changes of the property / attribute.
@@ -274,88 +273,3 @@ export let mutation = Mutation;
 export let subscription = Subscription;
 export let pubSub = PubSub;
 export let inputType = InputType;
-
-/**
- * Gets the previous property descriptor and sets metadata for later access and
- * identification of properties and attributes.
- *
- * @param {*} target
- * @param {(string | symbol)} key
- * @param {string} mDataName
- * @returns
- */
-function beforePropertyDescriptors(target: any, key: string, mDataName: defPropOrAttr) {
-    // Get previous defined property descriptor for chaining
-    const propDesc = Reflect.getOwnPropertyDescriptor(target, key);
-
-    // Define metadata for access to attributes for later checks
-    if (!Reflect.hasMetadata(mDataName, target)) defineMetadata(target, mDataName, new Array<string>());
-    const map = getMetadata(target, mDataName) as string[];
-    map.push(key.toString());
-    return propDesc;
-}
-
-/**
- * Implements the getter of properties and attributes
- *
- * @param {*} instance
- * @param {(string | symbol)} key
- * @param {IAttributeParams} [params]
- * @param {PropertyDescriptor} [propDesc]
- * @returns
- */
-function getter(instance: any, key: string | symbol, propDesc?: PropDesc) {
-    if (!getMetadata(instance, "normalFunctionality")) {
-        const defaultSettings = getMetadata(instance, "defaultSettings") || {};
-        return defaultSettings[key.toString()];
-    }
-    const stringKey = key.toString();
-    if (propDesc && propDesc.get) {
-        return propDesc.get.call(instance);
-    } else {
-        const mData = getWildcardMetadata(instance, stringKey);
-        if (mData) return mData.valueOf();
-        return undefined;
-    }
-}
-
-/**
- * Implements the setter of attribute and property and does the second part of
- * the binding mechanism. First part is to initialize the Binding object.
- * Second part is to bind the components/models to each other
- *
- * @param {*} instance
- * @param {(string | symbol)} key
- * @param {*} newVal
- * @param {IAttributeParams} [params]
- * @param {PropertyDescriptor} [propDesc]
- * @returns
- */
-function setter(instance: any, key: string | symbol, newVal: any, propDesc?: PropDesc) {
-    // Set default setting while construction is running
-    if (!getMetadata(instance, "normalFunctionality")) {
-        const defaultSettings = getMetadata(instance, "defaultSettings") || {};
-        Object.assign(defaultSettings, { [key]: newVal });
-        defineMetadata(instance, "defaultSettings", defaultSettings);
-        return;
-    }
-    const stringKey = key.toString();
-    // Get Metadata of the property / attribute
-    // Do complicated things only when the value is a real change
-    if (instance[stringKey] === newVal) return;
-    const mData = getWildcardMetadata(instance, stringKey);
-    const initiatorMData = getMetadata(instance, "initiatorBinding");
-    const initiatorBinding = initiatorMData ? initiatorMData.get(stringKey) : undefined;
-    // install binding
-    if (newVal instanceof Binding) {
-        // Bind to thisArg object
-        newVal.install(instance, stringKey);
-        newVal = newVal.valueOf();
-    }
-    // Set new value to the attribute or property
-    mData.setValue(newVal);
-    // Reflect to component or other model which gives a binding
-    if (initiatorBinding) initiatorBinding.reflectToObject(newVal);
-    // Call other property descriptors
-    if (propDesc && propDesc.set) propDesc.set.call(instance, newVal);
-}

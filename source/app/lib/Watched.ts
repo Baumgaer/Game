@@ -3,7 +3,6 @@ import { Attribute } from '~bdo/lib/Attribute';
 import { Modification } from '~bdo/lib/Modification';
 import { ucFirst } from "~bdo/utils/util";
 import onChange from "on-change";
-import { isObject } from 'lodash';
 import cloneDeep from "clone-deep";
 
 /**
@@ -247,12 +246,12 @@ export class Watched<T extends object = any, K extends DefNonFuncPropNames<T> = 
      * @returns
      * @memberof Watched
      */
-    public setValue(value: T[K] | Modification<any>) {
+    public setValue(value?: T[K] | Modification<any>) {
         let oldVal = this.valueOf();
         if (oldVal === value || (
             this.subObject && !this.subObject.disableTypeGuard && !this.subObject.typeGuard(value))) return;
 
-        let valueToPass: T[K];
+        let valueToPass: T[K] | undefined;
         if (value instanceof Modification) {
             valueToPass = value.valueOf();
         } else valueToPass = value;
@@ -303,12 +302,50 @@ export class Watched<T extends object = any, K extends DefNonFuncPropNames<T> = 
      * @memberof Watched
      */
     public setSubObject(subObject: Property<T, K> | Attribute<T, K>) {
-        let value = this.valueOf();
-        if (value) value = onChange.unsubscribe(value);
-        // Process array and object modification
-        value = this.getArrayObjectProxy(value);
+        const value = this.valueOf();
         this.subObject = subObject;
         this.subObject.setValue(value);
+    }
+
+    /**
+     * Handles the behavior of the proxy if value is an Object
+     *
+     * @param {string} path
+     * @param {T[K]} changedValue
+     * @param {T[K]} previousValue
+     * @memberof Watched
+     */
+    public proxyHandler(path: string, changedValue: T[K], previousValue: T[K]) {
+        if (this.subObject) this.subObject.proxyHandler();
+        const newKeys = Object.keys(changedValue);
+        const oldKeys = Object.keys(previousValue);
+        const newLen = newKeys.length;
+        const oldLen = oldKeys.length;
+
+        // Case: added
+        this.caseDetectExec({
+            len1: newLen,
+            len2: oldLen,
+            func: this.onAdd,
+            keys1: newKeys,
+            keys2: oldKeys,
+            changedValue,
+            path
+        });
+        // Case: removed
+        this.caseDetectExec({
+            len1: oldLen,
+            len2: newLen,
+            func: this.onRemove,
+            keys1: oldKeys,
+            keys2: newKeys,
+            changedValue,
+            path
+        });
+        // Case: deep change
+        if (newLen === oldLen && this.onChange in this && this.isInitialized) {
+            (<IndexStructure>this.object)[this.onChange](changedValue, path);
+        }
     }
 
     /**
@@ -335,38 +372,11 @@ export class Watched<T extends object = any, K extends DefNonFuncPropNames<T> = 
      * @returns
      * @memberof Watched
      */
-    private getArrayObjectProxy(value: T[K]) {
-        if (value instanceof Array || isObject(value)) {
+    private getArrayObjectProxy(value?: T[K]) {
+        if (value instanceof Array) {
+            value = onChange.target(value);
             return onChange(value, (path, changedValue, previousValue) => {
-                const newKeys = Object.keys(<object>changedValue);
-                const oldKeys = Object.keys(<object>previousValue);
-                const newLen = newKeys.length;
-                const oldLen = oldKeys.length;
-
-                // Case: added
-                this.caseDetectExec({
-                    len1: newLen,
-                    len2: oldLen,
-                    func: this.onAdd,
-                    keys1: newKeys,
-                    keys2: oldKeys,
-                    changedValue,
-                    path
-                });
-                // Case: removed
-                this.caseDetectExec({
-                    len1: oldLen,
-                    len2: newLen,
-                    func: this.onRemove,
-                    keys1: oldKeys,
-                    keys2: newKeys,
-                    changedValue,
-                    path
-                });
-                // Case: deep change
-                if (newLen === oldLen && this.onChange in this && this.isInitialized) {
-                    (<IndexStructure>this.object)[this.onChange](changedValue, path);
-                }
+                this.proxyHandler(path, <T[K]>changedValue, <T[K]>previousValue);
             }, { isShallow: this.isShallow });
         }
         return value;

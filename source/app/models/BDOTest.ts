@@ -25,7 +25,7 @@ export function BDOTestFactory<TBase extends Constructor<BDOModel>>(ctor: TBase)
          * @type {string}
          * @memberof Test
          */
-        @attribute({ storeTemporary: 5000 }) public title: string = 'test';
+        @property({ storeTemporary: 30000 }) public title: string = 'test';
 
         /**
          * Test

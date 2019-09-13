@@ -4,6 +4,7 @@ import { getMetadata, defineMetadata, getDesignType } from "~bdo/utils/metadata"
 import { isBrowser } from "~bdo/utils/environment";
 import { isPrimitive, ucFirst } from "~bdo/utils/util";
 import { TypeError } from "~bdo/lib/Errors";
+import onChange from "on-change";
 
 /**
  * This parameters should only be used in models and components other objects
@@ -211,7 +212,7 @@ export class Property<T extends object = any, K extends DefNonFuncPropNames<T> =
      * @param {T[K]} value
      * @memberof Property
      */
-    public setValue(value: T[K] | Modification<any>) {
+    public setValue(value?: T[K] | Modification<any>) {
         this.doSetValue(value, true);
     }
 
@@ -249,7 +250,7 @@ export class Property<T extends object = any, K extends DefNonFuncPropNames<T> =
      * @param {T[K]} value
      * @memberof Property
      */
-    public typeGuard(value: T[K] | Modification<any>) {
+    public typeGuard(value?: T[K] | Modification<any>) {
         let valueToPass = value;
         if (value instanceof Modification) valueToPass = value.valueOf();
 
@@ -282,6 +283,16 @@ export class Property<T extends object = any, K extends DefNonFuncPropNames<T> =
     }
 
     /**
+     * Handles the behavior of the proxy if value is an Object
+     *
+     * @memberof Property
+     */
+    public proxyHandler() {
+        const value = this.value;
+        if (value !== undefined) this.doSetValue(onChange.target(value), false);
+    }
+
+    /**
      * Executes value setting depending on modifyValue parameter and initialization
      * properties.
      *
@@ -291,17 +302,33 @@ export class Property<T extends object = any, K extends DefNonFuncPropNames<T> =
      * @returns
      * @memberof Property
      */
-    protected doSetValue(value: T[K] | Modification<any>, modifyValue: boolean) {
+    protected doSetValue(value?: T[K] | Modification<any>, modifyValue: boolean = true) {
         if (this.valueOf() === value || (!this.disableTypeGuard && !this.typeGuard(value))) return;
-        let valueToPass: T[K];
+        let valueToPass: T[K] | undefined;
         if (value instanceof Modification) {
             valueToPass = value.valueOf();
         } else valueToPass = value;
-        if (modifyValue) this.value = valueToPass;
+        if (modifyValue) this.value = this.proxyfyValue(valueToPass);
         this.addExpiration(value);
         if (this.shouldUpdateNsStorage() && "setUpdateNamespacedStorage" in this.object) {
             (<IndexStructure>this.object).setUpdateNamespacedStorage(this.property.toString(), valueToPass);
         }
+    }
+
+    /**
+     * Proxyfyes the value to detect changes in objects and execute behavior if wanted
+     *
+     * @protected
+     * @param {T[K]} [value]
+     * @returns
+     * @memberof Property
+     */
+    protected proxyfyValue(value?: T[K]) {
+        if (value instanceof Array) {
+            value = onChange.target(value);
+            return onChange(value, this.proxyHandler.bind(this));
+        }
+        return value;
     }
 
     /**
@@ -313,7 +340,7 @@ export class Property<T extends object = any, K extends DefNonFuncPropNames<T> =
      * @returns
      * @memberof Property
      */
-    protected addExpiration(value: T[K] | Modification<any>) {
+    protected addExpiration(value?: T[K] | Modification<any>) {
         if (value === undefined || !this.storeTemporary || (value instanceof Modification && value.type === "delete")) {
             return;
         }

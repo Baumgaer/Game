@@ -45,7 +45,9 @@ export default class ViewLink extends BaseComponentFactory(HTMLAnchorElement) {
     @watched({
         onRemove: "onTesterChange",
         onInit: "onTesterChange"
-    }) @property() public tester: string[] = ["haha"];
+    }) @property({
+        saveInLocalStorage: true
+    }) public tester: string[] = this.model.bind("testArray");
 
     constructor(_params?: ConstParams<ViewLink>) {
         super();
@@ -68,8 +70,8 @@ export default class ViewLink extends BaseComponentFactory(HTMLAnchorElement) {
      * @param {string} added
      * @memberof ViewLink
      */
-    protected onTesterAdd(_added: this["tester"]): void {
-        // console.log("tester added", added);
+    protected onTesterAdd(added: this["tester"]): void {
+        console.log("tester added", added); // tslint:disable-line
     }
 
     /**
@@ -79,8 +81,8 @@ export default class ViewLink extends BaseComponentFactory(HTMLAnchorElement) {
      * @param {string} changed
      * @memberof ViewLink
      */
-    protected onTesterChange(_changed: this["tester"]): void {
-        // console.log("tester changed", this, changed);
+    protected onTesterChange(changed: this["tester"]): void {
+        console.log("tester changed", this, changed); // tslint:disable-line
     }
 
     /**
@@ -90,8 +92,8 @@ export default class ViewLink extends BaseComponentFactory(HTMLAnchorElement) {
      * @param {this["test"]} changed
      * @memberof ViewLink
      */
-    protected onTestChange(_changed: this["test"]) {
-        // console.log("title changed", changed);
+    protected onTestChange(changed: this["test"]) {
+        console.log("title changed", changed);  // tslint:disable-line
     }
 
     /**

@@ -151,7 +151,7 @@ export class Attribute<T extends object = any, K extends prop<T> = any> extends 
      * @param {T[K]} value
      * @memberof Attribute
      */
-    public setValue(value: T[K] | Modification<any>) {
+    public setValue(value?: T[K] | Modification<any>) {
         if (this.valueOf() === value || (!this.disableTypeGuard && !this.typeGuard(value))) return;
         this.doSetValue(value);
         this.reflectToDOMAttribute(value);
@@ -180,7 +180,7 @@ export class Attribute<T extends object = any, K extends prop<T> = any> extends 
      * @returns
      * @memberof Attribute
      */
-    protected reflectToDOMAttribute(value: any) {
+    protected reflectToDOMAttribute(value?: T[K] | Modification<any>) {
         if (!isBrowser() || !(this.object instanceof HTMLElement)) return;
         let valueToPass = value;
         if (value instanceof Modification) valueToPass = value.valueOf();
@@ -198,7 +198,9 @@ export class Attribute<T extends object = any, K extends prop<T> = any> extends 
             setAttribute = false;
         }
         // Reflect property changes to attribute
-        if (setAttribute && attrValue !== JSON.stringify(valueToPass)) this.object.setAttribute(stringKey, valueToPass);
+        if (setAttribute && attrValue !== JSON.stringify(valueToPass)) {
+            (<any>this.object).setAttribute(stringKey, valueToPass);
+        }
     }
 
     /**
@@ -213,15 +215,15 @@ export class Attribute<T extends object = any, K extends prop<T> = any> extends 
      * @returns
      * @memberof Attribute
      */
-    protected doSetValue(value: T[K] | Modification<any>) {
-        let valueToPass: T[K];
+    protected doSetValue(value?: T[K] | Modification<any>) {
+        let valueToPass: T[K] | undefined;
         if (value instanceof Modification) {
             valueToPass = value.valueOf();
         } else valueToPass = value;
         super.doSetValue(value, false);
         if (!this.object.isBDOModel || this.storeTemporary || this.doNotPersist || (
             value instanceof Modification && value.type === "update")) {
-            this.value = valueToPass;
+            this.value = this.proxyfyValue(valueToPass);
         } else {
             if (valueToPass === undefined && valueToPass !== super.valueOf()) {
                 this.unsavedChange = new Modification() as unknown as T[K];
