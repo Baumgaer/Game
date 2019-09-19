@@ -33,7 +33,7 @@
     "license": "ISC",
     "devDependencies": {
         "@types/app-root-path": "^1.2.4",
-        "@types/chai": "^4.2.2",
+        "@types/chai": "^4.2.3",
         "@types/clone-deep": "^4.0.1",
         "@types/command-line-args": "^5.0.0",
         "@types/command-line-usage": "^5.0.1",
@@ -93,7 +93,7 @@
         "tslint-no-unused-expression-chai": "^0.1.4",
         "typescript": "^3.6.3",
         "webpack": "^4.40.2",
-        "webpack-cli": "^3.3.8",
+        "webpack-cli": "^3.3.9",
         "webpack-filter-warnings-plugin": "^1.2.1"
     },
     "dependencies": {
@@ -115,7 +115,7 @@
         "express-graphql": "^0.9.0",
         "express-session": "^1.16.2",
         "graceful-fs": "^4.2.2",
-        "graphql": "^14.5.5",
+        "graphql": "^14.5.6",
         "graphql-redis-subscriptions": "^2.1.1",
         "grunt": "^1.0.4",
         "helmet": "^3.21.0",
@@ -134,7 +134,7 @@
         "open-simplex-noise": "^1.6.0",
         "reflect-metadata": "^0.1.13",
         "set-value": "^3.0.1",
-        "ts-node": "^8.3.0",
+        "ts-node": "^8.4.1",
         "tslib": "^1.10.0",
         "type-graphql": "^0.17.5",
         "util": "^0.12.1",
