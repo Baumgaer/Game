@@ -1,11 +1,13 @@
 import 'reflect-metadata';
 import { pascalCase2kebabCase } from "~bdo/utils/util";
 import { isBrowser } from "~bdo/utils/environment";
-import { IPropertyParams, Property } from "~bdo/lib/Property";
-import { IAttributeParams, Attribute } from "~bdo/lib/Attribute";
-import { IWatchedParams, Watched } from "~bdo/lib/Watched";
-import { getMetadata, defineMetadata, defineWildcardMetadata, getWildcardMetadata } from "~bdo/utils/metadata";
-import { beforePropertyDescriptors, setter, getter } from "~bdo/utils/framework";
+import { IPropertyParams } from "~bdo/lib/Property";
+import { IAttributeParams } from "~bdo/lib/Attribute";
+import { IWatchedParams } from "~bdo/lib/Watched";
+import { Binding } from "~bdo/lib/Binding";
+import { getMetadata, defineMetadata } from "~bdo/utils/metadata";
+import { beforePropertyDescriptors, createDecoratorDescriptor } from "~bdo/utils/framework";
+import { isFunction } from "lodash";
 import { ReturnTypeFunc } from "type-graphql/dist/decorators/types";
 import { ObjectOptions } from "type-graphql/dist/decorators/ObjectType";
 import {
@@ -49,27 +51,9 @@ type optsOrIndex = IBaseConstructorOpts | number;
  */
 export function watched(params: IWatchedParams = {}): PropertyDecorator {
     return (target: any, key: string | symbol) => {
-        const propDesc = Reflect.getOwnPropertyDescriptor(target, key);
-
-        // Create new property with getter and setter
-        Reflect.deleteProperty(target, key);
-        Reflect.defineProperty(target, key, {
-            get: function get() {
-                return getter(this, key, propDesc);
-            },
-            set: function set(newVal: any) {
-                const stringKey = key.toString();
-                const mData = getWildcardMetadata(this, stringKey);
-                const prop = new Watched(<any>this, stringKey, params);
-                if (mData instanceof Attribute || mData instanceof Property) {
-                    prop.setSubObject(mData);
-                    defineWildcardMetadata(this, stringKey, prop);
-                } else if (!mData) defineWildcardMetadata(this, stringKey, prop);
-                setter(this, key, newVal, propDesc);
-            },
-            enumerable: true,
-            configurable: true
-        });
+        const stringKey = key.toString();
+        beforePropertyDescriptors(target, stringKey, "definedWatchers");
+        createDecoratorDescriptor(target, stringKey, "Watched", params);
     };
 }
 
@@ -83,27 +67,9 @@ export function watched(params: IWatchedParams = {}): PropertyDecorator {
  */
 export function property(params: IPropertyParams = {}): PropertyDecorator {
     return (target: any, key: string | symbol) => {
-        const propDesc = beforePropertyDescriptors(target, key.toString(), "definedProperties");
-        // Define new metadata property
-        Reflect.deleteProperty(target, key);
-        Reflect.defineProperty(target, key, {
-            get: function get() {
-                return getter(this, key, propDesc);
-            },
-            set: function set(newVal: any) {
-                const stringKey = key.toString();
-                const mData = getWildcardMetadata(this, stringKey);
-                const prop = new Property(<any>this, stringKey, params);
-                if (!mData) {
-                    defineWildcardMetadata(this, stringKey, prop);
-                } else if (mData instanceof Watched && !mData.subObject) mData.setSubObject(prop);
-                if (!(mData instanceof Watched)) {
-                    setter(this, key, newVal, propDesc);
-                } else if (propDesc && propDesc.set) propDesc.set.call(this, newVal);
-            },
-            enumerable: true,
-            configurable: true
-        });
+        const stringKey = key.toString();
+        beforePropertyDescriptors(target, stringKey, "definedProperties");
+        createDecoratorDescriptor(target, stringKey, "Property", params);
     };
 }
 
@@ -122,6 +88,7 @@ export function property(params: IPropertyParams = {}): PropertyDecorator {
  */
 export function attribute(typeFunc?: FuncOrAttrParams, params?: IAttributeParams): PropertyDecorator {
     return (target: any, key: string | symbol) => {
+        const stringKey = key.toString();
         if (typeFunc && !(typeFunc instanceof Function) && !params) params = typeFunc;
         if (!params) params = {};
 
@@ -130,27 +97,8 @@ export function attribute(typeFunc?: FuncOrAttrParams, params?: IAttributeParams
         else if (typeFunc instanceof Function) Field(typeFunc)(target, key);
         else if (params) Field(params)(target, key);
         else Field()(target, key);
-        const propDesc = beforePropertyDescriptors(target, key.toString(), "definedAttributes");
-        // Define new metadata property
-        Reflect.deleteProperty(target, key);
-        Reflect.defineProperty(target, key, {
-            get: function get() {
-                return getter(this, key, propDesc);
-            },
-            set: function set(newVal: any) {
-                const stringKey = key.toString();
-                const mData = getWildcardMetadata(this, stringKey);
-                const attr = new Attribute(<any>this, stringKey, params);
-                if (!mData) {
-                    defineWildcardMetadata(this, stringKey, attr);
-                } else if (mData instanceof Watched && !mData.subObject) mData.setSubObject(attr);
-                if (!(mData instanceof Watched)) {
-                    setter(this, key, newVal, propDesc);
-                } else if (propDesc && propDesc.set) propDesc.set.call(this, newVal);
-            },
-            enumerable: true,
-            configurable: true
-        });
+        beforePropertyDescriptors(target, stringKey, "definedAttributes");
+        createDecoratorDescriptor(target, stringKey, "Attribute", params);
     };
 }
 
@@ -242,15 +190,23 @@ export function baseConstructor(name?: nameOrOptsOrIndex, options?: optsOrIndex,
                 let constParams = params[constParamsIndex];
                 if (!(constParams instanceof Object)) constParams = {};
                 defineMetadata(this, "normalFunctionality", true);
-                let defaultSettings = getMetadata(this, "defaultSettings") || {};
+                let defaultSettings: ConstParams<BaseConstructor> = getMetadata(this, "defaultSettings") || {};
                 defaultSettings = Object.assign(defaultSettings, constParams);
-                if ("getNamespacedStorage" in this) {
-                    const cachedSettings = this.getNamespacedStorage("*", "id", constParams.id);
-                    defaultSettings = Object.assign(defaultSettings, cachedSettings);
+                if (isFunction(this.getNamespacedStorage)) {
+                    const id = constParams.id || defaultSettings.id;
+                    const cachedSettings = this.getNamespacedStorage("*", "id", id) || {};
+                    for (const key in cachedSettings) {
+                        if (cachedSettings.hasOwnProperty(key)) {
+                            const element = defaultSettings[key];
+                            if (element instanceof Binding) {
+                                element.setValue(cachedSettings[key]);
+                            } else defaultSettings[key] = cachedSettings[key];
+                        }
+                    }
                 }
                 Object.assign(this, defaultSettings);
                 defineMetadata(this, "constructionComplete", true);
-                if ("constructedCallback" in this) (<any>this).constructedCallback(...params);
+                if (isFunction(this.constructedCallback)) (<any>this).constructedCallback(...params);
             }
         }
 

@@ -1,9 +1,13 @@
 import { removeElementFromArray } from "~bdo/utils/util";
 import { Modification } from "~bdo/lib/Modification";
 import { Field } from "~bdo/lib/Field";
+import { getter, setter } from "~bdo/utils/framework";
 import { defineMetadata, getMetadata, getWildcardMetadata, defineWildcardMetadata } from "~bdo/utils/metadata";
 
 export type writeRights = "ReadWrite" | "ReadOnly" | "WriteOnly";
+
+const iniBindName = "initiatorBinding";
+const bindName = "bindings";
 
 /**
  * Creates a Binding object for watched attributes / properties.
@@ -25,7 +29,11 @@ export type writeRights = "ReadWrite" | "ReadOnly" | "WriteOnly";
  * @export
  * @class Binding
  */
-export class Binding<T extends object = any, K extends DefNonFuncPropNames<T> = any> {
+export class Binding<
+    T extends object = any,
+    K extends DefNonFuncPropNames<T> = any,
+    U extends object = any,
+    L extends DefNonFuncPropNames<U> = any> {
 
     /**
      * The object instance which contains the property which should be bound
@@ -57,7 +65,7 @@ export class Binding<T extends object = any, K extends DefNonFuncPropNames<T> = 
      * @type {*}
      * @memberof Binding
      */
-    public initiator!: any;
+    public initiator!: U;
 
     /**
      * The property name to which the objects property is bound
@@ -65,7 +73,7 @@ export class Binding<T extends object = any, K extends DefNonFuncPropNames<T> = 
      * @type {string}
      * @memberof Binding
      */
-    public initiatorProperty!: string;
+    public initiatorProperty!: L;
 
     /**
      * The possible property descriptor of the initiators property
@@ -76,76 +84,56 @@ export class Binding<T extends object = any, K extends DefNonFuncPropNames<T> = 
     public initiatorDescriptor?: PropDesc;
 
     /**
+     * The value which should be used for the binding. Mostly used for components
+     * which are going to initialize. When undefined the value of the model will
+     * be used.
+     *
+     * @private
+     * @type {T[K]}
+     * @memberof Binding
+     */
+    private value?: T[K];
+
+    /**
      * Locks reading or writing prom object property or both is allowed
      *
-     * @protected
+     * @private
      * @type {writeRights}
      * @memberof Binding
      */
-    protected mode: writeRights;
+    private mode: writeRights;
 
     constructor(object: T, property: K, mode: writeRights = "ReadWrite") {
         this.object = object;
         this.property = property;
         this.mode = mode;
-
-        // Save the original property descriptor only if it is not a binding descriptor
-        // In case it is a binding descriptor, have a look at the bindings of this property
-        // and take the first descriptor you can find
-        let descriptor: PropertyDescriptor | undefined = Reflect.getOwnPropertyDescriptor(this.object, this.property);
-        const bindingDescriptor = getMetadata(this.object, "bindingDescriptor");
-
-        let prototype = this.object;
-        while (!descriptor) {
-            prototype = Object.getPrototypeOf(prototype);
-            if (!prototype) break;
-            if (prototype.constructor.name === "BaseConstructor") prototype = Object.getPrototypeOf(prototype);
-            descriptor = Reflect.getOwnPropertyDescriptor(prototype, this.property);
-        }
-        if (descriptor && bindingDescriptor && descriptor === bindingDescriptor) {
-            const mData = getMetadata(this.object, "bindings");
-            const bindings = mData ? mData.get(this.property) : undefined;
-            if (bindings) this.descriptor = bindings[0].descriptor;
-        }
-        if (!this.descriptor) this.descriptor = descriptor;
+        this.descriptor = this.getOriginalPropertyDescriptor(this.object, this.property);
     }
 
     /**
-     * Returns the original value of the bound object property
-     *
-     * @returns {*} The original value
-     * @memberof Binding
+     * setValue
      */
-    public valueOf(): T[K] | undefined {
-        if (this.mode === "WriteOnly") return new Modification(undefined) as unknown as undefined;
-        return this.object[this.property];
+    public setValue(value: T[K]) {
+        this.value = value;
     }
 
     /**
-     * Reflects all changes of this object property to all initiators properties
+     * Returns the value depending of the own value or the value of the bound object
      *
+     * @returns
      * @memberof Binding
      */
-    public reflectToInitiators(newVal: T[K] | Modification<any>) {
-        if (newVal instanceof Modification) newVal = newVal.valueOf();
-        if (this.initiator[this.initiatorProperty] === newVal || this.mode === "WriteOnly") return;
-        const mData = getMetadata(this.object, "bindings");
-        if (mData) {
-            const bindings = mData.get(this.property);
-            if (bindings) for (const binding of bindings) binding.initiator[binding.initiatorProperty] = newVal;
-        }
+    public valueOf() {
+        return this.value || this.object[this.property];
     }
 
     /**
-     * Reflects the changes to the objects property
-     *
-     * @param {T[K]} newVal
-     * @memberof Binding
+     * oldValue
      */
-    public reflectToObject(newVal: T[K] | Modification<any>) {
-        if (newVal instanceof Modification) newVal = newVal.valueOf();
-        if (this.object[this.property] === newVal || this.mode === "ReadOnly") return;
-        this.object[this.property] = newVal as T[K];
+    public getOldValue() {
+        const fieldMDataName = `field:${this.property}`;
+        const field: Field<T, K> = getWildcardMetadata(this.object, fieldMDataName);
+        return field.getOldValue();
     }
 
     /**
@@ -155,17 +143,41 @@ export class Binding<T extends object = any, K extends DefNonFuncPropNames<T> = 
      * @param {(symbol | string | number)} property
      * @memberof Binding
      */
-    public install<O extends Constructor, P extends DefNonFuncPropNames<O>>(initiator: O, property: P) {
+    public install(initiator: U, property: L) {
         this.initiator = initiator;
-        this.initiatorProperty = property.toString();
-        if (!Reflect.hasMetadata("initiatorBinding", this.initiator)) {
-            defineMetadata(this.initiator, "initiatorBinding", new Map());
-        }
-        const initiatorMData = getMetadata(this.initiator, "initiatorBinding") || new Map();
+        this.initiatorProperty = property;
+        this.initiatorDescriptor = this.getOriginalPropertyDescriptor(this.initiator, this.initiatorProperty);
+
+        // Prepare store for bindings
+        if (!Reflect.hasMetadata(iniBindName, this.initiator)) defineMetadata(this.initiator, iniBindName, new Map());
+        if (!Reflect.hasMetadata(bindName, this.object)) defineMetadata(this.object, bindName, new Map());
+
+        // Remove old binding
+        const initiatorMData = getMetadata(this.initiator, iniBindName) || new Map();
         const initiatorBinding = initiatorMData.get(this.initiatorProperty);
         if (initiatorBinding) initiatorBinding.remove();
-        this.bind();
+
+        // install new binding
+        const mData = getMetadata(this.object, bindName) || new Map();
+        if (!mData.has(this.property)) mData.set(this.property, []);
+        mData.get(this.property).push(this);
         initiatorMData.set(this.initiatorProperty, this);
+
+        // Prepare global field
+        const fieldMDataName = `field:${this.property}`;
+        const objectField = getWildcardMetadata(this.object, this.property);
+        const initiatorField = getWildcardMetadata(this.initiator, this.initiatorProperty);
+        let field: Field<T, K> = getWildcardMetadata(this.object, fieldMDataName);
+        if (!field) defineWildcardMetadata(this.object, fieldMDataName, new Field(this.object, this.property));
+
+        // Add local fields to global field
+        field = getWildcardMetadata(this.object, fieldMDataName) as Field<T, K>;
+        field.addField(objectField);
+        field.addField(initiatorField);
+
+        // Replace property descriptor
+        this.replaceDescriptor();
+        Reflect.set(this.initiator, this.initiatorProperty, this.valueOf());
     }
 
     /**
@@ -179,16 +191,16 @@ export class Binding<T extends object = any, K extends DefNonFuncPropNames<T> = 
         const initiatorValue = this.initiator[this.initiatorProperty];
 
         // Get Bindings
-        const objectMData = getMetadata(this.object, "bindings");
+        const objectMData = getMetadata(this.object, bindName);
         const objectBindings = objectMData ? objectMData.get(this.property) : undefined;
-        const initiatorMData = getMetadata(this.initiator, "initiatorBinding");
-        const initiatorBinding = initiatorMData ? initiatorMData.get(this.initiatorProperty) : undefined;
+        const initiatorMData = getMetadata(this.initiator, iniBindName);
+        const initiatorBinding = initiatorMData ? initiatorMData.get(this.initiatorProperty.toString()) : undefined;
 
         const fieldMDataName = `field:${this.property}`;
         const field: Field<T, K> = getWildcardMetadata(this.object, fieldMDataName);
 
         if (initiatorBinding) {
-            if (initiatorMData) initiatorMData.delete(this.initiatorProperty);
+            if (initiatorMData) initiatorMData.delete(this.initiatorProperty.toString());
             this.restoreDescriptor(this.initiator, this.initiatorProperty, initiatorValue, this.initiatorDescriptor);
             field.removeField(getWildcardMetadata(this.initiator, this.initiatorProperty));
         }
@@ -211,72 +223,25 @@ export class Binding<T extends object = any, K extends DefNonFuncPropNames<T> = 
      * @param {(Symbol | string | number)} property
      * @memberof Binding
      */
-    private bind() {
-        // Define bindings metadata for this property
-        if (!Reflect.hasMetadata("bindings", this.object)) defineMetadata(this.object, "bindings", new Map());
-        const mData = getMetadata(this.object, "bindings");
-        const fieldMDataName = `field:${this.property}`;
-        const objectField = getWildcardMetadata(this.object, this.property);
-        const initiatorField = getWildcardMetadata(this.initiator, this.initiatorProperty);
-        let field: Field<T, K> = getWildcardMetadata(this.object, fieldMDataName);
-
-        if (!field) defineWildcardMetadata(this.object, fieldMDataName, new Field(this.object, this.property));
-        field = getWildcardMetadata(this.object, fieldMDataName) as Field<T, K>;
-        field.addField(objectField);
-        field.addField(initiatorField);
-
-        if (mData) {
-            let bindingDesc;
-            // Define a general change detector if property is not already bound
-            if (!mData.has(this.property)) {
-                mData.set(this.property, []);
-                const that = this;
-                Reflect.deleteProperty(this.object, this.property);
-                Reflect.defineProperty(this.object, this.property, {
-                    get: function bindingGet() {
-                        return field.valueOf();
-                    },
-                    set: function bindingSet(newVal?: T[K] | Binding<T, K> | Modification<any>) {
-                        if (newVal instanceof Binding) {
-                            let instance: any = that.object;
-                            let stringKey = that.property as string;
-                            if (this === that.initiator) {
-                                instance = that.initiator;
-                                stringKey = that.initiatorProperty;
-                            }
-                            // Bind to thisArg object
-                            newVal.install(instance, stringKey);
-                            field = getWildcardMetadata(newVal.object, `field:${newVal.property}`);
-                            newVal = newVal.valueOf();
-                            field.setValue(new Modification(newVal));
-                        } else field.setValue(newVal as T[K] | Modification<any>);
-                    },
-                    configurable: true,
-                    enumerable: true
-                });
-                bindingDesc = Reflect.getOwnPropertyDescriptor(this.object, this.property) as PropertyDescriptor;
-                defineMetadata(this.object, "bindingDescriptor", bindingDesc);
-            }
-            bindingDesc = Reflect.getOwnPropertyDescriptor(this.object, this.property) as PropertyDescriptor;
-            if (bindingDesc) {
-                Reflect.deleteProperty(this.initiator, this.initiatorProperty);
-                Reflect.defineProperty(this.initiator, this.initiatorProperty, bindingDesc);
-            }
-            // Find old binding and replace it with this new binding
-            const definitelyDefinedBindings = mData.get(this.property);
-            if (definitelyDefinedBindings) {
-                let alreadyBound = false;
-                for (const [index, binding] of definitelyDefinedBindings.entries()) {
-                    if (binding.initiator === this.initiator && binding.initiatorProperty === this.initiatorProperty) {
-                        definitelyDefinedBindings[index] = this;
-                        alreadyBound = true;
-                        break;
-                    }
-                }
-                // Otherwise if not already bound add it
-                if (!alreadyBound) definitelyDefinedBindings.push(this);
-            }
-        }
+    private replaceDescriptor() {
+        const that = this;
+        Reflect.deleteProperty(this.object, this.property);
+        Reflect.defineProperty(this.object, this.property, {
+            get: function bindingGet() {
+                if (that.mode === "WriteOnly" && this === that.initiator) return undefined;
+                return getter(that.object, that.property, "field");
+            },
+            set: function bindingSet(newVal?: T[K] | Binding<T, K> | Modification<any>) {
+                if (that.mode === "ReadOnly" && this === that.initiator) return;
+                setter(that.object, that.property, newVal, "field");
+            },
+            configurable: true,
+            enumerable: true
+        });
+        const bindingDesc = Reflect.getOwnPropertyDescriptor(this.object, this.property) as PropertyDescriptor;
+        Reflect.deleteProperty(this.initiator, this.initiatorProperty);
+        Reflect.defineProperty(this.initiator, this.initiatorProperty, bindingDesc);
+        defineMetadata(this.object, "bindingDescriptor", bindingDesc);
     }
 
     /**
@@ -295,5 +260,42 @@ export class Binding<T extends object = any, K extends DefNonFuncPropNames<T> = 
             Reflect.defineProperty(this.initiator, this.initiatorProperty, descriptor);
         }
         object[property.toString()] = value;
+    }
+
+    /**
+     * Determines the original property descriptor which is not named with bindingGet or bindingSet
+     *
+     * @private
+     * @param {Object} object
+     * @param {strNumSym} key
+     * @returns
+     * @memberof Binding
+     */
+    private getOriginalPropertyDescriptor(object: Object, key: strNumSym) {
+        let descriptor: PropertyDescriptor | undefined = Reflect.getOwnPropertyDescriptor(object, key);
+        let mDataName: "bindings" | "initiatorBinding" = bindName;
+        let prototype = object;
+        if (object === <Object>this.initiator) mDataName = iniBindName;
+        while (!descriptor) {
+            prototype = Object.getPrototypeOf(prototype);
+            if (!prototype) break;
+            if (prototype.constructor.name === "BaseConstructor") prototype = Object.getPrototypeOf(prototype);
+            descriptor = Reflect.getOwnPropertyDescriptor(prototype, key);
+        }
+        let searchDescriptorInBindings = false;
+        if (descriptor) {
+            if (descriptor.set && descriptor.set.name === "bindingSet") searchDescriptorInBindings = true;
+            if (descriptor.get && descriptor.get.name === "bindingGet") searchDescriptorInBindings = true;
+        }
+        if (searchDescriptorInBindings) {
+            const mData = getMetadata(<any>object, mDataName);
+            const bindings = mData ? mData.get(key.toString()) : undefined;
+            if (bindings) {
+                if (bindings instanceof Array) {
+                    descriptor = bindings[0].descriptor;
+                } else descriptor = bindings.initiatorDescriptor;
+            }
+        }
+        return descriptor;
     }
 }

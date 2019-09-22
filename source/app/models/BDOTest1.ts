@@ -1,5 +1,5 @@
 import { BDOTestFactory } from '~bdo/models/BDOTest';
-import { baseConstructor, property } from "~bdo/utils/decorators";
+import { baseConstructor } from "~bdo/utils/decorators";
 
 /**
  * Test
@@ -19,14 +19,6 @@ export function BDOTest1Factory<TBase extends ReturnType<typeof BDOTestFactory>>
      */
     @baseConstructor({ isAbstract: true, collectionName: "BDOTest1" })
     abstract class BDOTest1 extends ctor {
-
-        /**
-         * Test
-         *
-         * @type {string}
-         * @memberof Test1
-         */
-        @property({ saveInLocalStorage: true }) public oha: string = 'test';
 
         /**
          * Test

@@ -1,5 +1,6 @@
 import { getDesignType } from "~bdo/utils/metadata";
 import { isBrowser } from '~bdo/utils/environment';
+import onChange from "on-change";
 
 /**
  * Capitalizes only the first letter of a string
@@ -101,7 +102,7 @@ export function constructTypeOfHTMLAttribute(object: HTMLElement, key: string) {
     let valueToSet: any = attrValue;
     if (type && type.name !== undefined) {
         if (["Number", "Boolean", "Object", "Array"].includes(type.name)) {
-            valueToSet = JSON.parse(attrValue);
+            valueToSet = JSON.parse(attrValue.replace(/'/g, '"'));
         }
         if (type.name === "BaseConstructor") {
             const obj = JSON.parse(attrValue);
@@ -119,9 +120,35 @@ export function constructTypeOfHTMLAttribute(object: HTMLElement, key: string) {
  * Checks if a value is a primitive type or not
  *
  * @export
- * @param {*} test
+ * @param {*} value
  * @returns
  */
-export function isPrimitive(test: any) {
-    return (test !== Object(test));
+export function isPrimitive(value: any): value is string | number | boolean | Symbol | null | undefined {
+    return (value !== Object(value));
+}
+
+/**
+ * Determines whether a value is a Proxy or not
+ *
+ * @export
+ * @param {*} value
+ * @returns
+ */
+export function isProxy(value: any): value is ProxyConstructor {
+    if (value === undefined || value === null) return false;
+    if (onChange.target(value) === value) return false;
+    return true;
+}
+
+/**
+ * Checks if it is possible to get a target of a proxy and returns it.
+ * If it is not possible it returns just the value.
+ *
+ * @export
+ * @param {*} value
+ * @returns
+ */
+export function getProxyTarget(value: any) {
+    if (isProxy(value)) return onChange.target(value);
+    return value;
 }

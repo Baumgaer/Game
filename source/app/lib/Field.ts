@@ -3,8 +3,8 @@ import { Attribute } from "~bdo/lib/Attribute";
 import { Property } from "~bdo/lib/Property";
 import { Watched } from "~bdo/lib/Watched";
 import { BDOModel } from "~bdo/lib/BDOModel";
-import { removeElementFromArray } from "~bdo/utils/util";
-import { defineWildcardMetadata, getWildcardMetadata } from "~bdo/utils/metadata";
+import { removeElementFromArray, getProxyTarget } from "~bdo/utils/util";
+import { defineWildcardMetadata } from "~bdo/utils/metadata";
 import onChange from "on-change";
 import { isObject } from "lodash";
 import { Modification } from '~bdo/lib/Modification';
@@ -22,6 +22,8 @@ export class Field<T extends object = any, K extends DefNonFuncPropNames<T> = an
 
     private value?: T[K];
 
+    private oldValue?: T[K];
+
     private fields: Array<watchedAttrProp<T, K>> = [];
 
     constructor(object: T, property: K) {
@@ -32,11 +34,13 @@ export class Field<T extends object = any, K extends DefNonFuncPropNames<T> = an
     public addField(field: watchedAttrProp<T, K>) {
         if (this.fields.includes(field)) return;
         if (field.object && (<BDOModel>field.object).isBDOModel) {
-            this.value = this.getArrayObjectProxy(field.valueOf());
+            const arrayObjProxy = this.getArrayObjectProxy(field.valueOf());
+            this.value = arrayObjProxy;
+            this.oldValue = arrayObjProxy;
         }
         if (field instanceof Watched && field.subObject) this.redefineValue(field.subObject);
         this.redefineValue(field);
-        this.fields.unshift(field);
+        this.fields.push(field);
     }
 
     public removeField(field: watchedAttrProp<T, K>) {
@@ -54,6 +58,10 @@ export class Field<T extends object = any, K extends DefNonFuncPropNames<T> = an
         return this.value;
     }
 
+    public getOldValue() {
+        return this.oldValue;
+    }
+
     private redefineValue(field: watchedAttrProp<T, K>) {
         defineWildcardMetadata(<Object>field, "value", field.valueOf());
         const that = this;
@@ -63,8 +71,11 @@ export class Field<T extends object = any, K extends DefNonFuncPropNames<T> = an
                 return that.value;
             },
             set(value: T[K]) {
-                value = onChange.target(value);
-                that.value = value;
+                value = getProxyTarget(value);
+                const thatValue = getProxyTarget(that.value);
+                if (value === thatValue) return;
+                that.oldValue = thatValue;
+                that.value = that.getArrayObjectProxy(value);;
             },
             configurable: true,
             enumerable: true
@@ -73,19 +84,16 @@ export class Field<T extends object = any, K extends DefNonFuncPropNames<T> = an
 
     private restoreValue(field: watchedAttrProp<T, K>) {
         Reflect.deleteProperty(field, "value");
-        Reflect.defineProperty(field, "value", {
-            enumerable: true,
-            configurable: true,
-            value: getWildcardMetadata(<Object>field, "value")
-        });
+        field.setValue(getProxyTarget(this.value));
     }
 
     private getArrayObjectProxy(value: T[K]) {
         if (value instanceof Array || isObject(value)) {
             value = onChange.target(value);
             return onChange(value, (path, changedValue, previousValue) => {
+                this.oldValue = <T[K]>previousValue;
                 for (const field of this.fields) {
-                    field.proxyHandler(path, <T[K]>changedValue, <T[K]>previousValue);
+                    field.proxyHandler(path, <T[K]>changedValue, <T[K]>previousValue, false);
                 }
             });
         }

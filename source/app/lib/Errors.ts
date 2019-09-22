@@ -15,3 +15,13 @@ export class ValueError extends Error { }
  * @extends {Error}
  */
 export class TypeError extends Error { }
+
+/**
+ * This is used when a configuration conflict happens for example in the
+ * attribute decorator => autosave: true and doNotPersist: true.
+ *
+ * @export
+ * @class ConfigurationError
+ * @extends {Error}
+ */
+export class ConfigurationError extends Error { }

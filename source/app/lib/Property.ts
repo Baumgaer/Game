@@ -1,10 +1,12 @@
 import { NullableListOptions } from "type-graphql/dist/decorators/types";
 import { Modification } from "~bdo/lib/Modification";
+import { Binding } from "~bdo/lib/Binding";
 import { getMetadata, defineMetadata, getDesignType } from "~bdo/utils/metadata";
 import { isBrowser } from "~bdo/utils/environment";
 import { isPrimitive, ucFirst } from "~bdo/utils/util";
 import { TypeError } from "~bdo/lib/Errors";
 import onChange from "on-change";
+import { isFunction } from "lodash";
 
 /**
  * This parameters should only be used in models and components other objects
@@ -164,13 +166,23 @@ export class Property<T extends object = any, K extends DefNonFuncPropNames<T> =
     public onTypeCheckSuccess: string;
 
     /**
-     * The value of the property / attribute
+     * The value of the property / attribute this will probably manipulated by a field
      *
      * @protected
      * @type {T[K]}
      * @memberof Property
      */
     protected value?: T[K];
+
+    /**
+     * This is the not manipulated value of this property / attribute and is
+     * used for the decision whether to change the value or not.
+     *
+     * @protected
+     * @type {T[K]}
+     * @memberof Property
+     */
+    protected ownValue?: T[K];
 
     /**
      * Holds the unix timestamp for expiration
@@ -229,7 +241,7 @@ export class Property<T extends object = any, K extends DefNonFuncPropNames<T> =
         // Get from Reflect storage
         let value = this.value;
         // Get from localStorage if saveInLocalStorage in params
-        if (this.saveInLocalStorage && "getNamespacedStorage" in this.object) {
+        if (this.saveInLocalStorage && isFunction((<IndexStructure>this.object).getNamespacedStorage)) {
             value = (<IndexStructure>this.object).getNamespacedStorage(stringKey);
         }
         // Execute expiration
@@ -256,29 +268,31 @@ export class Property<T extends object = any, K extends DefNonFuncPropNames<T> =
 
         const designType = getDesignType(this.object, this.property.toString());
         const typeError = new TypeError(`${valueToPass} is not type of ${designType.className || designType.name}`);
+        const idxStructObj: IndexStructure = this.object;
 
         let error;
 
-        // Do basic type checking depending on annotated types in script
-        if (!this.nullable && valueToPass === undefined) error = typeError;
+        if (!this.nullable && (valueToPass === undefined || valueToPass === null)) error = typeError;
 
         if (!error) {
             if (isPrimitive(valueToPass)) {
-                if (typeof valueToPass !== designType.name.toLowerCase()) error = typeError;
+                if (typeof valueToPass !== designType.name.toLowerCase()) {
+                    if (!this.nullable || !(valueToPass === undefined || valueToPass === null)) error = typeError;
+                }
             } else if (!(valueToPass instanceof designType)) error = typeError;
         }
 
         // Do custom type checking
-        if (!error && this.onTypeCheck in this.object) {
-            error = (<IndexStructure>this.object)[this.onTypeCheck](valueToPass);
-        }
+        if (!error && isFunction(idxStructObj[this.onTypeCheck])) error = idxStructObj[this.onTypeCheck](valueToPass);
 
         // React on success or error
         if (error) {
-            if (this.onTypeCheckFail in this.object) {
-                (<IndexStructure>this.object)[this.onTypeCheckFail]();
+            if (isFunction(idxStructObj[this.onTypeCheckFail])) {
+                idxStructObj[this.onTypeCheckFail](error);
+            } else if (isFunction(idxStructObj.onTypeCheckFail)) {
+                idxStructObj.onTypeCheckFail(error);
             } else throw error;
-        } else if (this.onTypeCheckSuccess in this.object) (<IndexStructure>this.object)[this.onTypeCheckSuccess]();
+        } else if (isFunction(idxStructObj[this.onTypeCheckSuccess])) idxStructObj[this.onTypeCheckSuccess]();
         return !(Boolean(error).valueOf());
     }
 
@@ -287,9 +301,10 @@ export class Property<T extends object = any, K extends DefNonFuncPropNames<T> =
      *
      * @memberof Property
      */
-    public proxyHandler() {
+    public proxyHandler(_path?: string, _changedVal?: T[K], _prevVal?: T[K], _attrReflectsToObj: boolean = true) {
         const value = this.value;
-        if (value !== undefined) this.doSetValue(onChange.target(value), false);
+        if (value === undefined || value === null) return;
+        this.doSetValue(onChange.target(value), false);
     }
 
     /**
@@ -302,15 +317,19 @@ export class Property<T extends object = any, K extends DefNonFuncPropNames<T> =
      * @returns
      * @memberof Property
      */
-    protected doSetValue(value?: T[K] | Modification<any>, modifyValue: boolean = true) {
-        if (this.valueOf() === value || (!this.disableTypeGuard && !this.typeGuard(value))) return;
+    protected doSetValue(value?: T[K] | Modification<any>, modifyValue: boolean = true, skipGuard: boolean = false) {
+        if (value === this.ownValue || !skipGuard && !this.disableTypeGuard && !this.typeGuard(value)) return;
         let valueToPass: T[K] | undefined;
         if (value instanceof Modification) {
             valueToPass = value.valueOf();
         } else valueToPass = value;
-        if (modifyValue) this.value = this.proxyfyValue(valueToPass);
+        if (modifyValue) {
+            const proxyfied = this.proxyfyValue(valueToPass);
+            this.value = proxyfied;
+            this.ownValue = proxyfied;
+        }
         this.addExpiration(value);
-        if (this.shouldUpdateNsStorage() && "setUpdateNamespacedStorage" in this.object) {
+        if (this.shouldUpdateNsStorage() && isFunction((<IndexStructure>this.object).setUpdateNamespacedStorage)) {
             (<IndexStructure>this.object).setUpdateNamespacedStorage(this.property.toString(), valueToPass);
         }
     }
@@ -326,7 +345,9 @@ export class Property<T extends object = any, K extends DefNonFuncPropNames<T> =
     protected proxyfyValue(value?: T[K]) {
         if (value instanceof Array) {
             value = onChange.target(value);
-            return onChange(value, this.proxyHandler.bind(this));
+            return onChange(value, (path, changedVal, prevVal) => {
+                this.proxyHandler(path, <T[K]>changedVal, <T[K]>prevVal, false);
+            });
         }
         return value;
     }
@@ -341,17 +362,29 @@ export class Property<T extends object = any, K extends DefNonFuncPropNames<T> =
      * @memberof Property
      */
     protected addExpiration(value?: T[K] | Modification<any>) {
-        if (value === undefined || !this.storeTemporary || (value instanceof Modification && value.type === "delete")) {
+        if (value === undefined || !this.storeTemporary || value instanceof Modification && value.type === "delete") {
             return;
         }
 
+        // get fallback value
         const stringKey = this.property.toString();
-        this.expires = Date.now() + this.storeTemporary;
+        const defaultSettings = getMetadata(this.object, "defaultSettings") as IndexStructure;
+        let delValue = defaultSettings && !this.nullable ? defaultSettings[stringKey] : undefined;
 
+        // Determine useful values
+        if (delValue instanceof Binding) delValue = delValue.getOldValue();
+        let valueToPass: T[K] | undefined;
+        if (value instanceof Modification) {
+            valueToPass = value.valueOf();
+        } else valueToPass = value;
+
+        // Do not expire when value equals the fallback
+        if (valueToPass === delValue) return;
+
+        // Do the "add expiration"
+        this.expires = Date.now() + this.storeTemporary;
         if (this.expirationTimeout) clearTimeout(this.expirationTimeout);
         this.expirationTimeout = setTimeout(() => {
-            const defaultSettings = getMetadata(this.object, "defaultSettings") as IndexStructure;
-            const delValue = defaultSettings && !this.nullable ? defaultSettings[stringKey] : undefined;
             (<IndexStructure>this.object)[stringKey] = new Modification(delValue);
         }, this.storeTemporary);
     }
@@ -368,7 +401,7 @@ export class Property<T extends object = any, K extends DefNonFuncPropNames<T> =
         const stringKey = this.property.toString();
         const keyShouldBeUpdated = getMetadata(this.object, "keyShouldBeUpdated") || {};
         if (keyShouldBeUpdated[stringKey]) return true;
-        if ("getNamespacedStorage" in this.object &&
+        if (isFunction((<IndexStructure>this.object).getNamespacedStorage) &&
             (<IndexStructure>this.object).getNamespacedStorage(stringKey) === undefined) {
             defineMetadata(this.object, "keyShouldBeUpdated", Object.assign(keyShouldBeUpdated, { [stringKey]: true }));
             return true;

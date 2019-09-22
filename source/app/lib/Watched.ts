@@ -109,7 +109,7 @@ interface ICaseDetectParams {
      * @type {*}
      * @memberof ICaseDetectParams
      */
-    changedValue: any;
+    changedVal: any;
 
     /**
      * The path of the changed value inside an object
@@ -201,13 +201,24 @@ export class Watched<T extends object = any, K extends DefNonFuncPropNames<T> = 
     public isShallow: boolean = false;
 
     /**
-     * The value which will be used if no subObject is provided
+     * The value of the watcher if there is no sub object.
+     * This will probably manipulated by a field.
      *
      * @protected
      * @type {T[K]}
      * @memberof Property
      */
-    protected value?: any;
+    protected value?: T[K];
+
+    /**
+     * This is the not manipulated value of this property / attribute and is
+     * used for the decision whether to change the value or not.
+     *
+     * @protected
+     * @type {T[K]}
+     * @memberof Property
+     */
+    protected ownValue?: T[K];
 
     /**
      * Marks the property / attribute as initialized so that the onInit function
@@ -248,8 +259,8 @@ export class Watched<T extends object = any, K extends DefNonFuncPropNames<T> = 
      */
     public setValue(value?: T[K] | Modification<any>) {
         let oldVal = this.valueOf();
-        if (oldVal === value || (
-            this.subObject && !this.subObject.disableTypeGuard && !this.subObject.typeGuard(value))) return;
+        if (value === this.ownValue ||
+            this.subObject && !this.subObject.disableTypeGuard && !this.subObject.typeGuard(value)) return;
 
         let valueToPass: T[K] | undefined;
         if (value instanceof Modification) {
@@ -265,10 +276,16 @@ export class Watched<T extends object = any, K extends DefNonFuncPropNames<T> = 
             value.setValue(valueToPass);
             useValue = true;
         }
+
         // Set new Value
         if (this.subObject) {
-            this.subObject.setValue(useValue ? value : valueToPass);
-        } else this.value = valueToPass;
+            const valueToSet = useValue ? value : valueToPass;
+            this.subObject.setValue(valueToSet);
+            this.ownValue = valueToPass;
+        } else {
+            this.value = valueToPass;
+            this.ownValue = valueToPass;
+        }
         // React on variable changes
         if (this.executeReactionFunction(value) && this.onChange in this.object && this.isInitialized) {
             (<IndexStructure>this.object)[this.onChange](oldVal);
@@ -302,9 +319,7 @@ export class Watched<T extends object = any, K extends DefNonFuncPropNames<T> = 
      * @memberof Watched
      */
     public setSubObject(subObject: Property<T, K> | Attribute<T, K>) {
-        const value = this.valueOf();
         this.subObject = subObject;
-        this.subObject.setValue(value);
     }
 
     /**
@@ -315,10 +330,10 @@ export class Watched<T extends object = any, K extends DefNonFuncPropNames<T> = 
      * @param {T[K]} previousValue
      * @memberof Watched
      */
-    public proxyHandler(path: string, changedValue: T[K], previousValue: T[K]) {
-        if (this.subObject) this.subObject.proxyHandler();
-        const newKeys = Object.keys(changedValue);
-        const oldKeys = Object.keys(previousValue);
+    public proxyHandler(path: string, changedVal: T[K], prevVal: T[K], attrReflectsToObj: boolean = true) {
+        if (this.subObject) this.subObject.proxyHandler(path, changedVal, prevVal, attrReflectsToObj);
+        const newKeys = Object.keys(changedVal);
+        const oldKeys = Object.keys(prevVal);
         const newLen = newKeys.length;
         const oldLen = oldKeys.length;
 
@@ -329,7 +344,7 @@ export class Watched<T extends object = any, K extends DefNonFuncPropNames<T> = 
             func: this.onAdd,
             keys1: newKeys,
             keys2: oldKeys,
-            changedValue,
+            changedVal,
             path
         });
         // Case: removed
@@ -339,12 +354,12 @@ export class Watched<T extends object = any, K extends DefNonFuncPropNames<T> = 
             func: this.onRemove,
             keys1: oldKeys,
             keys2: newKeys,
-            changedValue,
+            changedVal,
             path
         });
         // Case: deep change
         if (newLen === oldLen && this.onChange in this && this.isInitialized) {
-            (<IndexStructure>this.object)[this.onChange](changedValue, path);
+            (<IndexStructure>this.object)[this.onChange](changedVal, path);
         }
     }
 
@@ -393,7 +408,7 @@ export class Watched<T extends object = any, K extends DefNonFuncPropNames<T> = 
         if (cdParams.len1 > cdParams.len2 && cdParams.func in this.object) {
             for (const modified of cdParams.keys1) {
                 if (!cdParams.keys2.includes(modified)) {
-                    (<any>this.object)[cdParams.func]((cdParams.changedValue)[<any>modified], cdParams.path);
+                    (<any>this.object)[cdParams.func]((cdParams.changedVal)[<any>modified], cdParams.path);
                     break;
                 }
             }

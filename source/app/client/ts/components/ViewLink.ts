@@ -1,5 +1,5 @@
 import { BaseComponentFactory } from '~client/lib/BaseComponent';
-import { attribute, property, watched, baseConstructor } from '~bdo/utils/decorators';
+import { property, attribute, baseConstructor } from '~bdo/utils/decorators';
 import { Test1 } from "~client/models/Test1";
 
 /**
@@ -23,10 +23,9 @@ export default class ViewLink extends BaseComponentFactory(HTMLAnchorElement) {
     /**
      * Test
      *
-     * @type {Test}
      * @memberof ViewLink
      */
-    @property() public model: Test1 = new Test1({ id: "1", title: String(Date.now()), oha: "oha..." });
+    @property() public model = new Test1({ title: String(Date.now()) });
 
     /**
      * Test
@@ -34,20 +33,18 @@ export default class ViewLink extends BaseComponentFactory(HTMLAnchorElement) {
      * @type {string}
      * @memberof ViewLink
      */
-    @watched() @attribute() public test: string = this.model.bind("title");
+    @attribute() public test: string = this.model.bind("title");
 
     /**
      * Test
      *
-     * @type {string}
+     * @type {string[]}
      * @memberof ViewLink
      */
-    @watched({
-        onRemove: "onTesterChange",
-        onInit: "onTesterChange"
-    }) @property({
-        saveInLocalStorage: true
-    }) public tester: string[] = this.model.bind("testArray");
+    @attribute({
+        saveInLocalStorage: true,
+        storeTemporary: 5000
+    }) public tester: string[] = this.model.bind("tester");
 
     constructor(_params?: ConstParams<ViewLink>) {
         super();
@@ -67,22 +64,31 @@ export default class ViewLink extends BaseComponentFactory(HTMLAnchorElement) {
      * Test
      *
      * @protected
-     * @param {string} added
+     * @param {this["test"]} value
      * @memberof ViewLink
      */
-    protected onTesterAdd(added: this["tester"]): void {
-        console.log("tester added", added); // tslint:disable-line
+    protected onTestTypeCheck(value: this["test"]) {
+        console.log("checking type of test with value", value);  // tslint:disable-line
     }
 
     /**
      * Test
      *
      * @protected
-     * @param {string} changed
      * @memberof ViewLink
      */
-    protected onTesterChange(changed: this["tester"]): void {
-        console.log("tester changed", this, changed); // tslint:disable-line
+    protected onTestTypeCheckSuccess() {
+        console.log("Typecheck of test successful");  // tslint:disable-line
+    }
+
+    /**
+     * Test
+     *
+     * @protected
+     * @memberof ViewLink
+     */
+    protected onTestTypeCheckFail(error: Error) {
+        console.log("Typecheck of test failed", error);  // tslint:disable-line
     }
 
     /**
@@ -93,7 +99,18 @@ export default class ViewLink extends BaseComponentFactory(HTMLAnchorElement) {
      * @memberof ViewLink
      */
     protected onTestChange(changed: this["test"]) {
-        console.log("title changed", changed);  // tslint:disable-line
+        console.log("test changed", changed, this);  // tslint:disable-line
+    }
+
+    /**
+     * Test
+     *
+     * @protected
+     * @param {this["test"]} changed
+     * @memberof ViewLink
+     */
+    protected onTestInit(changed: this["test"]) {
+        console.log("test init", changed, this);  // tslint:disable-line
     }
 
     /**

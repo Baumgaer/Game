@@ -1,13 +1,12 @@
 import 'reflect-metadata';
 import { isString, isObject } from 'lodash';
 import { Template, renderString } from 'nunjucks';
-import { v4 as uuid } from "uuid";
 import { property, attribute } from '~bdo/utils/decorators';
 import { getMetadata, getWildcardMetadata } from "~bdo/utils/metadata";
 import { Binding } from "~bdo/lib/Binding";
 import { Property } from "~bdo/lib/Property";
 import { getNamespacedStorage, setUpdateNamespacedStorage, deleteFromNamespacedStorage } from "~client/utils/util";
-import { constructTypeOfHTMLAttribute } from '~bdo/utils/util';
+import { constructTypeOfHTMLAttribute, isPrimitive } from '~bdo/utils/util';
 
 /**
  * Creates a new BaseComponent based on the HTMLTypeElement
@@ -70,7 +69,7 @@ export function BaseComponentFactory<TBase extends Constructor<HTMLElement>>(HTM
          * @type {string}
          * @memberof BaseComponent
          */
-        @attribute() public id: string = uuid();
+        @attribute() public id: string = this.generateUniqueID();
 
         /**
          * This is for better identification of base components and instance check
@@ -166,21 +165,24 @@ export function BaseComponentFactory<TBase extends Constructor<HTMLElement>>(HTM
         }
 
         /**
-         * @inheritdoc
+         * @inheritdoc SetValue is used by proxyHandler to avoid setting a
+         * new value is an object has been changed.
          *
          * @param {string} qualifiedName
          * @param {string} value
          * @returns {void}
          * @memberof BaseComponent
          */
-        public setAttribute(qualifiedName: string, value: string): void {
+        public setAttribute(qualifiedName: string, value: string, setValue: boolean = true): void {
             if (this.properties && this.properties.has(qualifiedName)) {
                 throw new Error(`"${qualifiedName}" can't be set as attribute because it is a defined property`);
             }
             if (value) {
-                super.setAttribute(qualifiedName, value);
-                const valueToSet = constructTypeOfHTMLAttribute(this, qualifiedName);
-                (<any>this)[qualifiedName] = valueToSet;
+                let valueToSet = value;
+                if (!isPrimitive(value)) valueToSet = JSON.stringify(value).replace(/\"/g, "'");
+                super.setAttribute(qualifiedName, valueToSet);
+                valueToSet = constructTypeOfHTMLAttribute(this, qualifiedName);
+                if (setValue) (<any>this)[qualifiedName] = valueToSet;
             } else this.removeAttribute(qualifiedName);
         }
 
@@ -286,6 +288,19 @@ export function BaseComponentFactory<TBase extends Constructor<HTMLElement>>(HTM
          * @memberof BaseComponent
          */
         protected removeController(): void { }
+
+        /**
+         * Generates a unique ID for each webcomponent based on class name and occurrence position.
+         *
+         * @private
+         * @returns
+         * @memberof BaseComponent
+         */
+        private generateUniqueID() {
+            const className = Object.getPrototypeOf(this.constructor).name;
+            const occurrence = Array.from(document.getElementsByTagName(this.tagName)).indexOf(this);
+            return `${className}_${occurrence}`;
+        }
     }
 
     return BaseComponent;

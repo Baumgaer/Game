@@ -39,9 +39,7 @@ export default class TestResolver extends BaseResolver {
     public lalala(@arg("id") id: string): Test1 {
         return new Test1({
             id,
-            title: "hahahahahahahahahahahahaha",
-            description: "hicks............",
-            oha: "joah"
+            title: "hahahahahahahahahahahahaha"
         });
     }
 }

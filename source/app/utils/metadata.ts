@@ -92,6 +92,15 @@ interface IMDKeys<T extends object = any> {
     definedAttributes?: Array<DefNonFuncPropNames<T>>;
 
     /**
+     * Stores all defined watchers of an object which is decorated with the
+     * baseConstructor decorator and makes use of watched decorator.
+     *
+     * @type {Array<DefNonFuncPropNames<T>>}
+     * @memberof IMDKeys
+     */
+    definedWatchers?: Array<DefNonFuncPropNames<T>>;
+
+    /**
      * Indicates in a property which is NOT cached in localStorage but marked
      * as saveInLocalStorage on construction time of the corresponding object.
      *

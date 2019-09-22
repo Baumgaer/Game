@@ -15,9 +15,9 @@
         window.process = {{ process | json | safe }};
     </script>
     <view-router>{% block body %}{% endblock %}</view-router>
-    <script src="/js/vendor.bundle.js"></script>
-    <script src="/js/templates.bundle.js"></script>
-    <script src="/js/bundle.js"></script>
+    <script defer src="/js/vendor.bundle.js"></script>
+    <script defer src="/js/templates.bundle.js"></script>
+    <script defer src="/js/bundle.js"></script>
 </body>
 
 </html>

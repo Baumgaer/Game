@@ -2,6 +2,9 @@ import { baseConstructor, property } from "~bdo/utils/decorators";
 import { BDOModel } from "~bdo/lib/BDOModel";
 import { getNamespacedStorage, setUpdateNamespacedStorage, deleteFromNamespacedStorage } from "~client/utils/util";
 import { getWildcardMetadata } from "~bdo/utils/metadata";
+import { Logger } from "~client/lib/Logger";
+
+const logger = new Logger();
 
 /**
  * Provides basic functionality and fields for each Model on each side
@@ -78,9 +81,22 @@ export class ClientModel extends BDOModel {
      */
     public async save(_prop: string): Promise<any> {
         return new Promise((resolve, _reject) => {
-            console.log(`saved ${_prop} with val ${getWildcardMetadata(this, _prop).unsavedChange}!`); // tslint:disable-line
+            const unsavedChange = getWildcardMetadata(this, _prop).unsavedChange;
+            console.log(`saved ${_prop} with val ${unsavedChange}!`); // tslint:disable-line
             resolve();
         });
+    }
+
+    /**
+     * General procedure to handle general type errors of all attributes and
+     * properties for client side.
+     *
+     * @protected
+     * @param {Error} error
+     * @memberof ClientModel
+     */
+    protected onTypeCheckFail(error: Error) {
+        logger.error(error.message);
     }
 
 }
