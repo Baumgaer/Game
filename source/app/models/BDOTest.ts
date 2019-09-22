@@ -33,7 +33,7 @@ export function BDOTestFactory<TBase extends Constructor<BDOModel>>(ctor: TBase)
          * @type {string[]}
          * @memberof BDOTest
          */
-        @attribute() public tester: string[] = [];
+        @attribute((_type) => [String]) public tester: string[] = [];
 
     }
     return BDOTest;
