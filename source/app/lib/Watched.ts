@@ -205,31 +205,31 @@ export class Watched<T extends object = any, K extends DefNonFuncPropNames<T> = 
      * The value of the watcher if there is no sub object.
      * This will probably manipulated by a field.
      *
-     * @protected
+     * @private
      * @type {T[K]}
      * @memberof Property
      */
-    protected value?: T[K];
+    private value?: T[K];
 
     /**
      * This is the not manipulated value of this property / attribute and is
      * used for the decision whether to change the value or not.
      *
-     * @protected
+     * @private
      * @type {T[K]}
      * @memberof Property
      */
-    protected ownValue?: T[K];
+    private ownValue?: T[K];
 
     /**
      * Marks the property / attribute as initialized so that the onInit function
      * is only execute once.
      *
-     * @protected
+     * @private
      * @type {boolean}
      * @memberof Watched
      */
-    protected isInitialized: boolean = false;
+    private isInitialized: boolean = false;
 
     constructor(object: T, property: K, params?: IWatchedParams) {
         this.object = object;
@@ -366,12 +366,13 @@ export class Watched<T extends object = any, K extends DefNonFuncPropNames<T> = 
     /**
      * Determines wether to set the value respecting the DOM attribute, old value and type
      *
+     * @private
      * @param {(T[K] | Modification<any>)} [value]
      * @param {boolean} [skipGuard=false]
      * @returns
      * @memberof Property
      */
-    public shouldDoSetValue(value?: T[K] | Modification<any>, skipGuard: boolean = false) {
+    private shouldDoSetValue(value?: T[K] | Modification<any>, skipGuard: boolean = false) {
         if (this.subObject) {
             return this.subObject.shouldDoSetValue(value, skipGuard);
         } else return (value !== this.ownValue);

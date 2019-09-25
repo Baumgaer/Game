@@ -119,11 +119,11 @@ export class Attribute<T extends object = any, K extends prop<T> = any> extends 
     /**
      * Marks if an attribute is initialized on a DOM element
      *
-     * @protected
+     * @private
      * @type {boolean}
      * @memberof Attribute
      */
-    protected inDOMInitialized: boolean = false;
+    private inDOMInitialized: boolean = false;
 
     /**
      * Stores the timeout which is used to debounce the autosave of the attribute
@@ -199,13 +199,13 @@ export class Attribute<T extends object = any, K extends prop<T> = any> extends 
      * SetValue is used by proxyHandler to avoid setting a new value is an object
      * has been changed.
      *
-     * @protected
+     * @private
      * @param {(T[K] | Modification<any>)} [value]
      * @param {boolean} [setValue=true]
      * @returns
      * @memberof Attribute
      */
-    protected reflectToDOMAttribute(value?: T[K] | Modification<any>) {
+    private reflectToDOMAttribute(value?: T[K] | Modification<any>) {
         if (!isBrowser() || !(this.object instanceof HTMLElement)) return;
         const stringKey = this.property.toString();
         const attrValue = this.object.getAttribute(stringKey);
@@ -230,11 +230,11 @@ export class Attribute<T extends object = any, K extends prop<T> = any> extends 
      * Saves the attribute automatically if autoSave is defined and debounces
      * it if autosave is a number.
      *
-     * @protected
+     * @private
      * @returns
      * @memberof Attribute
      */
-    protected doAutoSave() {
+    private doAutoSave() {
         if (this.autoSave && this.doNotPersist) {
             throw new ConfigurationError("You have turned on autosave but at the same time it is forbidden to persist the value!");
         }
