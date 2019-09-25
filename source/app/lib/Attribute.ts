@@ -154,7 +154,7 @@ export class Attribute<T extends object = any, K extends prop<T> = any> extends 
      * @memberof Attribute
      */
     public setValue(value?: T[K] | Modification<any>) {
-        if (value === this.ownValue || !this.disableTypeGuard && !this.typeGuard(value)) return;
+        if (!this.shouldDoSetValue(value)) return;
         this.doSetValue(value);
         this.reflectToDOMAttribute(value);
         this.doAutoSave();
@@ -168,9 +168,7 @@ export class Attribute<T extends object = any, K extends prop<T> = any> extends 
      */
     public valueOf() {
         let value = super.valueOf();
-        if (this.unsavedChange && !this.storeTemporary && !this.doNotPersist && this.object.isBDOModel) {
-            value = this.unsavedChange;
-        }
+        if (this.unsavedChange && !this.doNotPersist && this.object.isBDOModel) value = this.unsavedChange;
         return value;
     }
 
@@ -182,7 +180,7 @@ export class Attribute<T extends object = any, K extends prop<T> = any> extends 
      */
     public proxyHandler(_path?: string, _changedVal?: T[K], _prevVal?: T[K], attrReflectsToObj: boolean = true) {
         const value = this.value;
-        if (value === undefined || value === null) return;
+        if (!this.shouldDoSetValue(value, true)) return;
         this.doSetValue(getProxyTarget(value), false);
         this.reflectToDOMAttribute(value, attrReflectsToObj);
         this.doAutoSave();
@@ -202,26 +200,24 @@ export class Attribute<T extends object = any, K extends prop<T> = any> extends 
      */
     protected reflectToDOMAttribute(value?: T[K] | Modification<any>, setValue: boolean = true) {
         if (!isBrowser() || !(this.object instanceof HTMLElement)) return;
-        if (value instanceof Modification && value.type === "delete" && !isPrimitive(value)) setValue = false;
-        let valueToPass = value;
-        if (value instanceof Modification) valueToPass = value.valueOf();
-
         const stringKey = this.property.toString();
         const attrValue = this.object.getAttribute(stringKey);
         let setAttribute = true;
+        let pTarget;
+
+        let valueToPass = value;
+        if (value instanceof Modification) {
+            valueToPass = value.valueOf();
+            if (value.type === "delete" && !isPrimitive(value.valueOf())) setValue = false;
+        }
 
         if (!this.inDOMInitialized && attrValue) {
-            this.inDOMInitialized = true;
             setAttribute = false;
-            // Determine type of attribute
-            const valueToSet = constructTypeOfHTMLAttribute(this.object, this.property);
-            // Set the real value and redo setter
-            if (setValue) (<IndexStructure>this.object)[stringKey] = valueToSet;
-        }
-        const pTarget = getProxyTarget(valueToPass);
+        } else pTarget = getProxyTarget(valueToPass);
+        this.inDOMInitialized = true;
+
         // Reflect property changes to attribute
         if (setAttribute && attrValue !== pTarget && attrValue !== JSON.stringify(pTarget).replace(/\"/g, "'")) {
-            this.inDOMInitialized = true;
             (<any>this.object).setAttribute(stringKey, pTarget, setValue);
         }
     }
@@ -244,7 +240,7 @@ export class Attribute<T extends object = any, K extends prop<T> = any> extends 
             valueToPass = value.valueOf();
         } else valueToPass = value;
         super.doSetValue(value, false, true);
-        if (!this.object.isBDOModel || this.storeTemporary || this.doNotPersist || (
+        if (!this.object.isBDOModel || this.doNotPersist || (
             value instanceof Modification && value.type === "update")) {
             const proxyfied = this.proxyfyValue(valueToPass);
             if (modifyValue) this.value = proxyfied;
@@ -266,8 +262,8 @@ export class Attribute<T extends object = any, K extends prop<T> = any> extends 
      * @memberof Attribute
      */
     protected doAutoSave() {
-        if (this.autoSave && (this.doNotPersist || this.storeTemporary)) {
-            throw new ConfigurationError("You have turned on autosave but at the same time it is forbidden to persist the value or it is just temporary?");
+        if (this.autoSave && (this.doNotPersist)) {
+            throw new ConfigurationError("You have turned on autosave but at the same time it is forbidden to persist the value!");
         }
         if (!this.autoSave || !isFunction(this.object.save) || this.unsavedChange === undefined) return;
         if (typeof this.autoSave === "boolean") this.object.save(this.property);
@@ -277,5 +273,24 @@ export class Attribute<T extends object = any, K extends prop<T> = any> extends 
                 delete this.autoSaveTimeout;
             }, Math.abs(this.autoSave));
         }
+    }
+
+    /**
+     * Determines wether to set the value respecting the DOM attribute, old value and type
+     *
+     * @private
+     * @param {(T[K] | Modification<any>)} [value]
+     * @returns
+     * @memberof Attribute
+     */
+    private shouldDoSetValue(value?: T[K] | Modification<any>, skipGuard: boolean = false) {
+        if (isBrowser() && !this.object.isBDOModel && (this.object instanceof HTMLElement)) {
+            const constructedType = constructTypeOfHTMLAttribute(this.object, this.property);
+            if (!this.inDOMInitialized && this.object.getAttribute(this.property) && value !== constructedType) {
+                this.setValue(constructedType);
+                return false;
+            }
+        }
+        return !(value === this.ownValue || !skipGuard && !this.disableTypeGuard && !this.typeGuard(value));
     }
 }

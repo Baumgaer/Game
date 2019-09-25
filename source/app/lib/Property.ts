@@ -1,6 +1,5 @@
 import { NullableListOptions } from "type-graphql/dist/decorators/types";
 import { Modification } from "~bdo/lib/Modification";
-import { Binding } from "~bdo/lib/Binding";
 import { getMetadata, defineMetadata, getDesignType } from "~bdo/utils/metadata";
 import { isBrowser } from "~bdo/utils/environment";
 import { isPrimitive, ucFirst } from "~bdo/utils/util";
@@ -15,14 +14,6 @@ import { isFunction } from "lodash";
  * @interface IPropertyParams
  */
 export interface IPropertyParams {
-    /**
-     * If set > 0 the value will expire after x milliseconds.
-     * NOTE: On attributes this will turn on "doNotePersist" implicitly.
-     *
-     * @default 0 Means will stored permanently
-     * @type {number}
-     */
-    storeTemporary?: number;
 
     /**
      * If true the value will be saved in localStorage until its deletion
@@ -37,8 +28,6 @@ export interface IPropertyParams {
     /**
      * Decides wether to be able to set values null or undefined on a property.
      * It is also used to generate a graphQL schema when used in an attribute.
-     * It also has effects to storeTemporary option. If this is true the value
-     * will be set to undefined and defaultSetting else.
      *
      * @default false
      * @type {boolean}
@@ -112,14 +101,6 @@ export class Property<T extends object = any, K extends DefNonFuncPropNames<T> =
     /**
      * @inheritdoc
      *
-     * @type {number}
-     * @memberof Property
-     */
-    public storeTemporary?: number;
-
-    /**
-     * @inheritdoc
-     *
      * @type {boolean}
      * @memberof Property
      */
@@ -184,24 +165,6 @@ export class Property<T extends object = any, K extends DefNonFuncPropNames<T> =
      */
     protected ownValue?: T[K];
 
-    /**
-     * Holds the unix timestamp for expiration
-     *
-     * @protected
-     * @type {number}
-     * @memberof Property
-     */
-    protected expires?: number;
-
-    /**
-     * Holds the timeout handler in case the property / attribute has an expiration
-     *
-     * @protected
-     * @type {NodeJS.Timeout}
-     * @memberof Property
-     */
-    protected expirationTimeout?: NodeJS.Timeout;
-
     constructor(object: T, property: K, params?: IPropertyParams) {
         this.object = object;
         this.property = property;
@@ -243,13 +206,6 @@ export class Property<T extends object = any, K extends DefNonFuncPropNames<T> =
         // Get from localStorage if saveInLocalStorage in params
         if (this.saveInLocalStorage && isFunction((<IndexStructure>this.object).getNamespacedStorage)) {
             value = (<IndexStructure>this.object).getNamespacedStorage(stringKey);
-        }
-        // Execute expiration
-        if (value && this.storeTemporary) {
-            if (this.expires && this.expires < Date.now()) {
-                const defaultSettings = getMetadata(this.object, "defaultSettings");
-                value = defaultSettings && !this.nullable ? (<IndexStructure>defaultSettings)[stringKey] : undefined;
-            } else value = this.value;
         }
         return value;
     }
@@ -328,7 +284,6 @@ export class Property<T extends object = any, K extends DefNonFuncPropNames<T> =
             this.value = proxyfied;
             this.ownValue = proxyfied;
         }
-        this.addExpiration(value);
         if (this.shouldUpdateNsStorage() && isFunction((<IndexStructure>this.object).setUpdateNamespacedStorage)) {
             (<IndexStructure>this.object).setUpdateNamespacedStorage(this.property.toString(), valueToPass);
         }
@@ -350,43 +305,6 @@ export class Property<T extends object = any, K extends DefNonFuncPropNames<T> =
             });
         }
         return value;
-    }
-
-    /**
-     * If the value should be stored temporary in the property descriptor,
-     * then here the expiration date in unix timestamp will be added.
-     *
-     * @protected
-     * @param {T[K]} newVal
-     * @returns
-     * @memberof Property
-     */
-    protected addExpiration(value?: T[K] | Modification<any>) {
-        if (value === undefined || !this.storeTemporary || value instanceof Modification && value.type === "delete") {
-            return;
-        }
-
-        // get fallback value
-        const stringKey = this.property.toString();
-        const defaultSettings = getMetadata(this.object, "defaultSettings") as IndexStructure;
-        let delValue = defaultSettings && !this.nullable ? defaultSettings[stringKey] : undefined;
-
-        // Determine useful values
-        if (delValue instanceof Binding) delValue = delValue.getOldValue();
-        let valueToPass: T[K] | undefined;
-        if (value instanceof Modification) {
-            valueToPass = value.valueOf();
-        } else valueToPass = value;
-
-        // Do not expire when value equals the fallback
-        if (valueToPass === delValue) return;
-
-        // Do the "add expiration"
-        this.expires = Date.now() + this.storeTemporary;
-        if (this.expirationTimeout) clearTimeout(this.expirationTimeout);
-        this.expirationTimeout = setTimeout(() => {
-            (<IndexStructure>this.object)[stringKey] = new Modification(delValue);
-        }, this.storeTemporary);
     }
 
     /**

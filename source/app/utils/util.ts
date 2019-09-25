@@ -97,10 +97,10 @@ export function constructTypeOfHTMLAttribute(object: HTMLElement, key: string) {
     const type = getDesignType(object, key);
     const attrValue = object.getAttribute(key);
 
-    if (attrValue === null) throw new Error("No attribute set");
+    // if (attrValue === null) throw new Error("No attribute set");
 
     let valueToSet: any = attrValue;
-    if (type && type.name !== undefined) {
+    if (attrValue && type && type.name !== undefined) {
         if (["Number", "Boolean", "Object", "Array"].includes(type.name)) {
             valueToSet = JSON.parse(attrValue.replace(/'/g, '"'));
         }

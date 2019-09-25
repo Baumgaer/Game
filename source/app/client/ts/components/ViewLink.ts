@@ -42,8 +42,7 @@ export default class ViewLink extends BaseComponentFactory(HTMLAnchorElement) {
      * @memberof ViewLink
      */
     @attribute({
-        saveInLocalStorage: true,
-        storeTemporary: 5000
+        saveInLocalStorage: true
     }) public tester: string[] = this.model.bind("tester");
 
     constructor(_params?: ConstParams<ViewLink>) {

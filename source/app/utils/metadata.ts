@@ -110,14 +110,6 @@ interface IMDKeys<T extends object = any> {
     keyShouldBeUpdated?: IndexStructure<DefNonFuncPropNames<T>, boolean>;
 
     /**
-     * Holds all timeouts of properties and attributes which are marked as "storeTemporary"
-     *
-     * @type {IndexStructure<DefNonFuncPropNames<T>, boolean>}
-     * @memberof IMDKeys
-     */
-    expirationTimeout?: IndexStructure<DefNonFuncPropNames<T>, boolean>;
-
-    /**
      * Used to define the name of the database collection where a BDOModel is stored in
      *
      * @type {string}
