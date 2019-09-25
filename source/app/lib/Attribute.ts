@@ -2,7 +2,7 @@ import { Property, IPropertyParams } from "~bdo/lib/Property";
 import { AdvancedOptions } from "type-graphql/dist/decorators/types";
 import { isBrowser } from '~bdo/utils/environment';
 import { Modification } from "~bdo/lib/Modification";
-import { constructTypeOfHTMLAttribute, getProxyTarget, isPrimitive } from '~bdo/utils/util';
+import { constructTypeOfHTMLAttribute, getProxyTarget } from '~bdo/utils/util';
 import { ConfigurationError } from "~bdo/lib/Errors";
 import { isFunction } from "lodash";
 
@@ -146,7 +146,7 @@ export class Attribute<T extends object = any, K extends prop<T> = any> extends 
      */
     public setValue(value?: T[K] | Modification<any>) {
         if (!this.shouldDoSetValue(value)) return;
-        this.doSetValue(value);
+        this.doSetValue(value, true, true);
         this.reflectToDOMAttribute(value);
         this.doAutoSave();
     }
@@ -157,11 +157,11 @@ export class Attribute<T extends object = any, K extends prop<T> = any> extends 
      * @returns
      * @memberof Attribute
      */
-    public proxyHandler(_path?: string, _changedVal?: T[K], _prevVal?: T[K], attrReflectsToObj: boolean = true) {
+    public proxyHandler(_path?: string, _changedVal?: T[K], _prevVal?: T[K]) {
         const value = this.value;
         if (value === undefined || value === null) return;
-        this.doSetValue(getProxyTarget(value));
-        this.reflectToDOMAttribute(value, attrReflectsToObj);
+        this.doSetValue(getProxyTarget(value), true, true);
+        this.reflectToDOMAttribute(value);
         this.doAutoSave();
     }
 
@@ -186,7 +186,7 @@ export class Attribute<T extends object = any, K extends prop<T> = any> extends 
         if (isBrowser() && !this.object.isBDOModel && (this.object instanceof HTMLElement)) {
             const constructedType = constructTypeOfHTMLAttribute(this.object, this.property);
             if (!this.inDOMInitialized && this.object.getAttribute(this.property) && value !== constructedType) {
-                (<T>this.object)[<K>this.property] = constructedType;
+                this.setValue(constructedType);
                 return false;
             }
         }
@@ -205,7 +205,7 @@ export class Attribute<T extends object = any, K extends prop<T> = any> extends 
      * @returns
      * @memberof Attribute
      */
-    protected reflectToDOMAttribute(value?: T[K] | Modification<any>, setValue: boolean = true) {
+    protected reflectToDOMAttribute(value?: T[K] | Modification<any>) {
         if (!isBrowser() || !(this.object instanceof HTMLElement)) return;
         const stringKey = this.property.toString();
         const attrValue = this.object.getAttribute(stringKey);
@@ -213,10 +213,7 @@ export class Attribute<T extends object = any, K extends prop<T> = any> extends 
         let pTarget;
 
         let valueToPass = value;
-        if (value instanceof Modification) {
-            valueToPass = value.valueOf();
-            if (value.type === "delete" && !isPrimitive(value.valueOf())) setValue = false;
-        }
+        if (value instanceof Modification) valueToPass = value.valueOf();
 
         if (!this.inDOMInitialized && attrValue) {
             setAttribute = false;
@@ -225,7 +222,7 @@ export class Attribute<T extends object = any, K extends prop<T> = any> extends 
 
         // Reflect property changes to attribute
         if (setAttribute && attrValue !== pTarget && attrValue !== JSON.stringify(pTarget).replace(/\"/g, "'")) {
-            (<any>this.object).setAttribute(stringKey, pTarget, setValue);
+            (<any>this.object).setAttribute(stringKey, pTarget, false);
         }
     }
 

@@ -330,8 +330,8 @@ export class Watched<T extends object = any, K extends DefNonFuncPropNames<T> = 
      * @param {T[K]} previousValue
      * @memberof Watched
      */
-    public proxyHandler(path: string, changedVal: T[K], prevVal: T[K], attrReflectsToObj: boolean = true) {
-        if (this.subObject) this.subObject.proxyHandler(path, changedVal, prevVal, attrReflectsToObj);
+    public proxyHandler(path: string, changedVal: T[K], prevVal: T[K]) {
+        if (this.subObject) this.subObject.proxyHandler(path, changedVal, prevVal);
         const newKeys = Object.keys(changedVal);
         const oldKeys = Object.keys(prevVal);
         const newLen = newKeys.length;

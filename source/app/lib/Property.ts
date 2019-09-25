@@ -265,7 +265,7 @@ export class Property<T extends object = any, K extends DefNonFuncPropNames<T> =
      *
      * @memberof Property
      */
-    public proxyHandler(_path?: string, _changedVal?: T[K], _prevVal?: T[K], _attrReflectsToObj: boolean = true) {
+    public proxyHandler(_path?: string, _changedVal?: T[K], _prevVal?: T[K]) {
         const value = this.value;
         if (value === undefined || value === null) return;
         this.doSetValue(onChange.target(value), false);
@@ -322,8 +322,8 @@ export class Property<T extends object = any, K extends DefNonFuncPropNames<T> =
             value = onChange.target(value);
             return onChange(value, (path, changedVal, prevVal) => {
                 if (this.proxyHandlerReplacement) {
-                    this.proxyHandlerReplacement(path, <T[K]>changedVal, <T[K]>prevVal, false);
-                } else this.proxyHandler(path, <T[K]>changedVal, <T[K]>prevVal, false);
+                    this.proxyHandlerReplacement(path, <T[K]>changedVal, <T[K]>prevVal);
+                } else this.proxyHandler(path, <T[K]>changedVal, <T[K]>prevVal);
             });
         }
         return value;

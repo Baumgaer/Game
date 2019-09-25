@@ -84,7 +84,7 @@ export class Field<T extends object = any, K extends DefNonFuncPropNames<T> = an
             value = onChange.target(value);
             return onChange(value, (path, changedValue, previousValue) => {
                 for (const field of this.fields) {
-                    field.proxyHandler(path, <T[K]>changedValue, <T[K]>previousValue, false);
+                    field.proxyHandler(path, <T[K]>changedValue, <T[K]>previousValue);
                 }
             });
         }

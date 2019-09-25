@@ -2,7 +2,6 @@ import { BaseComponentFactory } from '~client/lib/BaseComponent';
 import { property, attribute, baseConstructor, watched } from '~bdo/utils/decorators';
 import { Test1 } from "~client/models/Test1";
 
-const testModel = new Test1({ title: String(Date.now()) });
 /**
  * Test
  *
@@ -26,7 +25,7 @@ export default class ViewLink extends BaseComponentFactory(HTMLAnchorElement) {
      *
      * @memberof ViewLink
      */
-    @property() public model = testModel;
+    @property() public model = new Test1({ title: String(Date.now()) });
 
     /**
      * Test
@@ -42,7 +41,7 @@ export default class ViewLink extends BaseComponentFactory(HTMLAnchorElement) {
      * @type {string[]}
      * @memberof ViewLink
      */
-    @watched() @property() public tester: string[] = this.model.bind("tester");
+    @watched() @attribute() public tester: string[] = this.model.bind("tester");
 
     constructor(_params?: ConstParams<ViewLink>) {
         super();
