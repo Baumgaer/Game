@@ -1,4 +1,4 @@
-import { baseConstructor, attribute } from '~bdo/utils/decorators';
+import { baseConstructor, attribute, watched } from '~bdo/utils/decorators';
 import { BDOModel } from '~bdo/lib/BDOModel';
 
 /**
@@ -33,7 +33,62 @@ export function BDOTestFactory<TBase extends Constructor<BDOModel>>(ctor: TBase)
          * @type {string[]}
          * @memberof BDOTest
          */
-        @attribute((_type) => [String]) public tester: string[] = [];
+        @watched() @attribute((_type) => [String]) public tester: string[] = [];
+
+        /**
+         * Test
+         *
+         * @protected
+         * @param {this["test"]} changed
+         * @memberof ViewLink
+         */
+        protected onTestChange(changed: this["tester"]) {
+            console.log("test changed", changed, this);  // tslint:disable-line
+        }
+
+        /**
+         * Test
+         *
+         * @protected
+         * @param {this["test"]} init
+         * @memberof ViewLink
+         */
+        protected onTesterInit(init: this["tester"]) {
+            console.log("tester init", init, this);  // tslint:disable-line
+        }
+
+        /**
+         * Test
+         *
+         * @protected
+         * @param {this["test"]} changed
+         * @memberof ViewLink
+         */
+        protected onTesterChange(changed: this["tester"]) {
+            console.log("tester changed", changed, this);  // tslint:disable-line
+        }
+
+        /**
+         * Test
+         *
+         * @protected
+         * @param {this["test"]} added
+         * @memberof ViewLink
+         */
+        protected onTesterAdd(added: this["tester"]) {
+            console.log("tester added", added, this);  // tslint:disable-line
+        }
+
+        /**
+         * Test
+         *
+         * @protected
+         * @param {this["test"]} removed
+         * @memberof ViewLink
+         */
+        protected onTesterRemove(removed: this["tester"]) {
+            console.log("tester removed", removed, this);  // tslint:disable-line
+        }
 
     }
     return BDOTest;

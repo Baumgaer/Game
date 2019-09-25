@@ -2,7 +2,7 @@ import { NullableListOptions } from "type-graphql/dist/decorators/types";
 import { Modification } from "~bdo/lib/Modification";
 import { getMetadata, defineMetadata, getDesignType } from "~bdo/utils/metadata";
 import { isBrowser } from "~bdo/utils/environment";
-import { isPrimitive, ucFirst } from "~bdo/utils/util";
+import { isPrimitive, ucFirst, isProxy } from "~bdo/utils/util";
 import { TypeError } from "~bdo/lib/Errors";
 import onChange from "on-change";
 import { isFunction } from "lodash";
@@ -96,7 +96,7 @@ export class Property<T extends object = any, K extends DefNonFuncPropNames<T> =
      * @type {string}
      * @memberof Property
      */
-    public property: K | Modification<any>;
+    public property: K;
 
     /**
      * @inheritdoc
@@ -145,6 +145,14 @@ export class Property<T extends object = any, K extends DefNonFuncPropNames<T> =
      * @memberof Property
      */
     public onTypeCheckSuccess: string;
+
+    /**
+     * The proxy handler which should be used instead of the own handler
+     *
+     * @type {Function}
+     * @memberof Property
+     */
+    public proxyHandlerReplacement?: Function;
 
     /**
      * The value of the property / attribute this will probably manipulated by a field
@@ -204,8 +212,8 @@ export class Property<T extends object = any, K extends DefNonFuncPropNames<T> =
         // Get from Reflect storage
         let value = this.value;
         // Get from localStorage if saveInLocalStorage in params
-        if (this.saveInLocalStorage && isFunction((<IndexStructure>this.object).getNamespacedStorage)) {
-            value = (<IndexStructure>this.object).getNamespacedStorage(stringKey);
+        if (!isProxy(value) && this.saveInLocalStorage && isFunction((<any>this.object).getNamespacedStorage)) {
+            value = (<any>this.object).getNamespacedStorage(stringKey);
         }
         return value;
     }
@@ -264,6 +272,18 @@ export class Property<T extends object = any, K extends DefNonFuncPropNames<T> =
     }
 
     /**
+     * Determines wether to set the value respecting the DOM attribute, old value and type
+     *
+     * @param {(T[K] | Modification<any>)} [value]
+     * @param {boolean} [skipGuard=false]
+     * @returns
+     * @memberof Property
+     */
+    public shouldDoSetValue(value?: T[K] | Modification<any>, skipGuard: boolean = false) {
+        return !(value === this.ownValue || !skipGuard && !this.disableTypeGuard && !this.typeGuard(value));
+    }
+
+    /**
      * Executes value setting depending on modifyValue parameter and initialization
      * properties.
      *
@@ -274,7 +294,7 @@ export class Property<T extends object = any, K extends DefNonFuncPropNames<T> =
      * @memberof Property
      */
     protected doSetValue(value?: T[K] | Modification<any>, modifyValue: boolean = true, skipGuard: boolean = false) {
-        if (value === this.ownValue || !skipGuard && !this.disableTypeGuard && !this.typeGuard(value)) return;
+        if (!this.shouldDoSetValue(value, skipGuard)) return;
         let valueToPass: T[K] | undefined;
         if (value instanceof Modification) {
             valueToPass = value.valueOf();
@@ -282,7 +302,7 @@ export class Property<T extends object = any, K extends DefNonFuncPropNames<T> =
         if (modifyValue) {
             const proxyfied = this.proxyfyValue(valueToPass);
             this.value = proxyfied;
-            this.ownValue = proxyfied;
+            this.ownValue = valueToPass;
         }
         if (this.shouldUpdateNsStorage() && isFunction((<IndexStructure>this.object).setUpdateNamespacedStorage)) {
             (<IndexStructure>this.object).setUpdateNamespacedStorage(this.property.toString(), valueToPass);
@@ -301,7 +321,9 @@ export class Property<T extends object = any, K extends DefNonFuncPropNames<T> =
         if (value instanceof Array) {
             value = onChange.target(value);
             return onChange(value, (path, changedVal, prevVal) => {
-                this.proxyHandler(path, <T[K]>changedVal, <T[K]>prevVal, false);
+                if (this.proxyHandlerReplacement) {
+                    this.proxyHandlerReplacement(path, <T[K]>changedVal, <T[K]>prevVal, false);
+                } else this.proxyHandler(path, <T[K]>changedVal, <T[K]>prevVal, false);
             });
         }
         return value;

@@ -128,15 +128,6 @@ export class Binding<
     }
 
     /**
-     * oldValue
-     */
-    public getOldValue() {
-        const fieldMDataName = `field:${this.property}`;
-        const field: Field<T, K> = getWildcardMetadata(this.object, fieldMDataName);
-        return field.getOldValue();
-    }
-
-    /**
      * Installs the binding to the initiator
      *
      * @param {object} initiator

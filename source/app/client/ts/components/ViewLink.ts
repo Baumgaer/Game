@@ -1,7 +1,8 @@
 import { BaseComponentFactory } from '~client/lib/BaseComponent';
-import { property, attribute, baseConstructor } from '~bdo/utils/decorators';
+import { property, attribute, baseConstructor, watched } from '~bdo/utils/decorators';
 import { Test1 } from "~client/models/Test1";
 
+const testModel = new Test1({ title: String(Date.now()) });
 /**
  * Test
  *
@@ -25,7 +26,7 @@ export default class ViewLink extends BaseComponentFactory(HTMLAnchorElement) {
      *
      * @memberof ViewLink
      */
-    @property() public model = new Test1({ title: String(Date.now()) });
+    @property() public model = testModel;
 
     /**
      * Test
@@ -41,9 +42,7 @@ export default class ViewLink extends BaseComponentFactory(HTMLAnchorElement) {
      * @type {string[]}
      * @memberof ViewLink
      */
-    @attribute({
-        saveInLocalStorage: true
-    }) public tester: string[] = this.model.bind("tester");
+    @watched() @property() public tester: string[] = this.model.bind("tester");
 
     constructor(_params?: ConstParams<ViewLink>) {
         super();
@@ -97,8 +96,19 @@ export default class ViewLink extends BaseComponentFactory(HTMLAnchorElement) {
      * @param {this["test"]} changed
      * @memberof ViewLink
      */
-    protected onTestChange(changed: this["test"]) {
+    protected onTestChange(changed: this["tester"]) {
         console.log("test changed", changed, this);  // tslint:disable-line
+    }
+
+    /**
+     * Test
+     *
+     * @protected
+     * @param {this["test"]} init
+     * @memberof ViewLink
+     */
+    protected onTesterInit(init: this["tester"]) {
+        console.log("tester init", init, this);  // tslint:disable-line
     }
 
     /**
@@ -108,8 +118,30 @@ export default class ViewLink extends BaseComponentFactory(HTMLAnchorElement) {
      * @param {this["test"]} changed
      * @memberof ViewLink
      */
-    protected onTestInit(changed: this["test"]) {
-        console.log("test init", changed, this);  // tslint:disable-line
+    protected onTesterChange(changed: this["tester"]) {
+        console.log("tester changed", changed, this);  // tslint:disable-line
+    }
+
+    /**
+     * Test
+     *
+     * @protected
+     * @param {this["test"]} added
+     * @memberof ViewLink
+     */
+    protected onTesterAdd(added: this["tester"]) {
+        console.log("tester added", added, this);  // tslint:disable-line
+    }
+
+    /**
+     * Test
+     *
+     * @protected
+     * @param {this["test"]} removed
+     * @memberof ViewLink
+     */
+    protected onTesterRemove(removed: this["tester"]) {
+        console.log("tester removed", removed, this);  // tslint:disable-line
     }
 
     /**

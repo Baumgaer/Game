@@ -117,15 +117,6 @@ export class Attribute<T extends object = any, K extends prop<T> = any> extends 
     public doNotPersist?: boolean;
 
     /**
-     * holds changes of the attribute which are not saved or discarded
-     *
-     * @public
-     * @type {T[K]}
-     * @memberof Attribute
-     */
-    public unsavedChange?: T[K];
-
-    /**
      * Marks if an attribute is initialized on a DOM element
      *
      * @protected
@@ -166,24 +157,40 @@ export class Attribute<T extends object = any, K extends prop<T> = any> extends 
      * @returns
      * @memberof Attribute
      */
-    public valueOf() {
-        let value = super.valueOf();
-        if (this.unsavedChange && !this.doNotPersist && this.object.isBDOModel) value = this.unsavedChange;
-        return value;
+    public proxyHandler(_path?: string, _changedVal?: T[K], _prevVal?: T[K], attrReflectsToObj: boolean = true) {
+        const value = this.value;
+        if (value === undefined || value === null) return;
+        this.doSetValue(getProxyTarget(value));
+        this.reflectToDOMAttribute(value, attrReflectsToObj);
+        this.doAutoSave();
     }
+
+    /**
+     * Compares the value of this attribute with the value in the IndexedDB and
+     * returns this value if it is different from the value in the store. If the
+     * value is an Array or an Object, only keys with changes will be returned.
+     *
+     * @memberof Attribute
+     */
+    public getUnsavedChange() { }
 
     /**
      * @inheritdoc
      *
+     * @public
+     * @param {(T[K] | Modification<any>)} [value]
      * @returns
      * @memberof Attribute
      */
-    public proxyHandler(_path?: string, _changedVal?: T[K], _prevVal?: T[K], attrReflectsToObj: boolean = true) {
-        const value = this.value;
-        if (!this.shouldDoSetValue(value, true)) return;
-        this.doSetValue(getProxyTarget(value), false);
-        this.reflectToDOMAttribute(value, attrReflectsToObj);
-        this.doAutoSave();
+    public shouldDoSetValue(value?: T[K] | Modification<any>, skipGuard: boolean = false) {
+        if (isBrowser() && !this.object.isBDOModel && (this.object instanceof HTMLElement)) {
+            const constructedType = constructTypeOfHTMLAttribute(this.object, this.property);
+            if (!this.inDOMInitialized && this.object.getAttribute(this.property) && value !== constructedType) {
+                (<T>this.object)[<K>this.property] = constructedType;
+                return false;
+            }
+        }
+        return !(value === this.ownValue || !skipGuard && !this.disableTypeGuard && !this.typeGuard(value));
     }
 
     /**
@@ -223,37 +230,6 @@ export class Attribute<T extends object = any, K extends prop<T> = any> extends 
     }
 
     /**
-     * @inheritdoc
-     *
-     * Stores values in unsavedChanges if object is an BDOModel. Normally this
-     * will be used in methods called save() or discard(). If a modification of
-     * type fromServer is passed in it will not update the unsaved changes
-     *
-     * @protected
-     * @param {*} value
-     * @returns
-     * @memberof Attribute
-     */
-    protected doSetValue(value?: T[K] | Modification<any>, modifyValue: boolean = true) {
-        let valueToPass: T[K] | undefined;
-        if (value instanceof Modification) {
-            valueToPass = value.valueOf();
-        } else valueToPass = value;
-        super.doSetValue(value, false, true);
-        if (!this.object.isBDOModel || this.doNotPersist || (
-            value instanceof Modification && value.type === "update")) {
-            const proxyfied = this.proxyfyValue(valueToPass);
-            if (modifyValue) this.value = proxyfied;
-            this.ownValue = proxyfied;
-        } else {
-            if (valueToPass === undefined && valueToPass !== super.valueOf()) {
-                this.unsavedChange = new Modification() as unknown as T[K];
-            } else this.unsavedChange = valueToPass;
-        }
-        if (value === super.valueOf()) this.unsavedChange = undefined;
-    }
-
-    /**
      * Saves the attribute automatically if autoSave is defined and debounces
      * it if autosave is a number.
      *
@@ -262,10 +238,10 @@ export class Attribute<T extends object = any, K extends prop<T> = any> extends 
      * @memberof Attribute
      */
     protected doAutoSave() {
-        if (this.autoSave && (this.doNotPersist)) {
+        if (this.autoSave && this.doNotPersist) {
             throw new ConfigurationError("You have turned on autosave but at the same time it is forbidden to persist the value!");
         }
-        if (!this.autoSave || !isFunction(this.object.save) || this.unsavedChange === undefined) return;
+        if (!this.autoSave || !isFunction(this.object.save)) return;
         if (typeof this.autoSave === "boolean") this.object.save(this.property);
         if (typeof this.autoSave === "number" && !this.autoSaveTimeout) {
             this.autoSaveTimeout = setTimeout(() => {
@@ -273,24 +249,5 @@ export class Attribute<T extends object = any, K extends prop<T> = any> extends 
                 delete this.autoSaveTimeout;
             }, Math.abs(this.autoSave));
         }
-    }
-
-    /**
-     * Determines wether to set the value respecting the DOM attribute, old value and type
-     *
-     * @private
-     * @param {(T[K] | Modification<any>)} [value]
-     * @returns
-     * @memberof Attribute
-     */
-    private shouldDoSetValue(value?: T[K] | Modification<any>, skipGuard: boolean = false) {
-        if (isBrowser() && !this.object.isBDOModel && (this.object instanceof HTMLElement)) {
-            const constructedType = constructTypeOfHTMLAttribute(this.object, this.property);
-            if (!this.inDOMInitialized && this.object.getAttribute(this.property) && value !== constructedType) {
-                this.setValue(constructedType);
-                return false;
-            }
-        }
-        return !(value === this.ownValue || !skipGuard && !this.disableTypeGuard && !this.typeGuard(value));
     }
 }

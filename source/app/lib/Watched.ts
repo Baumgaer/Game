@@ -1,9 +1,10 @@
 import { Property } from "~bdo/lib/Property";
 import { Attribute } from '~bdo/lib/Attribute';
 import { Modification } from '~bdo/lib/Modification';
-import { ucFirst } from "~bdo/utils/util";
+import { ucFirst, getProxyTarget } from "~bdo/utils/util";
 import onChange from "on-change";
 import cloneDeep from "clone-deep";
+import { isFunction } from "lodash";
 
 /**
  * This parameters are in fact for all objects with or without baseConstructor
@@ -258,18 +259,16 @@ export class Watched<T extends object = any, K extends DefNonFuncPropNames<T> = 
      * @memberof Watched
      */
     public setValue(value?: T[K] | Modification<any>) {
-        let oldVal = this.valueOf();
-        if (value === this.ownValue ||
-            this.subObject && !this.subObject.disableTypeGuard && !this.subObject.typeGuard(value)) return;
+        if (!this.shouldDoSetValue(value)) return;
+
+        // Make a deep copy of old value to pass an unchanged version to the onChange function
+        const oldVal = cloneDeep(this.ownValue);
 
         let valueToPass: T[K] | undefined;
         if (value instanceof Modification) {
             valueToPass = value.valueOf();
         } else valueToPass = value;
-        // Make a deep copy of old value to pass an unchanged version to the onChange function
-        oldVal = cloneDeep(oldVal);
-        // Process array and object modification
-        valueToPass = this.getArrayObjectProxy(valueToPass);
+
         // Update modifications value to behold the proxy functionality
         let useValue = false;
         if (value instanceof Modification) {
@@ -277,23 +276,23 @@ export class Watched<T extends object = any, K extends DefNonFuncPropNames<T> = 
             useValue = true;
         }
 
+        const valueToSet = useValue ? value : valueToPass;
         // Set new Value
         if (this.subObject) {
-            const valueToSet = useValue ? value : valueToPass;
             this.subObject.setValue(valueToSet);
-            this.ownValue = valueToPass;
+            this.ownValue = getProxyTarget(this.subObject.valueOf());
         } else {
+            // Process array and object modification
+            valueToPass = this.proxyfyValue(valueToPass);
             this.value = valueToPass;
-            this.ownValue = valueToPass;
+            this.ownValue = getProxyTarget(valueToPass);
         }
+
+        const idxStructObj = <IndexStructure>this.object;
         // React on variable changes
-        if (this.executeReactionFunction(value) && this.onChange in this.object && this.isInitialized) {
-            (<IndexStructure>this.object)[this.onChange](oldVal);
-        }
+        if (isFunction(idxStructObj[this.onChange]) && this.isInitialized) idxStructObj[this.onChange](oldVal);
         // React on initialization
-        if (this.executeReactionFunction(value) && this.onInit in this.object && !this.isInitialized) {
-            (<IndexStructure>this.object)[this.onInit](valueToPass);
-        }
+        if (isFunction(idxStructObj[this.onInit]) && !this.isInitialized) idxStructObj[this.onInit](valueToPass);
         this.isInitialized = true;
     }
 
@@ -319,6 +318,7 @@ export class Watched<T extends object = any, K extends DefNonFuncPropNames<T> = 
      * @memberof Watched
      */
     public setSubObject(subObject: Property<T, K> | Attribute<T, K>) {
+        subObject.proxyHandlerReplacement = this.proxyHandler.bind(this);
         this.subObject = subObject;
     }
 
@@ -364,18 +364,17 @@ export class Watched<T extends object = any, K extends DefNonFuncPropNames<T> = 
     }
 
     /**
-     * Decides wether to execute the reaction functions depending on unsaved changes and the incoming value
+     * Determines wether to set the value respecting the DOM attribute, old value and type
      *
-     * @private
-     * @param {*} value
+     * @param {(T[K] | Modification<any>)} [value]
+     * @param {boolean} [skipGuard=false]
      * @returns
-     * @memberof Watched
+     * @memberof Property
      */
-    private executeReactionFunction(value: any) {
-        if ((<any>this.object).isBDOModel && value instanceof Modification && value.type === "update") {
-            if (this.subObject && this.subObject instanceof Attribute && this.subObject.unsavedChange) return false;
-        }
-        return true;
+    public shouldDoSetValue(value?: T[K] | Modification<any>, skipGuard: boolean = false) {
+        if (this.subObject) {
+            return this.subObject.shouldDoSetValue(value, skipGuard);
+        } else return (value !== this.ownValue);
     }
 
     /**
@@ -387,7 +386,7 @@ export class Watched<T extends object = any, K extends DefNonFuncPropNames<T> = 
      * @returns
      * @memberof Watched
      */
-    private getArrayObjectProxy(value?: T[K]) {
+    private proxyfyValue(value?: T[K]) {
         if (value instanceof Array) {
             value = onChange.target(value);
             return onChange(value, (path, changedValue, previousValue) => {
