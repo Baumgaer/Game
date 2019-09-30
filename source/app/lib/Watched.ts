@@ -1,10 +1,9 @@
 import { Property } from "~bdo/lib/Property";
 import { Attribute } from '~bdo/lib/Attribute';
 import { Modification } from '~bdo/lib/Modification';
-import { ucFirst, getProxyTarget } from "~bdo/utils/util";
+import { ucFirst, getProxyTarget, isFunction } from "~bdo/utils/util";
 import onChange from "on-change";
 import cloneDeep from "clone-deep";
-import { isFunction } from "lodash";
 
 /**
  * This parameters are in fact for all objects with or without baseConstructor

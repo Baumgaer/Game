@@ -8,10 +8,23 @@ let ServerModel = class ServerModel extends BDOModel_1.BDOModel {
         super(...arguments);
         this.isServerModel = true;
     }
-    async save(_prop) {
-        return new Promise((resolve, _reject) => {
-            resolve();
-        });
+    async save(_attr) {
+        return Promise.resolve();
+    }
+    discardChange(_attr) {
+        throw new Error("Method not implemented.");
+    }
+    discardChanges() {
+        throw new Error("Method not implemented.");
+    }
+    isUnsaved(_attr) {
+        throw new Error("Method not implemented.");
+    }
+    hasUnsavedChanges() {
+        throw new Error("Method not implemented.");
+    }
+    getUnsavedChanges() {
+        throw new Error("Method not implemented.");
     }
 };
 ServerModel.isServerModel = true;
@@ -23,4 +36,4 @@ ServerModel = tslib_1.__decorate([
     decorators_1.baseConstructor()
 ], ServerModel);
 exports.ServerModel = ServerModel;
-//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiU2VydmVyTW9kZWwuanMiLCJzb3VyY2VSb290IjoiIiwic291cmNlcyI6WyIuLi8uLi8uLi8uLi9zb3VyY2UvYXBwL3NlcnZlci9saWIvU2VydmVyTW9kZWwudHMiXSwibmFtZXMiOltdLCJtYXBwaW5ncyI6Ijs7O0FBQUEsc0RBQWtFO0FBQ2xFLGdEQUE2QztBQVk3QyxJQUFhLFdBQVcsR0FBeEIsTUFBYSxXQUFZLFNBQVEsbUJBQVE7SUFBekM7O1FBa0JnQyxrQkFBYSxHQUFZLElBQUksQ0FBQztJQWdCOUQsQ0FBQztJQVBVLEtBQUssQ0FBQyxJQUFJLENBQUMsS0FBYTtRQUMzQixPQUFPLElBQUksT0FBTyxDQUFDLENBQUMsT0FBTyxFQUFFLE9BQU8sRUFBRSxFQUFFO1lBRXBDLE9BQU8sRUFBRSxDQUFDO1FBQ2QsQ0FBQyxDQUFDLENBQUM7SUFDUCxDQUFDO0NBRUosQ0FBQTtBQXhCMEIseUJBQWEsR0FBWSxJQUFJLENBQUM7QUFRekM7SUFBWCxxQkFBUSxFQUFFOztrREFBK0M7QUFsQmpELFdBQVc7SUFEdkIsNEJBQWUsRUFBRTtHQUNMLFdBQVcsQ0FrQ3ZCO0FBbENZLGtDQUFXIn0=
+//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiU2VydmVyTW9kZWwuanMiLCJzb3VyY2VSb290IjoiIiwic291cmNlcyI6WyIuLi8uLi8uLi8uLi9zb3VyY2UvYXBwL3NlcnZlci9saWIvU2VydmVyTW9kZWwudHMiXSwibmFtZXMiOltdLCJtYXBwaW5ncyI6Ijs7O0FBQUEsc0RBQWtFO0FBQ2xFLGdEQUE2QztBQVk3QyxJQUFhLFdBQVcsR0FBeEIsTUFBYSxXQUFZLFNBQVEsbUJBQVE7SUFBekM7O1FBa0JnQyxrQkFBYSxHQUFZLElBQUksQ0FBQztJQWlFOUQsQ0FBQztJQXhEVSxLQUFLLENBQUMsSUFBSSxDQUFDLEtBQWlDO1FBQy9DLE9BQU8sT0FBTyxDQUFDLE9BQU8sRUFBRSxDQUFDO0lBQzdCLENBQUM7SUFTTSxhQUFhLENBQUMsS0FBaUM7UUFDbEQsTUFBTSxJQUFJLEtBQUssQ0FBQyx5QkFBeUIsQ0FBQyxDQUFDO0lBQy9DLENBQUM7SUFRTSxjQUFjO1FBQ2pCLE1BQU0sSUFBSSxLQUFLLENBQUMseUJBQXlCLENBQUMsQ0FBQztJQUMvQyxDQUFDO0lBU00sU0FBUyxDQUFDLEtBQWlDO1FBQzlDLE1BQU0sSUFBSSxLQUFLLENBQUMseUJBQXlCLENBQUMsQ0FBQztJQUMvQyxDQUFDO0lBUU0saUJBQWlCO1FBQ3BCLE1BQU0sSUFBSSxLQUFLLENBQUMseUJBQXlCLENBQUMsQ0FBQztJQUMvQyxDQUFDO0lBUU0saUJBQWlCO1FBQ3BCLE1BQU0sSUFBSSxLQUFLLENBQUMseUJBQXlCLENBQUMsQ0FBQztJQUMvQyxDQUFDO0NBRUosQ0FBQTtBQXpFMEIseUJBQWEsR0FBWSxJQUFJLENBQUM7QUFRekM7SUFBWCxxQkFBUSxFQUFFOztrREFBK0M7QUFsQmpELFdBQVc7SUFEdkIsNEJBQWUsRUFBRTtHQUNMLFdBQVcsQ0FtRnZCO0FBbkZZLGtDQUFXIn0=

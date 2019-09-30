@@ -1,5 +1,5 @@
 import IORedis from 'ioredis';
-import { merge, isUndefined, pickBy, omit } from 'lodash';
+import { merge, isUndefined, pickBy, omit } from '~bdo/utils/util';
 
 export type callbackType = (err: Error, res: number) => void;
 export type messageType = Array<

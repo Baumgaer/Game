@@ -1,6 +1,6 @@
 import { Redis, messageType } from '~server/lib/Redis';
 import IORedis from 'ioredis';
-import { merge } from 'lodash';
+import { merge } from '~bdo/utils/util';
 import { Logger } from '~server/lib/Logger';
 import { ConfigManager } from '~server/lib/ConfigManager';
 

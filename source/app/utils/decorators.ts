@@ -1,5 +1,5 @@
 import 'reflect-metadata';
-import { pascalCase2kebabCase } from "~bdo/utils/util";
+import { pascalCase2kebabCase, isFunction } from "~bdo/utils/util";
 import { isBrowser } from "~bdo/utils/environment";
 import { IPropertyParams } from "~bdo/lib/Property";
 import { IAttributeParams } from "~bdo/lib/Attribute";
@@ -7,7 +7,6 @@ import { IWatchedParams } from "~bdo/lib/Watched";
 import { Binding } from "~bdo/lib/Binding";
 import { getMetadata, defineMetadata } from "~bdo/utils/metadata";
 import { beforePropertyDescriptors, createDecoratorDescriptor } from "~bdo/utils/framework";
-import { isFunction } from "lodash";
 import { ReturnTypeFunc } from "type-graphql/dist/decorators/types";
 import { ObjectOptions } from "type-graphql/dist/decorators/ObjectType";
 import {

@@ -38,11 +38,60 @@ export class ServerModel extends BDOModel {
      * @returns {Promise<any>}
      * @memberof ServerModel
      */
-    public async save(_prop: string): Promise<any> {
-        return new Promise((resolve, _reject) => {
-            // console.log(`saved ${_prop} with val ${getWildcardMetadata(this, _prop).unsavedChange}!`);
-            resolve();
-        });
+    public async save(_attr?: DefNonFuncPropNames<this>): Promise<any> {
+        return Promise.resolve();
+    }
+
+    /**
+     * @inheritdoc
+     *
+     * @param {DefNonFuncPropNames<this>} [_attr]
+     * @returns {Promise<void>}
+     * @memberof ServerModel
+     */
+    public discardChange(_attr?: DefNonFuncPropNames<this>): Promise<void> {
+        throw new Error("Method not implemented.");
+    }
+
+    /**
+     * @inheritdoc
+     *
+     * @returns {Promise<void>}
+     * @memberof ServerModel
+     */
+    public discardChanges(): Promise<void> {
+        throw new Error("Method not implemented.");
+    }
+
+    /**
+     * @inheritdoc
+     *
+     * @param {DefNonFuncPropNames<this>} [_attr]
+     * @returns {Promise<boolean>}
+     * @memberof ServerModel
+     */
+    public isUnsaved(_attr?: DefNonFuncPropNames<this>): Promise<boolean> {
+        throw new Error("Method not implemented.");
+    }
+
+    /**
+     * @inheritdoc
+     *
+     * @returns {Promise<boolean>}
+     * @memberof ServerModel
+     */
+    public hasUnsavedChanges(): Promise<boolean> {
+        throw new Error("Method not implemented.");
+    }
+
+    /**
+     * @inheritdoc
+     *
+     * @returns {Promise<IndexStructure<string, any>>}
+     * @memberof ServerModel
+     */
+    public getUnsavedChanges(): Promise<IndexStructure<string, any>> {
+        throw new Error("Method not implemented.");
     }
 
 }

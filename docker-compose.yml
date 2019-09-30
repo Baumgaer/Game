@@ -71,6 +71,7 @@ services:
 
     redis:
         image: redis
+        command: redis-server --save ''
         deploy:
             replicas: 1
             restart_policy:

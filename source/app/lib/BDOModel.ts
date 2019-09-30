@@ -93,6 +93,17 @@ export abstract class BDOModel {
     }
 
     /**
+     * Test
+     *
+     * @static
+     * @param {string} id
+     * @memberof BDOModel
+     */
+    public static getInstanceByID(_id: string) {
+        throw new Error("Not implemented");
+    }
+
+    /**
      * gets the property of this model and converts it to a watched one.
      * Only useful in combination with the watched decorator.
      *
@@ -141,5 +152,61 @@ export abstract class BDOModel {
      *
      * @memberof BDOModel
      */
-    public abstract async save(prop: string): Promise<any>;
+    public abstract async save(attr?: DefNonFuncPropNames<this>): Promise<IndexStructure>;
+
+    /**
+     * Discards the changes of the given attribute to the value saved in the database
+     *
+     * @abstract
+     * @param {DefNonFuncPropNames<this>} attr
+     * @returns {Promise<void>}
+     * @memberof BDOModel
+     */
+    public abstract async discardChange(attr: DefNonFuncPropNames<this>): Promise<void>;
+
+    /**
+     * Discards all unsaved changes of all attributes
+     *
+     * @abstract
+     * @returns {Promise<void>}
+     * @memberof BDOModel
+     */
+    public abstract async discardChanges(): Promise<void>;
+
+    /**
+     * Checks if a value of an attribute is stored in the database
+     *
+     * @abstract
+     * @param {DefNonFuncPropNames<this>} attr
+     * @returns {Promise<boolean>}
+     * @memberof BDOModel
+     */
+    public async isUnsaved(attr: DefNonFuncPropNames<this>): Promise<boolean> {
+        const unsavedChanges = await this.getUnsavedChanges();
+        let unsaved = false;
+        if (unsavedChanges && unsavedChanges.hasOwnProperty(attr)) unsaved = true;
+        return Promise.resolve(unsaved);
+    }
+
+    /**
+     * Checks if all values of all attributes are stored in the database
+     *
+     * @abstract
+     * @returns {Promise<boolean>}
+     * @memberof BDOModel
+     */
+    public async hasUnsavedChanges(): Promise<boolean> {
+        const unsavedChanges = await this.getUnsavedChanges();
+        return Promise.resolve(Boolean(Object.keys(unsavedChanges).length));
+    }
+
+    /**
+     * Returns all values of all attributes which are not stored in the database
+     *
+     * @abstract
+     * @returns {Promise<ConstParams<this>>}
+     * @memberof BDOModel
+     */
+    public abstract async getUnsavedChanges(): Promise<IndexStructure>;
+
 }

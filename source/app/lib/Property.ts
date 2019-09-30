@@ -2,10 +2,9 @@ import { NullableListOptions } from "type-graphql/dist/decorators/types";
 import { Modification } from "~bdo/lib/Modification";
 import { getMetadata, defineMetadata, getDesignType } from "~bdo/utils/metadata";
 import { isBrowser } from "~bdo/utils/environment";
-import { isPrimitive, ucFirst, isProxy } from "~bdo/utils/util";
+import { isPrimitive, ucFirst, isProxy, isFunction } from "~bdo/utils/util";
 import { TypeError } from "~bdo/lib/Errors";
 import onChange from "on-change";
-import { isFunction } from "lodash";
 
 /**
  * This parameters should only be used in models and components other objects

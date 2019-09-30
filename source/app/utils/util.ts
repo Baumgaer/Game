@@ -2,6 +2,20 @@ import { getDesignType } from "~bdo/utils/metadata";
 import { isBrowser } from '~bdo/utils/environment';
 import onChange from "on-change";
 
+export {
+    merge,
+    omit,
+    isFunction,
+    isObject,
+    pickBy,
+    isUndefined,
+    isEqual,
+    isString,
+    isNumber,
+    isArray,
+    difference
+} from "lodash";
+
 /**
  * Capitalizes only the first letter of a string
  *

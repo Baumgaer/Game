@@ -1,12 +1,11 @@
 import 'reflect-metadata';
-import { isString, isObject } from 'lodash';
 import { Template, renderString } from 'nunjucks';
 import { property, attribute } from '~bdo/utils/decorators';
 import { getMetadata, getWildcardMetadata } from "~bdo/utils/metadata";
 import { Binding } from "~bdo/lib/Binding";
 import { Property } from "~bdo/lib/Property";
 import { getNamespacedStorage, setUpdateNamespacedStorage, deleteFromNamespacedStorage } from "~client/utils/util";
-import { constructTypeOfHTMLAttribute, isPrimitive } from '~bdo/utils/util';
+import { constructTypeOfHTMLAttribute, isPrimitive, isString, isObject } from '~bdo/utils/util';
 
 /**
  * Creates a new BaseComponent based on the HTMLTypeElement

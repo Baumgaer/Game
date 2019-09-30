@@ -3,7 +3,7 @@ import { readFile, access, constants } from 'graceful-fs';
 import { path as rootPath } from 'app-root-path';
 import { resolve } from 'path';
 import { parse } from 'ini';
-import { merge } from 'lodash';
+import { merge } from '~bdo/utils/util';
 /**
  * Manages the configuration on server side. See BDOConfigManager for mode
  * information

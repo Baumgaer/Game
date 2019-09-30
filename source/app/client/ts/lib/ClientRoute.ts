@@ -1,5 +1,5 @@
 import { BDORoute } from '~bdo/lib/BDORoute';
-import { merge } from 'lodash';
+import { merge } from '~bdo/utils/util';
 import { Logger } from '~client/lib/Logger';
 
 const logger = new Logger();

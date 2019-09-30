@@ -2,10 +2,9 @@ import { Attribute } from "~bdo/lib/Attribute";
 import { Property } from "~bdo/lib/Property";
 import { Watched } from "~bdo/lib/Watched";
 import { BDOModel } from "~bdo/lib/BDOModel";
-import { removeElementFromArray, getProxyTarget } from "~bdo/utils/util";
+import { removeElementFromArray, getProxyTarget, isObject } from "~bdo/utils/util";
 import { defineWildcardMetadata } from "~bdo/utils/metadata";
 import onChange from "on-change";
-import { isObject } from "lodash";
 import { Modification } from '~bdo/lib/Modification';
 
 type watchedAttrProp<T extends Object, K extends DefNonFuncPropNames<T>> =

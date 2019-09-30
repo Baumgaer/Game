@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction, Router } from 'express';
 import { Template } from 'nunjucks';
-import { isString, isObject } from 'lodash';
+import { isString, isObject } from '~bdo/utils/util';
 import { templateEnvironment } from '~bdo/utils/environment';
 
 /**

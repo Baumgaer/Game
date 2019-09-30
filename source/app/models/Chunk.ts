@@ -1,5 +1,5 @@
 import OpenSimplexNoise from 'open-simplex-noise';
-import { merge } from 'lodash';
+import { merge } from '~bdo/utils/util';
 import { Cell } from './Cell';
 
 /**

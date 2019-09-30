@@ -2,9 +2,8 @@ import { Property, IPropertyParams } from "~bdo/lib/Property";
 import { AdvancedOptions } from "type-graphql/dist/decorators/types";
 import { isBrowser } from '~bdo/utils/environment';
 import { Modification } from "~bdo/lib/Modification";
-import { constructTypeOfHTMLAttribute, getProxyTarget } from '~bdo/utils/util';
+import { constructTypeOfHTMLAttribute, getProxyTarget, isFunction } from '~bdo/utils/util';
 import { ConfigurationError } from "~bdo/lib/Errors";
-import { isFunction } from "lodash";
 
 type prop<T> = DefNonFuncPropNames<T>;
 

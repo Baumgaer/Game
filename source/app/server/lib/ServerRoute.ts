@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction, Router } from 'express';
-import { merge } from 'lodash';
+import { merge } from '~bdo/utils/util';
 import { globalTemplateVars } from '~server/utils/environment';
 import { BDORoute } from '~bdo/lib/BDORoute';
 import { BaseServer } from "~server/lib/BaseServer";
