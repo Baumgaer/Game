@@ -25,7 +25,7 @@ export function BDOTestFactory<TBase extends Constructor<BDOModel>>(ctor: TBase)
          * @type {string}
          * @memberof Test
          */
-        @attribute() public title: string = 'test';
+        @attribute({ autoSave: true }) public title: string = 'test';
 
         /**
          * Test

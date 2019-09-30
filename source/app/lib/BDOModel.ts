@@ -155,23 +155,14 @@ export abstract class BDOModel {
     public abstract async save(attr?: DefNonFuncPropNames<this>): Promise<IndexStructure>;
 
     /**
-     * Discards the changes of the given attribute to the value saved in the database
+     * Discards the changes of the given attribute or all attributes to the value saved in the database
      *
      * @abstract
      * @param {DefNonFuncPropNames<this>} attr
      * @returns {Promise<void>}
      * @memberof BDOModel
      */
-    public abstract async discardChange(attr: DefNonFuncPropNames<this>): Promise<void>;
-
-    /**
-     * Discards all unsaved changes of all attributes
-     *
-     * @abstract
-     * @returns {Promise<void>}
-     * @memberof BDOModel
-     */
-    public abstract async discardChanges(): Promise<void>;
+    public abstract async discard(attr?: DefNonFuncPropNames<this>): Promise<void>;
 
     /**
      * Checks if a value of an attribute is stored in the database

@@ -49,17 +49,7 @@ export class ServerModel extends BDOModel {
      * @returns {Promise<void>}
      * @memberof ServerModel
      */
-    public discardChange(_attr?: DefNonFuncPropNames<this>): Promise<void> {
-        throw new Error("Method not implemented.");
-    }
-
-    /**
-     * @inheritdoc
-     *
-     * @returns {Promise<void>}
-     * @memberof ServerModel
-     */
-    public discardChanges(): Promise<void> {
+    public discard(_attr?: DefNonFuncPropNames<this>): Promise<void> {
         throw new Error("Method not implemented.");
     }
 

@@ -133,6 +133,15 @@ export class Attribute<T extends object = any, K extends prop<T> = any> extends 
      */
     private autoSaveTimeout?: NodeJS.Timeout;
 
+    /**
+     * Determines after the first call of doAutoSave whether it is allowed to automatically save the value or not
+     *
+     * @private
+     * @type {boolean}
+     * @memberof Attribute
+     */
+    private autoSaveAllowed: boolean = false;
+
     constructor(object: T, property: K, params?: IAttributeParams) {
         super(object, property, params);
     }
@@ -236,6 +245,10 @@ export class Attribute<T extends object = any, K extends prop<T> = any> extends 
     private doAutoSave() {
         if (this.autoSave && this.doNotPersist) {
             throw new ConfigurationError("You have turned on autosave but at the same time it is forbidden to persist the value!");
+        }
+        if (!this.autoSaveAllowed) {
+            this.autoSaveAllowed = true;
+            return;
         }
         if (!this.autoSave || !isFunction(this.object.save)) return;
         if (typeof this.autoSave === "boolean") this.object.save(this.property);

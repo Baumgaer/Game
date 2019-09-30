@@ -13,7 +13,8 @@ export {
     isString,
     isNumber,
     isArray,
-    difference
+    difference,
+    debounce
 } from "lodash";
 
 /**
