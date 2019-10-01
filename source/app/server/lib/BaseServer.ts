@@ -20,6 +20,7 @@ import { RedisClientManager } from '~server/lib/RedisClientManager';
 import { Logger } from '~server/lib/Logger';
 import { walk } from '~root/utils/projectStructure';
 import { includesMemberOfList } from '~bdo/utils/util';
+import { RedisClient } from 'redis';
 
 const configManager = ConfigManager.getInstance();
 const redisClientManager = RedisClientManager.getInstance();
@@ -164,11 +165,14 @@ export abstract class BaseServer {
      * @memberof BaseServer
      */
     protected async setupServer(): Promise<void> {
-        const [config, passwords, databases, paths] = await Promise.all([
+        const [config, passwords, databases, paths, redisStoreClient] = await Promise.all([
             configManager.get('config'),
             configManager.get('passwords'),
             configManager.get('databases'),
-            configManager.get('paths')
+            configManager.get('paths'),
+            redisClientManager.createThirdPartyClient("redisStore", {
+                showFriendlyErrorStack: true
+            })
         ]);
         // parse the body to get post data and so on
         // NOTE: This is important for some middlewares to have directly
@@ -193,15 +197,13 @@ export abstract class BaseServer {
                     maxAge: parseInt(ms(config.session.maxAge), 10)
                 }
             }, {
-                store: new RedisStore({
-                    host: process.env.REDIS_HOST,
-                    port: +(process.env.REDIS_PORT || ""),
-                    prefix: `${config.session.prefix}:`,
-                    disableTTL: config.session.disableTTL,
-                    logErrors: config.session.logErrors,
-                    db: databases.redis.sessions
-                })
-            }
+            store: new RedisStore({
+                prefix: `${config.session.prefix}:`,
+                disableTTL: config.session.disableTTL,
+                db: databases.redis.sessions,
+                client: redisStoreClient as unknown as RedisClient
+            })
+        }
         );
         this.sessionParser = expressSession(sessionConfig);
         this.app.use(this.sessionParser);

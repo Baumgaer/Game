@@ -79,7 +79,7 @@ export class RedisClientManager {
      * @memberof RedisClientManager
      */
     public createClient(id: string, options: IORedis.RedisOptions = {}, subscribe: boolean = false): Promise<Redis> {
-        return this.clientCreation(id, options, subscribe, false) as Promise<Redis>;
+        return this.clientCreation(id, options, subscribe, false);
     }
 
     /**
@@ -91,7 +91,7 @@ export class RedisClientManager {
      * @memberof RedisClientManager
      */
     public createThirdPartyClient(id: string, options: IORedis.RedisOptions = {}): Promise<IORedis.Redis> {
-        return this.clientCreation(id, options, false, true) as Promise<IORedis.Redis>;
+        return this.clientCreation(id, options, false, true);
     }
 
     /**
@@ -156,12 +156,12 @@ export class RedisClientManager {
      * @returns {(Promise<IORedis.Redis | Redis>)}
      * @memberof RedisClientManager
      */
-    private async clientCreation(
+    private async clientCreation<T extends boolean>(
         id: string,
         options: IORedis.RedisOptions,
         subscribe: boolean,
-        thirdParty: boolean
-    ): Promise<IORedis.Redis | Redis> {
+        thirdParty: T
+    ): Promise<T extends true ? IORedis.Redis : Redis> {
         const config = await Promise.all([configManager.get('ports'), configManager.get('databases')]);
         const defaultClientSettings = {
             retryStrategy: this.retryStrategy.bind(this),
@@ -171,14 +171,13 @@ export class RedisClientManager {
             db: <number>config[1].redis.default
         };
         options = merge(defaultClientSettings, options);
-        return new Promise<IORedis.Redis | Redis>((resolve, reject) => {
+        return new Promise<T extends true ? IORedis.Redis : Redis>((resolve, reject) => {
             let client: IORedis.Redis | Redis;
             if (thirdParty) {
                 client = new IORedis(options);
-            } else {
-                client = new Redis(options);
-            }
-            ((client as unknown) as Redis).id = id;
+            } else client = new Redis(options);
+
+            (client as unknown as Redis).id = id;
             if (subscribe) {
                 client.on('message', (topic: string, params: string) => {
                     this.onClientMessage((client as unknown) as Redis, topic, JSON.parse(params));
@@ -195,7 +194,7 @@ export class RedisClientManager {
             });
             client.on('ready', () => {
                 this.onClientReady((client as unknown) as Redis);
-                resolve(client);
+                resolve(client as T extends true ? IORedis.Redis : Redis);
             });
         });
     }
