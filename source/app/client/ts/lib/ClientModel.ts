@@ -116,7 +116,7 @@ export class ClientModel extends BDOModel {
      * @param {string} attr
      * @memberof ClientModel
      */
-    public async save(attr?: DefNonFuncPropNames<this>): Promise<ConstParams<this>> {
+    public async save(attr?: DefNonFuncPropNames<this>): Promise<IndexStructure> {
         const definedAttributes = getMetadata(this, "definedAttributes");
         if (!definedAttributes || attr && !definedAttributes.includes(attr)) throw new Error("invalid defined attributes");
         const attributes = attr ? [attr] : definedAttributes;
@@ -176,7 +176,7 @@ export class ClientModel extends BDOModel {
      * @returns {Promise<ConstParams<this>>}
      * @memberof ClientModel
      */
-    public async getUnsavedChanges(): Promise<ConstParams<this>> {
+    public async getUnsavedChanges(): Promise<IndexStructure> {
         if (!this.collectionName) return Promise.reject("No collectionName provided");
         const unsavedChanges: ConstParams<this> = {};
         let dbCollection = await databaseManager.database("default").collection(this.collectionName).get(this.id);

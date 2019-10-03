@@ -1,7 +1,7 @@
 import { Property } from "~bdo/lib/Property";
 import { Attribute } from '~bdo/lib/Attribute';
 import { Modification } from '~bdo/lib/Modification';
-import { ucFirst, getProxyTarget, isFunction } from "~bdo/utils/util";
+import { ucFirst, getProxyTarget, isFunction, isObject } from "~bdo/utils/util";
 import onChange from "on-change";
 import cloneDeep from "clone-deep";
 
@@ -54,7 +54,7 @@ export interface IWatchedParams {
      * If true arrays and object will recursively observed for
      * changes, removes and additions.
      *
-     * @default false No recursive observation
+     * @default true No recursive observation
      * @type {boolean}
      * @memberof IWatchParams
      */
@@ -198,7 +198,7 @@ export class Watched<T extends object = any, K extends DefNonFuncPropNames<T> = 
      * @type {boolean}
      * @memberof Watched
      */
-    public isShallow: boolean = false;
+    public isShallow: boolean = true;
 
     /**
      * The value of the watcher if there is no sub object.
@@ -246,7 +246,7 @@ export class Watched<T extends object = any, K extends DefNonFuncPropNames<T> = 
         this.onAdd = params ? params.onAdd || onAddFunc : onAddFunc;
         this.onRemove = params ? params.onRemove || onRemoveFunc : onRemoveFunc;
 
-        this.isShallow = params ? Boolean(params.isShallow) : false;
+        this.isShallow = params && typeof params.isShallow === "boolean" ? params.isShallow : this.isShallow;
     }
 
     /**
@@ -318,6 +318,7 @@ export class Watched<T extends object = any, K extends DefNonFuncPropNames<T> = 
      */
     public setSubObject(subObject: Property<T, K> | Attribute<T, K>) {
         subObject.proxyHandlerReplacement = this.proxyHandler.bind(this);
+        subObject.isShallow = this.isShallow;
         this.subObject = subObject;
     }
 
@@ -331,8 +332,8 @@ export class Watched<T extends object = any, K extends DefNonFuncPropNames<T> = 
      */
     public proxyHandler(path: string, changedVal: T[K], prevVal: T[K]) {
         if (this.subObject) this.subObject.proxyHandler(path, changedVal, prevVal);
-        const newKeys = Object.keys(changedVal);
-        const oldKeys = Object.keys(prevVal);
+        const newKeys = changedVal ? Object.keys(changedVal) : [];
+        const oldKeys = prevVal ? Object.keys(prevVal) : [];
         const newLen = newKeys.length;
         const oldLen = oldKeys.length;
 
@@ -387,7 +388,7 @@ export class Watched<T extends object = any, K extends DefNonFuncPropNames<T> = 
      * @memberof Watched
      */
     private proxyfyValue(value?: T[K]) {
-        if (value instanceof Array) {
+        if (value instanceof Array || isObject(value) && !(<any>value).isBDOModel) {
             value = onChange.target(value);
             return onChange(value, (path, changedValue, previousValue) => {
                 this.proxyHandler(path, <T[K]>changedValue, <T[K]>previousValue);

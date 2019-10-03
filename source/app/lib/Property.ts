@@ -2,7 +2,7 @@ import { NullableListOptions } from "type-graphql/dist/decorators/types";
 import { Modification } from "~bdo/lib/Modification";
 import { getMetadata, defineMetadata, getDesignType } from "~bdo/utils/metadata";
 import { isBrowser } from "~bdo/utils/environment";
-import { isPrimitive, ucFirst, isProxy, isFunction } from "~bdo/utils/util";
+import { isPrimitive, ucFirst, isProxy, isFunction, isObject } from "~bdo/utils/util";
 import { TypeError } from "~bdo/lib/Errors";
 import onChange from "on-change";
 
@@ -152,6 +152,14 @@ export class Property<T extends object = any, K extends DefNonFuncPropNames<T> =
      * @memberof Property
      */
     public proxyHandlerReplacement?: Function;
+
+    /**
+     * @see Watched.isShallow
+     *
+     * @type {boolean}
+     * @memberof Property
+     */
+    public isShallow: boolean = true;
 
     /**
      * The value of the property / attribute this will probably manipulated by a field
@@ -317,13 +325,13 @@ export class Property<T extends object = any, K extends DefNonFuncPropNames<T> =
      * @memberof Property
      */
     protected proxyfyValue(value?: T[K]) {
-        if (value instanceof Array) {
+        if (value instanceof Array || isObject(value) && !(<any>value).isBDOModel) {
             value = onChange.target(value);
             return onChange(value, (path, changedVal, prevVal) => {
                 if (this.proxyHandlerReplacement) {
                     this.proxyHandlerReplacement(path, <T[K]>changedVal, <T[K]>prevVal);
                 } else this.proxyHandler(path, <T[K]>changedVal, <T[K]>prevVal);
-            });
+            }, { isShallow: this.isShallow });
         }
         return value;
     }

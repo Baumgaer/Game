@@ -72,10 +72,8 @@ export class Field<T extends object = any, K extends DefNonFuncPropNames<T> = an
      */
     public addField(field: watchedAttrProp<T, K>) {
         if (this.fields.includes(field)) return;
-        if (field.object && (<BDOModel>field.object).isBDOModel) {
-            const arrayObjProxy = this.proxyfyValue(field.valueOf());
-            this.value = arrayObjProxy;
-        }
+        // Take value of the model
+        if (field.object && (<BDOModel>field.object).isBDOModel) this.value = this.proxyfyValue(field.valueOf());
         if (field instanceof Watched && field.subObject) this.redefineValue(field.subObject);
         this.redefineValue(field);
         this.fields.push(field);
@@ -165,13 +163,23 @@ export class Field<T extends object = any, K extends DefNonFuncPropNames<T> = an
      * @returns
      * @memberof Field
      */
-    private proxyfyValue(value: T[K]) {
-        if (value instanceof Array || isObject(value)) {
+    private proxyfyValue(value?: T[K]) {
+        if (value instanceof Array || isObject(value) && !(<any>value).isBDOModel) {
             value = onChange.target(value);
             return onChange(value, (path, changedValue, previousValue) => {
+                const pathSize = path.split(".").length;
                 for (const field of this.fields) {
-                    field.proxyHandler(path, <T[K]>changedValue, <T[K]>previousValue);
+                    if (!field.isShallow || field.isShallow && pathSize <= 1) {
+                        field.proxyHandler(path, <T[K]>changedValue, <T[K]>previousValue);
+                    }
                 }
+            }, {
+                isShallow: (() => {
+                    for (const field of this.fields) {
+                        if (!field.isShallow) return false;
+                    }
+                    return true;
+                })()
             });
         }
         return value;

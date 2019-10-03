@@ -102,9 +102,7 @@ export function baseConstructor(name?: nameOrOptsOrIndex, options?: optsOrIndex,
 
     return (ctor: any) => {
         const prototype = Object.getPrototypeOf(ctor);
-        if (prototype.name === "BaseConstructor") {
-            Object.setPrototypeOf(ctor, Object.getPrototypeOf(prototype));
-        }
+        if (prototype.name === "BaseConstructor") Object.setPrototypeOf(ctor, Object.getPrototypeOf(prototype));
 
         // Determine param types
         if (name && (typeof name === "number")) constParamsIndex = name;
