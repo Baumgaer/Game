@@ -1,14 +1,13 @@
 import 'reflect-metadata';
-import { pascalCase2kebabCase, isFunction } from "~bdo/utils/util";
+import { pascalCase2kebabCase } from "~bdo/utils/util";
 import { isBrowser } from "~bdo/utils/environment";
 import { IPropertyParams } from "~bdo/lib/Property";
 import { IAttributeParams } from "~bdo/lib/Attribute";
 import { IWatchedParams } from "~bdo/lib/Watched";
-import { Binding } from "~bdo/lib/Binding";
-import { getMetadata, defineMetadata } from "~bdo/utils/metadata";
+import { baseConstructorFactory, IBaseConstructorOpts } from "~bdo/lib/BaseConstructor";
+import { defineMetadata, getMetadata } from "~bdo/utils/metadata";
 import { beforePropertyDescriptors, createDecoratorDescriptor } from "~bdo/utils/framework";
 import { ReturnTypeFunc } from "type-graphql/dist/decorators/types";
-import { ObjectOptions } from "type-graphql/dist/decorators/ObjectType";
 import {
     Field,
     ObjectType,
@@ -22,16 +21,6 @@ import {
     PubSub,
     InputType
 } from "type-graphql";
-
-interface IBaseConstructorOpts extends ObjectOptions {
-    /**
-     * Defines the name of the collection where a model is saved in
-     *
-     * @type {string}
-     * @memberof baseConstructorOpts
-     */
-    collectionName?: string;
-}
 
 type FuncOrAttrParams = ReturnTypeFunc | IAttributeParams;
 type nameOrOptsOrIndex = string | IBaseConstructorOpts | number;
@@ -133,82 +122,18 @@ export function baseConstructor(name?: nameOrOptsOrIndex, options?: optsOrIndex,
             } else if (options && (typeof options === "object")) {
                 ObjectType(options)(ctor);
             } else ObjectType()(ctor);
-            // set collection name
-            if (options && (typeof options === "object") && options.collectionName) {
-                defineMetadata(ctor, "collectionName", options.collectionName);
+
+            // set collection and database name
+            if (options && (typeof options === "object")) {
+                const prevCollectionName = getMetadata(ctor, "collectionName");
+                const prevDatabaseName = getMetadata(ctor, "databaseName");
+                defineMetadata(ctor, "collectionName", options.collectionName || prevCollectionName || "default");
+                defineMetadata(ctor, "databaseName", options.databaseName || prevDatabaseName || "default");
             }
         }
-
         if (options && (typeof options === "object" && options.isAbstract)) return ctor;
 
-        /**
-         * Invokes the life cycle of every component and model
-         *
-         * @class BaseConstructor
-         * @extends {ctor}
-         */
-        class BaseConstructor extends ctor {
-
-            /**
-             * Represents the original class name of the constructor
-             *
-             * @static
-             * @memberof BaseConstructor
-             */
-            public static readonly className = Object.getPrototypeOf(BaseConstructor).name;
-
-            /**
-             * Determines the original type of this model - set by the
-             * baseConstructor - for the GraphQL resolver
-             *
-             * @static
-             * @type {*}
-             * @memberof BaseConstructor
-             */
-            public static readonly graphQLType: any = ctor;
-
-            /**
-             * Used to define the name of the database collection where a BDOModel is stored in
-             *
-             * @static
-             * @type {string}
-             * @memberof BaseConstructor
-             */
-            public static readonly collectionName?: string = getMetadata(BaseConstructor, "collectionName");
-
-            /**
-             * The instance version of the static property collectionName
-             *
-             * @type {string}
-             * @memberof BaseConstructor
-             */
-            public readonly collectionName?: string = BaseConstructor.collectionName;
-
-            constructor(...params: any[]) {
-                super(...params);
-                let constParams = params[constParamsIndex];
-                if (!(constParams instanceof Object)) constParams = {};
-                defineMetadata(this, "normalFunctionality", true);
-                let defaultSettings: ConstParams<BaseConstructor> = getMetadata(this, "defaultSettings") || {};
-                defaultSettings = Object.assign(defaultSettings, constParams);
-                if (isFunction(this.getNamespacedStorage)) {
-                    const id = constParams.id || defaultSettings.id;
-                    const cachedSettings = this.getNamespacedStorage("*", "id", id) || {};
-                    for (const key in cachedSettings) {
-                        if (cachedSettings.hasOwnProperty(key)) {
-                            const element = defaultSettings[key];
-                            if (element instanceof Binding) {
-                                element.setValue(cachedSettings[key]);
-                            } else defaultSettings[key] = cachedSettings[key];
-                        }
-                    }
-                }
-                Object.assign(this, defaultSettings);
-                defineMetadata(this, "constructionComplete", true);
-                if (isFunction(this.constructedCallback)) (<any>this).constructedCallback(...params);
-            }
-        }
-
+        const BaseConstructor = baseConstructorFactory(ctor, constParamsIndex);
         // Register custom Element
         if (isBrowser() && ctor.isBaseComponent) {
             customElements.define(pascalCase2kebabCase(ctor.name), BaseConstructor, {

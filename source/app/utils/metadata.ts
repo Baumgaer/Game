@@ -116,6 +116,14 @@ interface IMDKeys<T extends object = any> {
      * @memberof IMDKeys
      */
     collectionName?: string;
+
+    /**
+     * Used to define the name of the database where a BDOModel is stored in
+     *
+     * @type {string}
+     * @memberof IMDKeys
+     */
+    databaseName?: string;
 }
 
 /**

@@ -23,7 +23,7 @@ const databaseManager = DatabaseManager.getInstance();
 export class ClientModel extends BDOModel {
 
     /**
-     * This is just a BDOModel identifier in case you want to know if a not
+     * This is just a ClientModel identifier in case you want to know if a not
      * initialized class is a model.
      *
      * @static
@@ -33,7 +33,7 @@ export class ClientModel extends BDOModel {
     public static readonly isClientModel: boolean = true;
 
     /**
-     * This is for better identification of BDO models and instance check
+     * @see ClientModel.isClientModel
      *
      * @type {boolean}
      * @memberof BDOModel
@@ -70,7 +70,8 @@ export class ClientModel extends BDOModel {
     }
 
     /**
-     * See doc string in ~client/utils/util
+     * @see getNamespacedStorage
+     * @link ~client/utils/util
      *
      * @param {string} key
      * @param {string} [nsProp]
@@ -83,7 +84,8 @@ export class ClientModel extends BDOModel {
     }
 
     /**
-     * See doc string in ~client/utils/util
+     * @see setUpdateNamespacedStorage
+     * @link ~client/utils/util
      *
      * @param {string} key
      * @param {*} newVal
@@ -96,7 +98,8 @@ export class ClientModel extends BDOModel {
     }
 
     /**
-     * see doc string in ~client/utils/util
+     * @see deleteFromNamespacedStorage
+     * @link ~client/utils/util
      *
      * @param {string} key
      * @param {string} [nsProp]
@@ -123,7 +126,16 @@ export class ClientModel extends BDOModel {
         for (const attribute of attributes) {
             if (unsavedChanges.hasOwnProperty(attribute)) {
                 const strAttr = <string>attribute;
-                const proxyVal = getProxyTarget(unsavedChanges[strAttr]);
+                let proxyVal = getProxyTarget(unsavedChanges[strAttr]);
+                if (proxyVal instanceof Array) {
+                    proxyVal = proxyVal.map((item) => {
+                        if (item instanceof ClientModel) {
+                            return `_reference:${item.databaseName}:${item.collectionName}:${item.id}`;
+                        }
+                        return getProxyTarget(item);
+                    });
+                }
+                if (proxyVal instanceof ClientModel) proxyVal = `_reference:${proxyVal.databaseName}:${proxyVal.collectionName}:${proxyVal.id}`;
                 // Get corresponding attribute
                 let wildCardMetadata: Attribute = getWildcardMetadata(this, strAttr);
                 if (wildCardMetadata instanceof Watched) wildCardMetadata = wildCardMetadata.subObject as Attribute;
@@ -133,10 +145,17 @@ export class ClientModel extends BDOModel {
                 if (!wildCardMetadata.noServerInteraction) sendToServer[strAttr] = proxyVal;
             }
         }
-        if (Object.keys(toSave).length) {
-            databaseManager.database("default").collection(this.collectionName).update(this.id, toSave);
+        try {
+            if (Object.keys(toSave).length) {
+                await databaseManager
+                    .database(this.databaseName)
+                    .collection(this.collectionName)
+                    .update(this.id, toSave);
+            }
+            if (Object.keys(sendToServer).length) logger.debug(`send ${JSON.stringify(sendToServer)} to server`);
+        } catch (error) {
+            return Promise.reject(error);
         }
-        if (Object.keys(sendToServer).length) logger.debug(`send ${JSON.stringify(sendToServer)} to server`);
         return Promise.resolve(unsavedChanges as ConstParams<this>);
     }
 

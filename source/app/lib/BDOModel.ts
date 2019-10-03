@@ -1,8 +1,9 @@
-import { v1 as uuid } from "uuid";
+import { v4 as uuid } from "uuid";
 import { ID } from "type-graphql";
 import { Binding, writeRights } from "~bdo/lib/Binding";
 import { attribute, baseConstructor, property } from "~bdo/utils/decorators";
 import { getMetadata } from "~bdo/utils/metadata";
+import { IBaseConstructorOpts } from "~bdo/lib/BaseConstructor";
 
 /**
  * Provides basic functionality and fields for each Model on each side
@@ -13,7 +14,7 @@ import { getMetadata } from "~bdo/utils/metadata";
  * @class BDOModel
  */
 @baseConstructor({ isAbstract: true })
-export abstract class BDOModel {
+export abstract class BDOModel implements IBaseConstructorOpts {
 
     /**
      * Determines the original type of this model - set by the
@@ -26,13 +27,26 @@ export abstract class BDOModel {
     public static readonly graphQLType: any = Object.getPrototypeOf(BDOModel.constructor);
 
     /**
-     * Used to define the name of the database collection where a BDOModel is stored in
+     * @inheritdoc
+     *
+     * This will be set by BaseConstructor
      *
      * @static
      * @type {string}
      * @memberof BDOModel
      */
     public static readonly collectionName?: string;
+
+    /**
+     * @inheritdoc
+     *
+     * This will be set by BaseConstructor
+     *
+     * @static
+     * @type {string}
+     * @memberof BDOModel
+     */
+    public static readonly databaseName?: string;
 
     /**
      * This is just a BDOModel identifier in case you want to know if a not
@@ -45,7 +59,7 @@ export abstract class BDOModel {
     public static readonly isBDOModel: boolean = true;
 
     /**
-     * This is for better identification of BDO models and instance check
+     * @see BDOModel.isBDOModel
      *
      * @type {boolean}
      * @memberof BDOModel
@@ -53,12 +67,20 @@ export abstract class BDOModel {
     @property() public readonly isBDOModel: boolean = true;
 
     /**
-     * The instance version of the static property collectionName
+     * @see BDOModel.collectionName
      *
      * @type {string}
      * @memberof BDOModel
      */
     @property() public readonly collectionName?: string = BDOModel.collectionName;
+
+    /**
+     * @see BDOModel.databaseName
+     *
+     * @type {string}
+     * @memberof BDOModel
+     */
+    @property() public readonly databaseName?: string = BDOModel.databaseName;
 
     /**
      * Provides a unique id for each model. If there is no id given, a unique
