@@ -22,7 +22,9 @@ export class Test1 extends BDOTest1Factory(Test) {
      *
      * @memberof Test1
      */
-    public wadde() {
-        this.bindings.get("title");
+    public async wadde() {
+        const test = await Test1.getInstanceByID(this.id);
+        if (test) return test.getUnsavedChanges();
+        return;
     }
 }

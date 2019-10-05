@@ -1,12 +1,14 @@
 import { baseConstructor, property } from "~bdo/utils/decorators";
 import { BDOModel } from "~bdo/lib/BDOModel";
 import { getNamespacedStorage, setUpdateNamespacedStorage, deleteFromNamespacedStorage } from "~client/utils/util";
+import { isReferenceString } from "~bdo/utils/framework";
 import { getWildcardMetadata, getMetadata } from "~bdo/utils/metadata";
 import { Logger } from "~client/lib/Logger";
 import { DatabaseManager } from "~client/lib/DatabaseManager";
 import { Attribute } from '~bdo/lib/Attribute';
 import { Watched } from '~bdo/lib/Watched';
 import { getProxyTarget, isEqual, isArray, difference, isObject, isPrimitive } from "~bdo/utils/util";
+import { ModelRegistry } from "~bdo/lib/ModelRegistry";
 
 const logger = new Logger();
 const databaseManager = DatabaseManager.getInstance();
@@ -48,12 +50,64 @@ export class ClientModel extends BDOModel {
      * such id, undefined will be returned.
      *
      * @static
-     * @param {string} _id
+     * @template T
+     * @param {Constructor<T>} this
+     * @param {T["id"]} id
      * @returns
      * @memberof ClientModel
      */
-    public static getInstanceByID<T extends ClientModel>(_id: T["id"]): T | undefined {
-        return (new this() as unknown as T);
+    public static getInstanceByID<T extends BDOModel>(this: Constructor<T>, id: T["id"]) {
+        return new Promise<T | undefined>(async (resolve) => {
+            let model = ModelRegistry.getInstance().getModelById(id, this) as T | undefined;
+            if (!model) model = new this();
+            const dataFromLocalDB = await databaseManager
+                .database(model.databaseName)
+                .collection(model.collectionName)
+                .get(id);
+            if (dataFromLocalDB) {
+                const pendingPromises: Array<Promise<any>> = [];
+                for (const key in dataFromLocalDB) {
+                    if (dataFromLocalDB.hasOwnProperty(key)) {
+                        const modelElem = Reflect.get(model, key);
+                        let klass: typeof ClientModel;
+                        let elem = dataFromLocalDB[key];
+                        let correspondingListLikeDB = [];
+
+                        if (modelElem instanceof Array) {
+                            correspondingListLikeDB = modelElem.map((item) => {
+                                if (item instanceof ClientModel) return item.getReferenceString();
+                                return item;
+                            });
+                        }
+                        if (elem instanceof Array && difference(correspondingListLikeDB, elem).length) {
+                            const pendingItems: Array<Promise<any>> = [];
+                            for (let item of elem) {
+                                if (isReferenceString(item)) {
+                                    const refParts = item.split(":")[1];
+                                    const className = refParts[1];
+                                    klass = require(`./../models/${className}.ts`)[className];
+                                    pendingItems.push(klass.getInstanceByID(refParts[2]).then((result) => {
+                                        item = result;
+                                    }));
+                                }
+                            }
+                            pendingPromises.push(Promise.all(pendingItems));
+                        } else if (isReferenceString(elem) && elem !== model.getReferenceString()) {
+                            const refParts = elem.split(":")[1];
+                            const className = refParts[1];
+                            klass = require(`./../models/${className}.ts`)[className];
+                            pendingPromises.push(klass.getInstanceByID(refParts[2]).then((result) => {
+                                elem = result;
+                            }));
+                        }
+                    }
+                }
+                await Promise.all(pendingPromises);
+                Object.assign(model, dataFromLocalDB);
+            }
+            if (!model.id.includes("pending")) return resolve(model);
+            return resolve();
+        });
     }
 
     /**
@@ -61,12 +115,14 @@ export class ClientModel extends BDOModel {
      * database and creates instances of them using getInstanceByID.
      *
      * @static
-     * @param {ConstParams<ClientModel>} _attributes
+     * @template T
+     * @param {Constructor<T>} this
+     * @param {ConstParams<T>} attributes
      * @returns
      * @memberof ClientModel
      */
-    public static getInstancesByAttributes<T extends ClientModel>(_attributes: ConstParams<T>): Array<T | undefined> {
-        return [(new this() as unknown as T)];
+    public static getInstancesByAttributes<T extends BDOModel>(this: Constructor<T>, attributes: ConstParams<T>) {
+        return ModelRegistry.getInstance().getModelsByAttributes(attributes) as ClientModel[];
     }
 
     /**
@@ -130,12 +186,12 @@ export class ClientModel extends BDOModel {
                 if (proxyVal instanceof Array) {
                     proxyVal = proxyVal.map((item) => {
                         if (item instanceof ClientModel) {
-                            return `_reference:${item.databaseName}:${item.collectionName}:${item.id}`;
+                            return item.getReferenceString();
                         }
                         return getProxyTarget(item);
                     });
                 }
-                if (proxyVal instanceof ClientModel) proxyVal = `_reference:${proxyVal.databaseName}:${proxyVal.collectionName}:${proxyVal.id}`;
+                if (proxyVal instanceof ClientModel) proxyVal = proxyVal.getReferenceString();
                 // Get corresponding attribute
                 let wildCardMetadata: Attribute = getWildcardMetadata(this, strAttr);
                 if (wildCardMetadata instanceof Watched) wildCardMetadata = wildCardMetadata.subObject as Attribute;

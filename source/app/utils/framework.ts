@@ -158,3 +158,16 @@ export function isBaseConstructor(value: Object): value is ReturnType<typeof bas
     if (value instanceof Object && value.constructor.name === "BaseConstructor") return true;
     return false;
 }
+
+/**
+ * Checks if a string corresponds to a reference string like in a database
+ *
+ * @export
+ * @param {*} value
+ * @returns {value is string}
+ */
+export function isReferenceString(value: any): value is string {
+    if (typeof value !== "string") return false;
+    const refRegEx = /_reference\:[A-Z|0-9|_|$]*\:[A-Z|0-9|\-|_]*/gi;
+    return Boolean(value.match(refRegEx)).valueOf();
+}

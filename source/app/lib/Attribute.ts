@@ -4,6 +4,7 @@ import { isBrowser } from '~bdo/utils/environment';
 import { Modification } from "~bdo/lib/Modification";
 import { constructTypeOfHTMLAttribute, getProxyTarget, isFunction } from '~bdo/utils/util';
 import { ConfigurationError } from "~bdo/lib/Errors";
+import { ModelRegistry } from "~bdo/lib/ModelRegistry";
 
 type prop<T> = DefNonFuncPropNames<T>;
 
@@ -154,7 +155,10 @@ export class Attribute<T extends object = any, K extends prop<T> = any> extends 
      */
     public setValue(value?: T[K] | Modification<any>) {
         if (!this.shouldDoSetValue(value)) return;
+        let oldID;
+        if (this.object.isBDOModel && this.property === "id") oldID = this.ownValue;
         this.doSetValue(value, true, true);
+        if (oldID) ModelRegistry.getInstance().updateID(oldID, this.object);
         this.reflectToDOMAttribute(value);
         this.doAutoSave();
     }

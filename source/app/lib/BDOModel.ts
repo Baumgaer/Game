@@ -4,6 +4,7 @@ import { Binding, writeRights } from "~bdo/lib/Binding";
 import { attribute, baseConstructor, property } from "~bdo/utils/decorators";
 import { getMetadata } from "~bdo/utils/metadata";
 import { IBaseConstructorOpts } from "~bdo/lib/BaseConstructor";
+import { ModelRegistry } from "~bdo/lib/ModelRegistry";
 
 /**
  * Provides basic functionality and fields for each Model on each side
@@ -15,6 +16,19 @@ import { IBaseConstructorOpts } from "~bdo/lib/BaseConstructor";
  */
 @baseConstructor({ isAbstract: true })
 export abstract class BDOModel implements IBaseConstructorOpts {
+
+    /**
+     * Holds a list of all bindings to all components
+     *
+     * @readonly
+     * @protected
+     * @type {Map<string, Array<Binding<this, DefNonFuncPropNames<this>>>>}
+     * @memberof BDOModel
+     */
+    protected get bindings(): Map<string, Array<Binding<this>>> {
+        const bindings = getMetadata(this, "bindings");
+        return bindings ? bindings : new Map();
+    }
 
     /**
      * Determines the original type of this model - set by the
@@ -102,27 +116,28 @@ export abstract class BDOModel implements IBaseConstructorOpts {
     @attribute() public readonly className: string = Object.getPrototypeOf(this.constructor).name;
 
     /**
-     * Holds a list of all bindings to all components
-     *
-     * @readonly
-     * @protected
-     * @type {Map<string, Array<Binding<this, DefNonFuncPropNames<this>>>>}
-     * @memberof BDOModel
-     */
-    protected get bindings(): Map<string, Array<Binding<this>>> {
-        const bindings = getMetadata(this, "bindings");
-        return bindings ? bindings : new Map();
-    }
-
-    /**
      * Test
      *
      * @static
      * @param {string} id
      * @memberof BDOModel
      */
-    public static getInstanceByID(_id: string) {
+    public static getInstanceByID<T extends BDOModel>(this: new () => T, _id: T["id"]): Promise<T | undefined> {
         throw new Error("Not implemented");
+    }
+
+    constructor() {
+        ModelRegistry.getInstance().register(this);
+    }
+
+    /**
+     * Returns the reference string which is stored in the database instead of the model itself
+     *
+     * @returns
+     * @memberof BDOModel
+     */
+    public getReferenceString() {
+        return `_reference:${this.className}${this.id}`;
     }
 
     /**

@@ -39,7 +39,7 @@ export class ModelRegistry {
      * @memberof ModelRegistry
      */
     public static getInstance() {
-        if (ModelRegistry.instance) ModelRegistry.instance = new ModelRegistry();
+        if (!ModelRegistry.instance) ModelRegistry.instance = new ModelRegistry();
         return ModelRegistry.instance;
     }
 
@@ -74,8 +74,8 @@ export class ModelRegistry {
      * @returns
      * @memberof ModelRegistry
      */
-    public getModelById(id: string, constructor: Constructor<BDOModel> | BDOModel) {
-        return this.models.get(`${this.getClassName(constructor)}${id}`);
+    public getModelById<T extends BDOModel | Constructor<BDOModel>>(id: string, constructor: T) {
+        return this.models.get(`${this.getClassName(constructor)}${id}`) as DefInstanceType<T> | undefined;
     }
 
     /**
@@ -100,6 +100,23 @@ export class ModelRegistry {
             models.push(model);
         });
         return models;
+    }
+
+    /**
+     * Updates the id of an included model depending on its old id after the
+     * id of a model has been changed.
+     *
+     * @template T
+     * @param {T["id"]} oldID
+     * @param {T} constructor
+     * @returns
+     * @memberof ModelRegistry
+     */
+    public updateID<T extends BDOModel>(oldID: T["id"], constructor: T) {
+        const model = this.models.get(`${this.getClassName(constructor)}${oldID}`);
+        if (!model) return;
+        this.models.delete(`${this.getClassName(constructor)}${oldID}`);
+        this.register(model);
     }
 
     /**

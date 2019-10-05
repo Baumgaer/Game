@@ -14,6 +14,9 @@ declare type NonFuncPropNames<T> = { [K in keyof T]: T[K] extends (...args: any)
 // Filters all properties out which are a function and not undefined
 declare type DefNonFuncPropNames<T> = Exclude<NonFuncPropNames<T>, undefined>
 
+// The definitely instance type of any object type
+declare type DefInstanceType<T extends Object> = T extends Constructor ? InstanceType<T> : T;
+
 // Collects all properties of a class except native functions and readonly properties and wraps them in an object with their types
 declare type ConstParams<T> = Partial<
     Pick<T, T extends HTMLElement ?
