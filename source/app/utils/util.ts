@@ -167,3 +167,20 @@ export function getProxyTarget(value: any) {
     if (isProxy(value)) return onChange.target(value);
     return value;
 }
+
+/**
+ * Removes multiple slashes from a path part and converts the result to a
+ * correct part starting with a "/" and ending with not a "/".
+ *
+ * @export
+ * @param {string} value
+ * @returns
+ */
+export function toURIPathPart(value: string) {
+    value = value.replace(/\/+/g, "/");
+    if (!value.startsWith("/")) value = `/${value}`;
+    if (value.endsWith("/") && value.length > 1) {
+        value = value.slice(0, -1);
+    }
+    return value;
+}

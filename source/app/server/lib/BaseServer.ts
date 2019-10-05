@@ -19,8 +19,9 @@ import { ConfigManager } from '~server/lib/ConfigManager';
 import { RedisClientManager } from '~server/lib/RedisClientManager';
 import { Logger } from '~server/lib/Logger';
 import { walk } from '~root/utils/projectStructure';
-import { includesMemberOfList } from '~bdo/utils/util';
+import { includesMemberOfList, toURIPathPart } from '~bdo/utils/util';
 import { RedisClient } from 'redis';
+import { ServerRoute } from "~server/lib/ServerRoute";
 
 const configManager = ConfigManager.getInstance();
 const redisClientManager = RedisClientManager.getInstance();
@@ -236,9 +237,10 @@ export abstract class BaseServer {
         try {
             const Route = require(file).default;
             if (!includesMemberOfList(<string[]>Route.attachToServers, [<string>process.env.name, '*'])) return;
-            const RouteClass = new Route(this);
-            if (!RouteClass.isServerRoute) throw new Error(`${file} is not instance of ~server/lib/BaseRoute`);
-            this.app.use(RouteClass.routerNameSpace, <express.Router>RouteClass.router);
+            const clRoute: ServerRoute = new Route(this);
+            if (!clRoute.isServerRoute) throw new Error(`${file} is not instance of ~server/lib/ServerRoute`);
+            clRoute.routerNameSpace = toURIPathPart(clRoute.routerNameSpace);
+            this.app.use(clRoute.routerNameSpace, clRoute.router);
         } catch (error) {
             throw error;
         }

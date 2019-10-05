@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction, Router } from 'express';
-import { merge } from '~bdo/utils/util';
+import { merge, toURIPathPart } from '~bdo/utils/util';
 import { globalTemplateVars } from '~server/utils/environment';
 import { BDORoute } from '~bdo/lib/BDORoute';
 import { BaseServer } from "~server/lib/BaseServer";
@@ -33,7 +33,8 @@ export class ServerRoute extends BDORoute {
      */
     public get router(): Router {
         const expressRouter = Router();
-        for (const route of this.routes) {
+        for (let route of this.routes) {
+            route = toURIPathPart(route);
             expressRouter.get(route, this.handleGet.bind(this));
             expressRouter.post(route, this.handlePost.bind(this));
             expressRouter.put(route, this.handlePut.bind(this));
