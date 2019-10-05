@@ -103,6 +103,32 @@ export class ModelRegistry {
     }
 
     /**
+     * Returns model(s) depending on the condition of func and mode.
+     *
+     * modes:
+     *  - all: returns all found models in an array
+     *  - first: returns the first found model
+     *  - last: returns the last found model
+     *
+     * @param {(model: BDOModel) => boolean} func
+     * @param {("first" | "all" | "last")} [mode="all"]
+     * @returns
+     * @memberof ModelRegistry
+     */
+    public getModelsByCondition(func: (model: BDOModel) => boolean, mode: "first" | "all" | "last" = "all") {
+        const models: BDOModel[] = [];
+        let lastModel: BDOModel | undefined;
+        for (const model of this.models.values()) {
+            if (func(model)) {
+                if (mode === "first") return model;
+                if (mode === "all") models.push(model);
+                if (mode === "last") lastModel = model;
+            }
+        }
+        return mode === "last" ? lastModel : models;
+    }
+
+    /**
      * Determines the class name of a model
      *
      * @private
