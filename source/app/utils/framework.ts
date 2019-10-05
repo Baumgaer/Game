@@ -4,6 +4,7 @@ import { Property, IPropertyParams } from "~bdo/lib/Property";
 import { Watched, IWatchedParams } from "~bdo/lib/Watched";
 import { Modification } from "~bdo/lib/Modification";
 import { getMetadata, defineMetadata, getWildcardMetadata, defineWildcardMetadata } from "~bdo/utils/metadata";
+import { baseConstructorFactory } from "~bdo/lib/BaseConstructor";
 
 type defPropOrAttr = "definedProperties" | "definedAttributes" | "definedWatchers";
 type AttrPropWatch = "Attribute" | "Property" | "Watched";
@@ -143,4 +144,17 @@ export function createDecoratorDescriptor<
         enumerable: true,
         configurable: true
     });
+}
+
+/**
+ * Determines if a given constructor is a BaseConstructor
+ *
+ * @export
+ * @param {Function} value
+ * @returns {value is ReturnType<typeof baseConstructorFactory>}
+ */
+export function isBaseConstructor(value: Object): value is ReturnType<typeof baseConstructorFactory> {
+    if (typeof value === "function" && value.name === "BaseConstructor") return true;
+    if (value instanceof Object && value.constructor.name === "BaseConstructor") return true;
+    return false;
 }

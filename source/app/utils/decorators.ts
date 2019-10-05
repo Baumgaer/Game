@@ -6,7 +6,7 @@ import { IAttributeParams } from "~bdo/lib/Attribute";
 import { IWatchedParams } from "~bdo/lib/Watched";
 import { baseConstructorFactory, IBaseConstructorOpts } from "~bdo/lib/BaseConstructor";
 import { defineMetadata, getMetadata } from "~bdo/utils/metadata";
-import { beforePropertyDescriptors, createDecoratorDescriptor } from "~bdo/utils/framework";
+import { beforePropertyDescriptors, createDecoratorDescriptor, isBaseConstructor } from "~bdo/utils/framework";
 import { ReturnTypeFunc } from "type-graphql/dist/decorators/types";
 import {
     Field,
@@ -102,7 +102,7 @@ export function baseConstructor(name?: nameOrOptsOrIndex, options?: optsOrIndex,
 
     return (ctor: any) => {
         const prototype = Object.getPrototypeOf(ctor);
-        if (prototype.name === "BaseConstructor") Object.setPrototypeOf(ctor, Object.getPrototypeOf(prototype));
+        if (isBaseConstructor(prototype)) Object.setPrototypeOf(ctor, Object.getPrototypeOf(prototype));
 
         // Determine param types
         if (name && (typeof name === "number")) constParamsIndex = name;
