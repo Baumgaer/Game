@@ -175,11 +175,11 @@ export class ClientModel extends BDOModel {
     public async save(attr?: DefNonFuncPropNames<this>): Promise<IndexStructure> {
         const definedAttributes = getMetadata(this, "definedAttributes");
         if (!definedAttributes || attr && !definedAttributes.has(attr)) throw new Error("invalid defined attributes");
-        const attributes = attr ? [attr] : definedAttributes;
+        const attributes = attr ? [attr] : definedAttributes.keys();
         const unsavedChanges: IndexStructure = await this.getUnsavedChanges();
         const toSave: IndexStructure = {};
         const sendToServer: IndexStructure = {};
-        for (const attribute of attributes.keys()) {
+        for (const attribute of attributes) {
             if (unsavedChanges.hasOwnProperty(attribute)) {
                 const strAttr = <string>attribute;
                 let proxyVal = getProxyTarget(unsavedChanges[strAttr]);
