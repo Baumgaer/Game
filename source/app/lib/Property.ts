@@ -44,8 +44,8 @@ export interface IPropertyParams {
 
     /**
      * The name of the function which will be executed after basic type checking
-     * and before final determination. The function must return true if everything
-     * is ok and false else.
+     * and before final determination. The function must return a corresponding
+     * error if something went wrong.
      *
      * @type {string}
      * @memberof IPropertyParams

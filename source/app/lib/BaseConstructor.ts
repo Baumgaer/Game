@@ -13,7 +13,8 @@ import { ObjectOptions } from "type-graphql/dist/decorators/ObjectType";
  */
 export interface IBaseConstructorOpts extends ObjectOptions {
     /**
-     * Defines the name of the collection where a model is saved in
+     * Defines the name of the collection where a model is saved in.
+     * Only effects the behavior of a model.
      *
      * @default "default"
      * @type {string}
@@ -22,7 +23,8 @@ export interface IBaseConstructorOpts extends ObjectOptions {
     collectionName?: string;
 
     /**
-     * Defines the name of the database where a model is saved in
+     * Defines the name of the database where a model is saved in.
+     * Only effects the behavior of a model.
      *
      * @default "default"
      * @type {string}

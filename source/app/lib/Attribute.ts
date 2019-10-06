@@ -13,11 +13,12 @@ type prop<T> = DefNonFuncPropNames<T>;
  * A Component or other objects will not be effected.
  *
  * @interface IAttributeParams
+ * @link https://typegraphql.ml/docs/introduction.html
  */
 export interface IAttributeParams extends IPropertyParams, AdvancedOptions {
     /**
      * If true the value will not be sent to server if value is set
-     * or save() will be called.
+     * or save() will be called. Only effects the behavior of a model.
      *
      * @default false
      * @type {boolean}
@@ -27,7 +28,7 @@ export interface IAttributeParams extends IPropertyParams, AdvancedOptions {
 
     /**
      * If true the value will not be sent to client if value is set
-     * or save() will be called.
+     * or save() will be called. Only effects the behavior of a model.
      *
      * @default false
      * @type {boolean}
@@ -37,7 +38,7 @@ export interface IAttributeParams extends IPropertyParams, AdvancedOptions {
 
     /**
      * If true the value will not be sent to p2p clients of current client if
-     * value is set or save() will be called.
+     * value is set or save() will be called. Only effects the behavior of a model.
      *
      * @default false
      * @type {boolean}
@@ -49,7 +50,7 @@ export interface IAttributeParams extends IPropertyParams, AdvancedOptions {
      * If true, value will be saved automatically and immediately.
      * If it is a number > 0 the value will be saved automatically but
      * debounced which means that the number is the time in milliseconds of
-     * save timeout.
+     * save timeout. Only effects the behavior of a model.
      *
      * @default false
      * @type {(boolean | number)}
@@ -59,6 +60,7 @@ export interface IAttributeParams extends IPropertyParams, AdvancedOptions {
 
     /**
      * Defines wether to persist data in a Database like ArangoDB or IndexedDB.
+     * Only effects the behavior of a model.
      *
      * @type {boolean}
      * @memberof IAttributeParams
