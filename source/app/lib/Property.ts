@@ -3,6 +3,7 @@ import { Modification } from "~bdo/lib/Modification";
 import { getMetadata, defineMetadata, getDesignType } from "~bdo/utils/metadata";
 import { isBrowser } from "~bdo/utils/environment";
 import { isPrimitive, ucFirst, isProxy, isFunction, isObject } from "~bdo/utils/util";
+import { IWatchAttrPropSettings } from "~bdo/utils/framework";
 import { TypeError } from "~bdo/lib/Errors";
 import onChange from "on-change";
 
@@ -180,19 +181,22 @@ export class Property<T extends object = any, K extends DefNonFuncPropNames<T> =
      */
     protected ownValue?: T[K];
 
-    constructor(object: T, property: K, params?: IPropertyParams) {
+    constructor(object: T, property: K, params?: IWatchAttrPropSettings<IPropertyParams>) {
         this.object = object;
         this.property = property;
-        Object.assign(this, params);
+        let parameters: IPropertyParams = {};
+
+        if (params && params.params) parameters = params.params;
+        Object.assign(this, parameters);
 
         const capitalizedProp = ucFirst(property as string);
         const onTypeCheckFail = `on${capitalizedProp}TypeCheckFail`;
         const onTypeCheck = `on${capitalizedProp}TypeCheck`;
         const onTypeCheckSuccess = `on${capitalizedProp}TypeCheckSuccess`;
 
-        this.onTypeCheckFail = params ? params.onTypeCheckFail || onTypeCheckFail : onTypeCheckFail;
-        this.onTypeCheck = params ? params.onTypeCheck || onTypeCheck : onTypeCheck;
-        this.onTypeCheckSuccess = params ? params.onTypeCheckSuccess || onTypeCheckSuccess : onTypeCheckSuccess;
+        this.onTypeCheckFail = parameters ? parameters.onTypeCheckFail || onTypeCheckFail : onTypeCheckFail;
+        this.onTypeCheck = parameters ? parameters.onTypeCheck || onTypeCheck : onTypeCheck;
+        this.onTypeCheckSuccess = parameters ? parameters.onTypeCheckSuccess || onTypeCheckSuccess : onTypeCheckSuccess;
     }
 
     /**

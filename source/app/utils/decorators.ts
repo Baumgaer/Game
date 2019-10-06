@@ -6,7 +6,7 @@ import { IAttributeParams } from "~bdo/lib/Attribute";
 import { IWatchedParams } from "~bdo/lib/Watched";
 import { baseConstructorFactory, IBaseConstructorOpts } from "~bdo/lib/BaseConstructor";
 import { defineMetadata, getMetadata } from "~bdo/utils/metadata";
-import { beforePropertyDescriptors, createDecoratorDescriptor, isBaseConstructor } from "~bdo/utils/framework";
+import { beforeDescriptor, createDecoratorDescriptor, isBaseConstructor } from "~bdo/utils/framework";
 import { ReturnTypeFunc } from "type-graphql/dist/decorators/types";
 import {
     Field,
@@ -41,8 +41,8 @@ type optsIdx = IBaseConstructorOpts | number;
 export function watched(params: IWatchedParams = {}): PropertyDecorator {
     return (target: any, key: string | symbol) => {
         const stringKey = key.toString();
-        beforePropertyDescriptors(target, stringKey, "definedWatchers", { params });
-        createDecoratorDescriptor(target, stringKey, "Watched", params);
+        const decoratorSettings = beforeDescriptor(target, stringKey, "definedWatchers", { params });
+        createDecoratorDescriptor(target, stringKey, "Watched", decoratorSettings);
     };
 }
 
@@ -70,8 +70,8 @@ export function property(typeFunc?: FuncOrPropParams, params?: IPropertyParams):
         if (!params || !(params instanceof Object)) params = {};
 
         // Do general decorator stuff
-        beforePropertyDescriptors(target, stringKey, "definedProperties", { typeFunc, params });
-        createDecoratorDescriptor(target, stringKey, "Property", params);
+        const decoratorSettings = beforeDescriptor(target, stringKey, "definedProperties", { typeFunc, params });
+        createDecoratorDescriptor(target, stringKey, "Property", decoratorSettings);
     };
 }
 
@@ -110,8 +110,8 @@ export function attribute(typeFunc?: FuncOrAttrParams, params?: IAttributeParams
         else Field()(target, key);
 
         // Do general decorator stuff
-        beforePropertyDescriptors(target, stringKey, "definedAttributes", { typeFunc, params });
-        createDecoratorDescriptor(target, stringKey, "Attribute", params);
+        const decoratorSettings = beforeDescriptor(target, stringKey, "definedAttributes", { typeFunc, params });
+        createDecoratorDescriptor(target, stringKey, "Attribute", decoratorSettings);
     };
 }
 

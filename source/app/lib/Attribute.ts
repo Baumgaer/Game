@@ -3,6 +3,7 @@ import { AdvancedOptions } from "type-graphql/dist/decorators/types";
 import { isBrowser } from '~bdo/utils/environment';
 import { Modification } from "~bdo/lib/Modification";
 import { constructTypeOfHTMLAttribute, getProxyTarget, isFunction } from '~bdo/utils/util';
+import { IWatchAttrPropSettings } from "~bdo/utils/framework";
 import { ConfigurationError } from "~bdo/lib/Errors";
 import { ModelRegistry } from "~bdo/lib/ModelRegistry";
 
@@ -145,7 +146,7 @@ export class Attribute<T extends object = any, K extends prop<T> = any> extends 
      */
     private autoSaveAllowed: boolean = false;
 
-    constructor(object: T, property: K, params?: IAttributeParams) {
+    constructor(object: T, property: K, params?: IWatchAttrPropSettings<IAttributeParams>) {
         super(object, property, params);
     }
 

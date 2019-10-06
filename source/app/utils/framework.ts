@@ -45,7 +45,7 @@ export interface IWatchAttrPropSettings<T extends defPropOrAttr | IAttributePara
  * @param {string} mDataName
  * @returns
  */
-export function beforePropertyDescriptors<
+export function beforeDescriptor<
     T extends Object,
     K extends DefNonFuncPropNames<T>,
     M extends defPropOrAttr,
@@ -55,7 +55,9 @@ export function beforePropertyDescriptors<
     if (!Reflect.hasMetadata(mDataName, target)) defineMetadata(target, mDataName, new Map());
     const map = getMetadata(target, mDataName) as Map<DefNonFuncPropNames<T>, P>;
     const oldDecoratorSettings = map.get(key) || {};
-    map.set(key, merge(oldDecoratorSettings, params));
+    const settings = merge(oldDecoratorSettings, params);
+    map.set(key, settings);
+    return settings;
 }
 
 /**
