@@ -53,9 +53,9 @@ export function BaseComponentFactory<TBase extends Constructor<HTMLElement>>(HTM
          */
         public get properties(): Map<string, Property<this>> {
             const props = new Map();
-            const properties = getMetadata(this, "definedProperties") as Array<DefNonFuncPropNames<this>>;
+            const properties = getMetadata(this, "definedProperties");
             if (properties) {
-                for (const prop of properties) {
+                for (const prop of properties.keys()) {
                     props.set(prop, getWildcardMetadata(this, prop));
                 }
             }

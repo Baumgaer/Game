@@ -1,5 +1,5 @@
 import { BDOTestFactory } from '~bdo/models/BDOTest';
-import { baseConstructor } from "~bdo/utils/decorators";
+import { baseConstructor, attribute } from "~bdo/utils/decorators";
 
 /**
  * Test
@@ -19,6 +19,14 @@ export function BDOTest1Factory<TBase extends ReturnType<typeof BDOTestFactory>>
      */
     @baseConstructor({ isAbstract: true, collectionName: "BDOTest1" })
     abstract class BDOTest1 extends ctor {
+
+        /**
+         * Test
+         *
+         * @type {string}
+         * @memberof Test
+         */
+        @attribute({ description: "tester..." }) public title: string = 'test';
 
         /**
          * Test

@@ -3,6 +3,7 @@ import { Attribute, IAttributeParams } from "~bdo/lib/Attribute";
 import { Property, IPropertyParams } from "~bdo/lib/Property";
 import { Watched, IWatchedParams } from "~bdo/lib/Watched";
 import { Modification } from "~bdo/lib/Modification";
+import { merge } from "~bdo/utils/util";
 import { getMetadata, defineMetadata, getWildcardMetadata, defineWildcardMetadata } from "~bdo/utils/metadata";
 import { baseConstructorFactory } from "~bdo/lib/BaseConstructor";
 
@@ -13,6 +14,28 @@ type DecoratorTypeParams<T> = T extends "Watched" ?
     IAttributeParams : IPropertyParams;
 type NewVal<T extends Object, K extends DefNonFuncPropNames<T>> = T[K] | Binding<T, K> | Modification<any>;
 
+export interface IWatchAttrPropSettings<T extends defPropOrAttr | IAttributeParams | IPropertyParams | IWatchedParams> {
+    /**
+     * The function which returns the real type
+     *
+     * @type {*}
+     * @memberof IWatchAttrPropSettings
+     */
+    typeFunc?: any;
+
+    /**
+     * Parameters for the corresponding decorator
+     *
+     * @type {T extends "definedProperties" ? IPropertyParams :
+     *              T extends "definedAttributes" ? IAttributeParams :
+     *              T extends "definedWatchers" ? IWatchedParams : T}
+     * @memberof IWatchAttrPropSettings
+     */
+    params?: T extends "definedProperties" ? IPropertyParams :
+    T extends "definedAttributes" ? IAttributeParams :
+    T extends "definedWatchers" ? IWatchedParams : T;
+}
+
 /**
  * Gets the previous property descriptor and sets metadata for later access and
  * identification of properties and attributes.
@@ -22,11 +45,17 @@ type NewVal<T extends Object, K extends DefNonFuncPropNames<T>> = T[K] | Binding
  * @param {string} mDataName
  * @returns
  */
-export function beforePropertyDescriptors(target: any, key: string, mDataName: defPropOrAttr) {
+export function beforePropertyDescriptors<
+    T extends Object,
+    K extends DefNonFuncPropNames<T>,
+    M extends defPropOrAttr,
+    P extends IWatchAttrPropSettings<M>
+>(target: T, key: K, mDataName: M, params: P) {
     // Define metadata for access to attributes for later checks
-    if (!Reflect.hasMetadata(mDataName, target)) defineMetadata(target, mDataName, new Array<string>());
-    const map = getMetadata(target, mDataName) as string[];
-    map.push(key.toString());
+    if (!Reflect.hasMetadata(mDataName, target)) defineMetadata(target, mDataName, new Map());
+    const map = getMetadata(target, mDataName) as Map<DefNonFuncPropNames<T>, P>;
+    const oldDecoratorSettings = map.get(key) || {};
+    map.set(key, merge(oldDecoratorSettings, params));
 }
 
 /**

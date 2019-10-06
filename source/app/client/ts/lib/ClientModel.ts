@@ -174,12 +174,12 @@ export class ClientModel extends BDOModel {
      */
     public async save(attr?: DefNonFuncPropNames<this>): Promise<IndexStructure> {
         const definedAttributes = getMetadata(this, "definedAttributes");
-        if (!definedAttributes || attr && !definedAttributes.includes(attr)) throw new Error("invalid defined attributes");
+        if (!definedAttributes || attr && !definedAttributes.has(attr)) throw new Error("invalid defined attributes");
         const attributes = attr ? [attr] : definedAttributes;
         const unsavedChanges: IndexStructure = await this.getUnsavedChanges();
         const toSave: IndexStructure = {};
         const sendToServer: IndexStructure = {};
-        for (const attribute of attributes) {
+        for (const attribute of attributes.keys()) {
             if (unsavedChanges.hasOwnProperty(attribute)) {
                 const strAttr = <string>attribute;
                 let proxyVal = getProxyTarget(unsavedChanges[strAttr]);
@@ -236,17 +236,19 @@ export class ClientModel extends BDOModel {
         if (!this.collectionName) return Promise.reject("No collectionName provided");
         const unsavedChanges: ConstParams<this> = {};
         let dbCollection = await databaseManager.database("default").collection(this.collectionName).get(this.id);
-        const definedAttributes = getMetadata(this, "definedAttributes") || [];
+        const definedAttributes = getMetadata(this, "definedAttributes");
         dbCollection = dbCollection || {};
-        for (const attr of definedAttributes) {
-            const strAttr = <string>attr;
-            const attrVal = getProxyTarget(this[attr]);
-            if (isArray(attrVal) && difference(attrVal, dbCollection[strAttr]).length) {
-                (<IndexStructure>unsavedChanges)[strAttr] = this[attr];
-            } else if (isObject(attrVal) && !isEqual(attrVal, dbCollection[strAttr])) {
-                (<IndexStructure>unsavedChanges)[strAttr] = this[attr];
-            } else if (isPrimitive(attrVal) && attrVal !== dbCollection[strAttr]) {
-                (<IndexStructure>unsavedChanges)[strAttr] = this[attr];
+        if (definedAttributes) {
+            for (const attr of definedAttributes.keys()) {
+                const strAttr = attr.toString();
+                const attrVal = getProxyTarget(this[attr]);
+                if (isArray(attrVal) && difference(attrVal, dbCollection[strAttr]).length) {
+                    (<IndexStructure>unsavedChanges)[strAttr] = this[attr];
+                } else if (isObject(attrVal) && !isEqual(attrVal, dbCollection[strAttr])) {
+                    (<IndexStructure>unsavedChanges)[strAttr] = this[attr];
+                } else if (isPrimitive(attrVal) && attrVal !== dbCollection[strAttr]) {
+                    (<IndexStructure>unsavedChanges)[strAttr] = this[attr];
+                }
             }
         }
         return Promise.resolve(unsavedChanges);

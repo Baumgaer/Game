@@ -1,4 +1,9 @@
 import { Binding } from "~bdo/lib/Binding";
+import { IAttributeParams } from "~bdo/lib/Attribute";
+import { IPropertyParams } from "~bdo/lib/Property";
+import { IWatchedParams } from "~bdo/lib/Watched";
+import { IWatchAttrPropSettings } from "~bdo/utils/framework";
+
 interface IMDKeys<T extends object = any> {
     /**
      * Used to go back to normal functionality on object creation.
@@ -80,7 +85,7 @@ interface IMDKeys<T extends object = any> {
      * @type {Array<DefNonFuncPropNames<T>>}
      * @memberof IMDKeys
      */
-    definedProperties?: Array<DefNonFuncPropNames<T>>;
+    definedProperties?: Map<DefNonFuncPropNames<T>, IWatchAttrPropSettings<IPropertyParams>>;
 
     /**
      * stores all defined attributes of an object which is decorated with the
@@ -89,7 +94,7 @@ interface IMDKeys<T extends object = any> {
      * @type {Array<DefNonFuncPropNames<T>>}
      * @memberof IMDKeys
      */
-    definedAttributes?: Array<DefNonFuncPropNames<T>>;
+    definedAttributes?: Map<DefNonFuncPropNames<T>, IWatchAttrPropSettings<IAttributeParams>>;
 
     /**
      * Stores all defined watchers of an object which is decorated with the
@@ -98,7 +103,7 @@ interface IMDKeys<T extends object = any> {
      * @type {Array<DefNonFuncPropNames<T>>}
      * @memberof IMDKeys
      */
-    definedWatchers?: Array<DefNonFuncPropNames<T>>;
+    definedWatchers?: Map<DefNonFuncPropNames<T>, IWatchAttrPropSettings<IWatchedParams>>;
 
     /**
      * Indicates in a property which is NOT cached in localStorage but marked
@@ -135,7 +140,7 @@ interface IMDKeys<T extends object = any> {
  * @param {T} key
  * @param {*} val
  */
-export function defineMetadata<T extends object, K extends keyof IMDKeys>(target: T, key: K, val: IMDKeys<T>[K]) {
+export function defineMetadata<T extends object, K extends keyof IMDKeys<T>>(target: T, key: K, val: IMDKeys<T>[K]) {
     Reflect.defineMetadata(key, val, target); // tslint:disable-line
 }
 
@@ -148,7 +153,7 @@ export function defineMetadata<T extends object, K extends keyof IMDKeys>(target
  * @param {T} key
  * @returns {IMDKeys[T]}
  */
-export function getMetadata<T extends object, K extends keyof IMDKeys>(target: T, key: K): IMDKeys<T>[K] {
+export function getMetadata<T extends object, K extends keyof IMDKeys<T>>(target: T, key: K): IMDKeys<T>[K] {
     return Reflect.getMetadata(key, target); // tslint:disable-line
 }
 
