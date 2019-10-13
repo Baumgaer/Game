@@ -36,6 +36,7 @@ declare type states =
     | 'resolverCollection'
     | 'ready'
     | 'started'
+    | 'stopping'
     | 'stopped';
 
 /**
@@ -94,25 +95,38 @@ export abstract class BaseServer {
     protected apiSchema: GraphQLSchema | null = null;
 
     constructor() {
+        const gracefulShutdownHandler = () => {
+            logger.info(`Shutting down ${process.env.name}`);
+            this.gracefulShutdown();
+        };
+        process.once("SIGTERM", gracefulShutdownHandler.bind(this));
+        process.once("SIGINT", gracefulShutdownHandler.bind(this));
+
         this.server.on('listening', () => {
             this.state = 'started';
             const addressInfo = <AddressInfo>this.server.address();
-            logger.info(`Server started: ${addressInfo.address}:${addressInfo.port}`);
+            logger.info(`${process.env.name} started: ${addressInfo.address}:${addressInfo.port}`);
         });
         this.server.on('close', () => {
             this.state = 'stopped';
+            logger.info(`${process.env.name} stopped`);
         });
         this.state = 'setupServer';
         this.setupServer()
             .then(async () => {
                 this.state = 'routeCollection';
+                logger.info(`Collecting routes of ${process.env.name}`);
                 await this.routeCollection();
             })
             .then(async () => {
                 this.state = 'resolverCollection';
+                logger.info(`Collecting resolvers of ${process.env.name}`);
                 await this.resolverCollection();
             })
-            .then(() => (this.state = 'ready'));
+            .then(() => {
+                this.state = "ready";
+                logger.info(`${process.env.name} is ready for start`);
+            });
     }
 
     /**
@@ -123,6 +137,7 @@ export abstract class BaseServer {
      * @memberof BaseServer
      */
     public async start(): Promise<Server> {
+        logger.info(`Start of ${process.env.name} requested`);
         await new Promise((resolver) => {
             const interval = setInterval(() => {
                 if (this.state === 'ready') {
@@ -134,9 +149,7 @@ export abstract class BaseServer {
         return new Promise<Server>((resolver) => {
             try {
                 let port = 8080;
-                if (process.env.PORT) {
-                    port = parseInt(process.env.PORT, 10);
-                }
+                if (process.env.PORT) port = parseInt(process.env.PORT, 10);
                 resolver(this.server.listen(port, "0.0.0.0"));
             } catch (error) {
                 logger.error(error);
@@ -166,6 +179,7 @@ export abstract class BaseServer {
      * @memberof BaseServer
      */
     protected async setupServer(): Promise<void> {
+        logger.info(`Setting up ${process.env.name}`);
         const [config, passwords, databases, paths, redisStoreClient] = await Promise.all([
             configManager.get('config'),
             configManager.get('passwords'),
@@ -271,5 +285,18 @@ export abstract class BaseServer {
             schema: this.apiSchema,
             graphiql: process.env.NODE_ENV === 'development' ? true : false
         }));
+    }
+
+    /**
+     * Closes all active connections to other services with respect to active transactions
+     *
+     * @protected
+     * @memberof BaseServer
+     */
+    protected async gracefulShutdown() {
+        this.state = "stopping";
+        await redisClientManager.killAllClients();
+        await this.stop();
+        process.exit(0);
     }
 }
