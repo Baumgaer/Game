@@ -10,6 +10,7 @@ const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
 const TsconfigPathsPlugin = require('tsconfig-paths-webpack-plugin');
 const FilterWarningsPlugin = require('webpack-filter-warnings-plugin');
 const CopyPlugin = require('copy-webpack-plugin');
+const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 
 const projectStructureUtils = require('./out/utils/projectStructure');
 
@@ -103,6 +104,11 @@ module.exports = (_env, options) => {
             }),
             new FilterWarningsPlugin({
                 exclude: /Critical dependency: the request of a dependency is an expression/
+            }),
+            new CleanWebpackPlugin({
+                protectWebpackAssets: true,
+                cleanOnceBeforeBuildPatterns: ["!*.md"],
+                cleanStaleWebpackAssets: false
             }),
             new CopyPlugin([{
                 from: path.resolve(arp.path, "node_modules", "source-map-support", "browser-source-map-support.js"),
