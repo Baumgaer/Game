@@ -6,7 +6,7 @@ services:
         build:
             context: .
             dockerfile: ./Dockerfile
-        entrypoint: 'node --inspect=0.0.0.0:9001 out/app/GameServer.js'
+        entrypoint: 'npx nodemon -L --inspect=0.0.0.0:9001 out/app/GameServer.js'
         deploy:
             replicas: 2
             restart_policy:
@@ -40,7 +40,7 @@ services:
         build:
             context: .
             dockerfile: ./Dockerfile
-        entrypoint: 'node --inspect=0.0.0.0:9002 out/app/WebServer.js'
+        entrypoint: 'npx nodemon -L --inspect=0.0.0.0:9002 out/app/WebServer.js'
         deploy:
             replicas: 2
             restart_policy:

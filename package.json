@@ -2,7 +2,6 @@
     "name": "game",
     "version": "0.0.1",
     "description": "A MMORPG mixed with RTS and simulation in the underground and on the bad side",
-    "main": "index.js",
     "scripts": {
         "test": "nyc --exclude-after-remap=false mocha -opts ./mocha.opts",
         "start": "docker-compose up --build",
@@ -85,6 +84,7 @@
         "less-plugin-clean-css": "^1.5.1",
         "lint-staged": "^9.4.2",
         "mocha": "^6.2.2",
+        "nodemon": "^1.19.4",
         "nunjucks-loader": "^3.0.0",
         "nyc": "^14.1.1",
         "rxjs": "^6.5.3",

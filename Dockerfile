@@ -7,7 +7,7 @@ COPY package-lock.json package.json ./
 
 RUN npm ci
 
-COPY tsconfig.json baseTSConfig.json global.d.ts webpack.config.js tslint.json ./
+COPY tsconfig.json baseTSConfig.json global.d.ts webpack.config.js tslint.json nodemon.json ./
 COPY out ./out
 COPY source ./source
 
