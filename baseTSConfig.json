@@ -18,6 +18,7 @@
         "noImplicitReturns": true,
         "noFallthroughCasesInSwitch": true,
         "allowUnreachableCode": false,
+        "resolveJsonModule": true,
         "moduleResolution": "node",
         "typeRoots": [],
         "types": [
