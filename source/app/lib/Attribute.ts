@@ -214,14 +214,14 @@ export class Attribute<T extends object = any, K extends prop<T> = any> extends 
      * SetValue is used by proxyHandler to avoid setting a new value is an object
      * has been changed.
      *
-     * @private
+     * @public
      * @param {(T[K] | Modification<any>)} [value]
      * @param {boolean} [setValue=true]
      * @returns
      * @memberof Attribute
      */
-    private reflectToDOMAttribute(value?: T[K] | Modification<any>) {
-        if (!isBrowser() || !(this.object instanceof HTMLElement)) return;
+    public reflectToDOMAttribute(value?: T[K] | Modification<any>, forced?: boolean) {
+        if ((!isBrowser() || !(this.object instanceof HTMLElement) || !this.object.isConnected) && !forced) return;
         const stringKey = this.property.toString();
         const attrValue = this.object.getAttribute(stringKey);
         let setAttribute = true;

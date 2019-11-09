@@ -5,7 +5,9 @@ import { getMetadata, getWildcardMetadata } from "~bdo/utils/metadata";
 import { Binding } from "~bdo/lib/Binding";
 import { Property } from "~bdo/lib/Property";
 import { getNamespacedStorage, setUpdateNamespacedStorage, deleteFromNamespacedStorage } from "~client/utils/util";
-import { constructTypeOfHTMLAttribute, isPrimitive, isString, isObject } from '~bdo/utils/util';
+import { constructTypeOfHTMLAttribute, isPrimitive, isString, isObject, pascalCase2kebabCase } from '~bdo/utils/util';
+import { Attribute } from '~bdo/lib/Attribute';
+import { Watched } from "~bdo/lib/Watched";
 
 /**
  * Creates a new BaseComponent based on the HTMLTypeElement
@@ -119,6 +121,37 @@ export function BaseComponentFactory<TBase extends Constructor<HTMLElement>>(HTM
         protected get bindings(): Map<string, Binding<this, DefNonFuncPropNames<this>>> {
             const bindings = getMetadata(this, "initiatorBinding");
             return bindings ? bindings : new Map();
+        }
+
+        /**
+         * Provides the possibility to construct a component programmatically
+         * with respecting default settings.
+         *
+         * @static
+         * @template T
+         * @param {new () => T} this
+         * @param {ConstParams<T>} [params]
+         * @returns
+         * @memberof BaseComponent
+         */
+        public static create<T extends BaseComponent>(this: Constructor<T>, params?: ConstParams<T>) {
+            const className = pascalCase2kebabCase(Object.getPrototypeOf(this).name);
+            let is = (<any>this).extends;
+            let tagName = className;
+            if (is) {
+                tagName = is;
+                is = className;
+            }
+            const element = document.createElement(tagName, { is }) as unknown as BaseComponent;
+            const definedAttributes = getMetadata(element, "definedAttributes");
+            for (const attributeName of Array.from(definedAttributes?.keys() || [])) {
+                let metadata = <Attribute | Watched>getWildcardMetadata(element, attributeName);
+                if (metadata instanceof Watched) metadata = <Attribute>metadata.subObject;
+                metadata.reflectToDOMAttribute(metadata.valueOf(), true);
+            }
+            Object.assign(element, params);
+            if (is) element.setAttribute("is", is, true);
+            return element;
         }
 
         constructor(...args: any[]) {
@@ -297,8 +330,9 @@ export function BaseComponentFactory<TBase extends Constructor<HTMLElement>>(HTM
          */
         private generateUniqueID() {
             const className = Object.getPrototypeOf(this.constructor).name;
-            const occurrence = Array.from(document.getElementsByTagName(this.tagName)).indexOf(this);
-            return `${className}_${occurrence}`;
+            const occurrences = Array.from(document.getElementsByTagName(this.tagName));
+            const occurrence = occurrences.indexOf(this);
+            return `${className}_${occurrence >= 0 ? occurrence : occurrences.length}`;
         }
     }
 
