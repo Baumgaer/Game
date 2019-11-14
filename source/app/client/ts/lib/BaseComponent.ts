@@ -6,8 +6,6 @@ import { Binding } from "~bdo/lib/Binding";
 import { Property } from "~bdo/lib/Property";
 import { getNamespacedStorage, setUpdateNamespacedStorage, deleteFromNamespacedStorage } from "~client/utils/util";
 import { constructTypeOfHTMLAttribute, isPrimitive, isString, isObject, pascalCase2kebabCase } from '~bdo/utils/util';
-import { Attribute } from '~bdo/lib/Attribute';
-import { Watched } from "~bdo/lib/Watched";
 
 /**
  * Creates a new BaseComponent based on the HTMLTypeElement
@@ -46,6 +44,15 @@ export function BaseComponentFactory<TBase extends Constructor<HTMLElement>>(HTM
          * @memberof BaseComponent
          */
         public static readonly isBaseComponent: boolean = true;
+
+        /**
+         * @see BaseConstructor.isProceduralComponentConstruction
+         *
+         * @static
+         * @type {boolean}
+         * @memberof BaseComponent
+         */
+        public static isProceduralComponentConstruction: boolean = false;
 
         /**
          * Gives access to the properties similar to element.attributes
@@ -135,27 +142,36 @@ export function BaseComponentFactory<TBase extends Constructor<HTMLElement>>(HTM
          * @memberof BaseComponent
          */
         public static create<T extends BaseComponent>(this: Constructor<T>, params?: ConstParams<T>) {
+            const that = this as unknown as typeof BaseComponent;
             const className = pascalCase2kebabCase(Object.getPrototypeOf(this).name);
-            let is = (<any>this).extends;
+            let is = that.extends;
             let tagName = className;
             if (is) {
                 tagName = is;
                 is = className;
             }
+            that.isProceduralComponentConstruction = true;
             const element = document.createElement(tagName, { is }) as unknown as BaseComponent;
-            const definedAttributes = getMetadata(element, "definedAttributes");
-            for (const attributeName of Array.from(definedAttributes?.keys() || [])) {
-                let metadata = <Attribute | Watched>getWildcardMetadata(element, attributeName);
-                if (metadata instanceof Watched) metadata = <Attribute>metadata.subObject;
-                metadata.reflectToDOMAttribute(metadata.valueOf(), true);
-            }
-            Object.assign(element, params);
+            that.isProceduralComponentConstruction = false;
+            element.invokeLifeCycle(params);
             if (is) element.setAttribute("is", is, true);
             return element;
         }
 
         constructor(...args: any[]) {
             super(...args);
+        }
+
+        /**
+         * Assigns all const params to the current instance and initializes the life cycle
+         *
+         * @template T
+         * @param {Constructor<T>} this
+         * @param {ConstParams<T>} ConstParams
+         * @memberof BaseComponent
+         */
+        public invokeLifeCycle<T extends BaseComponent>(_ConstParams?: ConstParams<T>) {
+            throw new Error("This is not a BaseConstructor");
         }
 
         /**

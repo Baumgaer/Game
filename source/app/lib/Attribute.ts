@@ -220,8 +220,8 @@ export class Attribute<T extends object = any, K extends prop<T> = any> extends 
      * @returns
      * @memberof Attribute
      */
-    public reflectToDOMAttribute(value?: T[K] | Modification<any>, forced?: boolean) {
-        if ((!isBrowser() || !(this.object instanceof HTMLElement) || !this.object.isConnected) && !forced) return;
+    public reflectToDOMAttribute(value?: T[K] | Modification<any>) {
+        if (!isBrowser() || !(this.object instanceof HTMLElement)) return;
         const stringKey = this.property.toString();
         const attrValue = this.object.getAttribute(stringKey);
         let setAttribute = true;

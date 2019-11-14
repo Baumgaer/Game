@@ -18,7 +18,7 @@ export interface IBaseConstructorOpts extends ObjectOptions {
      *
      * @default "default"
      * @type {string}
-     * @memberof baseConstructorOpts
+     * @memberof IBaseConstructorOpts
      */
     collectionName?: string;
 
@@ -89,6 +89,16 @@ export function baseConstructorFactory(ctor: any, constParamsIndex: number) {
         public static readonly databaseName?: string = getMetadata(BaseConstructor, "databaseName");
 
         /**
+         * Sets a BaseComponent into procedural construction mode which disables
+         * assigning const params and life cycle invocation
+         *
+         * @static
+         * @type {boolean}
+         * @memberof BaseConstructor
+         */
+        public static isProceduralComponentConstruction: boolean = false;
+
+        /**
          * @see BaseConstructor.collectionName
          *
          * @type {string}
@@ -106,9 +116,19 @@ export function baseConstructorFactory(ctor: any, constParamsIndex: number) {
 
         constructor(...params: any[]) {
             super(...params);
-            let constParams = params[constParamsIndex];
-            if (!(constParams instanceof Object)) constParams = {};
+            const constParams = params[constParamsIndex];
             defineMetadata(this, "normalFunctionality", true);
+            if (!BaseConstructor.isProceduralComponentConstruction) this.invokeLifeCycle(constParams);
+        }
+
+        /**
+         * Assigns all const params to the current instance and initializes the life cycle
+         *
+         * @param {IndexStructure<string, any>} constParams
+         * @memberof BaseConstructor
+         */
+        public invokeLifeCycle(constParams: IndexStructure<string, any>) {
+            if (!(constParams instanceof Object)) constParams = {};
             let defaultSettings: ConstParams<BaseConstructor> = getMetadata(this, "defaultSettings") || {};
             defaultSettings = Object.assign(defaultSettings, constParams);
             if (isFunction(this.getNamespacedStorage)) {
@@ -125,7 +145,7 @@ export function baseConstructorFactory(ctor: any, constParamsIndex: number) {
             }
             Object.assign(this, defaultSettings);
             defineMetadata(this, "constructionComplete", true);
-            if (isFunction(this.constructedCallback)) (<any>this).constructedCallback(...params);
+            if (isFunction(this.constructedCallback)) (<any>this).constructedCallback();
         }
     }
     return BaseConstructor;
