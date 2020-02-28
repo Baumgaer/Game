@@ -3,6 +3,26 @@ import { getMetadata, defineMetadata } from "~bdo/utils/metadata";
 import { isFunction } from "~bdo/utils/util";
 import { ObjectOptions } from "type-graphql/dist/decorators/ObjectType";
 
+type idyStructureBaseConst<T> = IndexStructure<ConstParams<T>>;
+interface IBaseConstructorCtor {
+
+    /**
+     * In generally this will be called for everything which is decorated with
+     * the BaseConstructor AFTER the native constructor has been finished but
+     * Object is still in construction
+     *
+     * @memberof IBaseConstructorCtor
+     */
+    constructedCallback?: () => void;
+
+    /**
+     * Usually used to get items from a storage like the local storage.
+     * The most important thing is, that this storage is a synchronous storage.
+     *
+     * @memberof IBaseConstructorCtor
+     */
+    getNamespacedStorage?: (key: string, nsProp: string, forceNS: string) => any;
+}
 /**
  * This parameters should only be used on models because on other objects they
  * will have no effects.
@@ -42,7 +62,7 @@ export interface IBaseConstructorOpts extends ObjectOptions {
  * @param {number} constParamsIndex
  * @returns
  */
-export function baseConstructorFactory(ctor: any, constParamsIndex: number) {
+export function baseConstructorFactory(ctor: Constructor<IBaseConstructorCtor>, constParamsIndex: number) {
 
     /**
      * Invokes the life cycle of every component and model
@@ -68,7 +88,7 @@ export function baseConstructorFactory(ctor: any, constParamsIndex: number) {
          * @type {*}
          * @memberof BaseConstructor
          */
-        public static readonly graphQLType: any = ctor;
+        public static readonly graphQLType = ctor;
 
         /**
          * @inheritdoc
@@ -129,7 +149,7 @@ export function baseConstructorFactory(ctor: any, constParamsIndex: number) {
          */
         public invokeLifeCycle(constParams: IndexStructure<string, any>) {
             if (!(constParams instanceof Object)) constParams = {};
-            let defaultSettings: ConstParams<BaseConstructor> = getMetadata(this, "defaultSettings") || {};
+            let defaultSettings: idyStructureBaseConst<BaseConstructor> = getMetadata(this, "defaultSettings") || {};
             defaultSettings = Object.assign(defaultSettings, constParams);
             if (isFunction(this.getNamespacedStorage)) {
                 const id = constParams.id || defaultSettings.id;
@@ -145,7 +165,7 @@ export function baseConstructorFactory(ctor: any, constParamsIndex: number) {
             }
             Object.assign(this, defaultSettings);
             defineMetadata(this, "constructionComplete", true);
-            if (isFunction(this.constructedCallback)) (<any>this).constructedCallback();
+            if (isFunction(this.constructedCallback)) this.constructedCallback();
         }
     }
     return BaseConstructor;

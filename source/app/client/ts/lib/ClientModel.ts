@@ -65,7 +65,7 @@ export class ClientModel extends BDOModel {
                 .collection(model.collectionName)
                 .get(id);
             if (dataFromLocalDB) {
-                const pendingPromises: Array<Promise<any>> = [];
+                const pendingPromises: Array<Promise<void>> = [];
                 for (const key in dataFromLocalDB) {
                     if (dataFromLocalDB.hasOwnProperty(key)) {
                         const modelElem = Reflect.get(model, key);
@@ -80,7 +80,7 @@ export class ClientModel extends BDOModel {
                             });
                         }
                         if (elem instanceof Array && difference(correspondingListLikeDB, elem).length) {
-                            const pendingItems: Array<Promise<any>> = [];
+                            const pendingItems: Array<Promise<void>> = [];
                             for (let item of elem) {
                                 if (isReferenceString(item)) {
                                     const refParts = item.split(":")[1];
@@ -91,7 +91,7 @@ export class ClientModel extends BDOModel {
                                     }));
                                 }
                             }
-                            pendingPromises.push(Promise.all(pendingItems));
+                            pendingPromises.push(Promise.all(pendingItems).then());
                         } else if (isReferenceString(elem) && elem !== model.getReferenceString()) {
                             const refParts = elem.split(":")[1];
                             const className = refParts[1];

@@ -29,7 +29,7 @@ export class ClientRoute extends BDORoute {
      * @memberof BaseRoute
      */
     public get router(): IndexStructure<string, (params: IndexStructure) => void> {
-        const routes: any = {};
+        const routes: IndexStructure<string, Function> = {};
         for (const route of this.routes) {
             routes[`${this.routerNameSpace}/${route}`.replace("//", "/")] = this.handleGet.bind(this);
         }
