@@ -32,6 +32,7 @@ interface IBaseConstructorCtor {
  * @extends {ObjectOptions}
  */
 export interface IBaseConstructorOpts extends ObjectOptions {
+
     /**
      * Defines the name of the collection where a model is saved in.
      * Only effects the behavior of a model.
@@ -62,7 +63,7 @@ export interface IBaseConstructorOpts extends ObjectOptions {
  * @param {number} constParamsIndex
  * @returns
  */
-export function baseConstructorFactory(ctor: Constructor<IBaseConstructorCtor>, constParamsIndex: number) {
+export function baseConstructorFactory<T extends Constructor<IBaseConstructorCtor>>(ctor: T, constParamsIndex: number) {
 
     /**
      * Invokes the life cycle of every component and model
