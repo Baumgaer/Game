@@ -2,17 +2,13 @@ import IORedis from 'ioredis';
 import { merge, isUndefined, pickBy, omit } from '~bdo/utils/util';
 
 export type callbackType = (err: Error, res: number) => void;
-export type messageType = Array<
+export type messageType = (
     | keyof any
     | boolean
-    | IMessageType
+    | messageType
     | {
         [name: string]: keyof any | boolean | messageType;
-    }
->;
-
-// tslint:disable-next-line: no-empty-interface
-interface IMessageType extends messageType { }
+    })[];
 
 /**
  * Extends the IORedis class by saving all subscribed topics to execute them
@@ -42,6 +38,25 @@ export class Redis extends IORedis {
     /**
      * @inheritdoc
      *
+     * @param {string} topic
+     * @returns {Promise<number>}
+     * @memberof Redis
+     */
+    public subscribe(topic: string): Promise<number>;
+
+    /**
+     * @inheritdoc
+     *
+     * @param {(string[] | string)} topics
+     * @param {Function} callback
+     * @returns {Promise<number>}
+     * @memberof Redis
+     */
+    public subscribe(topics: string[] | string, callback: Function): Promise<number>;
+
+    /**
+     * @inheritdoc
+     *
      * Subscribes to a topic with callback which should be executed
      * on receiving a message
      *
@@ -49,14 +64,14 @@ export class Redis extends IORedis {
      * @param {Function} callback
      * @memberof Redis
      */
-    public subscribe(topics: string[] | string, callback: Function): void {
-        if (!Array.isArray(topics)) {
-            topics = [topics];
+    public subscribe(topics: string[] | string, callback?: Function): Promise<number> {
+        if (!Array.isArray(topics)) topics = [topics];
+        if (callback) {
+            for (const topic of topics) {
+                this.insertIntoTopics(topic, callback);
+            }
         }
-        for (const topic of topics) {
-            this.insertIntoTopics(topic, callback);
-        }
-        super.subscribe(topics);
+        return super.subscribe(...topics);
     }
 
     /**
@@ -104,9 +119,11 @@ export class Redis extends IORedis {
      * @returns {Promise<string>}
      * @memberof Redis
      */
-    public set(key: IORedis.KeyType, value: IndexStructure): Promise<string> {
+    public set(key: IORedis.KeyType, value: IndexStructure | IORedis.ValueType): Promise<string> {
         return new Promise<string>(async (resolve) => {
-            resolve(await super.set(key, JSON.stringify(value)));
+            if (typeof value === "number" || typeof value === "string" || value instanceof Array || value instanceof Buffer) {
+                resolve(await super.set(key, value));
+            } else resolve(await super.set(key, JSON.stringify(value)));
         });
     }
 

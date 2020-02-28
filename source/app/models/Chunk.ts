@@ -1,4 +1,4 @@
-import OpenSimplexNoise from 'open-simplex-noise';
+import { makeNoise2D } from 'open-simplex-noise';
 import { merge } from '~bdo/utils/util';
 import { Cell } from './Cell';
 
@@ -49,7 +49,7 @@ export class Chunk {
      * @type {OpenSimplexNoise}
      * @memberof Chunk
      */
-    protected simplexCave: OpenSimplexNoise = new OpenSimplexNoise(1);
+    protected simplexCave = makeNoise2D(1);
 
     /**
      * The seed to generate river values of a cell
@@ -58,7 +58,7 @@ export class Chunk {
      * @type {OpenSimplexNoise}
      * @memberof Chunk
      */
-    protected simplexRiver: OpenSimplexNoise = new OpenSimplexNoise(2);
+    protected simplexRiver = makeNoise2D(2);
 
     /**
      * The seed to generate temperature values of a cell
@@ -67,7 +67,7 @@ export class Chunk {
      * @type {OpenSimplexNoise}
      * @memberof Chunk
      */
-    protected simplexTemperature: OpenSimplexNoise = new OpenSimplexNoise(3);
+    protected simplexTemperature = makeNoise2D(3);
 
     /**
      * The seed to generate humidity values of a cell
@@ -76,7 +76,7 @@ export class Chunk {
      * @type {OpenSimplexNoise}
      * @memberof Chunk
      */
-    protected simplexHumidity: OpenSimplexNoise = new OpenSimplexNoise(4);
+    protected simplexHumidity = makeNoise2D(4);
 
     constructor(params?: ConstParams<Chunk>) {
         merge(this, params);
@@ -102,10 +102,10 @@ export class Chunk {
                     new Cell({
                         x: xCoordinate,
                         y: yCoordinate,
-                        cave: this.simplexCave.noise2D(xCoordinate / 100, yCoordinate / 100),
-                        river: this.simplexRiver.noise2D(xCoordinate / 500, yCoordinate / 500),
-                        temperature: this.simplexTemperature.noise2D(xCoordinate / 2500, yCoordinate / 2500),
-                        humidity: this.simplexHumidity.noise2D(xCoordinate / 2500, yCoordinate / 2500),
+                        cave: this.simplexCave(xCoordinate / 100, yCoordinate / 100),
+                        river: this.simplexRiver(xCoordinate / 500, yCoordinate / 500),
+                        temperature: this.simplexTemperature(xCoordinate / 2500, yCoordinate / 2500),
+                        humidity: this.simplexHumidity(xCoordinate / 2500, yCoordinate / 2500),
                         chunk: this
                     })
                 );
