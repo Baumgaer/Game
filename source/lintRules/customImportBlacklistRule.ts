@@ -34,6 +34,8 @@ const walk = (ctx: WalkContext<IOptions>) => {
         if (ctx.options.hasOwnProperty(file) && ctx.sourceFile.fileName.includes(file)) {
             const forbiddenImports = (<any>ctx.options)[file];
             for (const importFile of findImports(ctx.sourceFile, ImportKind.All)) {
+                // @ts-ignore
+                if (importFile.parent.importClause.isTypeOnly) continue;
                 for (const forbiddenImport of forbiddenImports) {
                     if (importFile.text.includes(forbiddenImport)) {
                         ctx.addFailure(
