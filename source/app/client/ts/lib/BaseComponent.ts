@@ -80,6 +80,15 @@ export function BaseComponentFactory<TBase extends Constructor<HTMLElement>>(HTM
         @attribute() public id: string = this.generateUniqueID();
 
         /**
+         * this contains all HTMLElements with a ref attribute to give fast
+         * access to this element without conflicting ids.
+         *
+         * @type {IndexStructure<string, HTMLElement>}
+         * @memberof BaseComponent
+         */
+        @property() public refs: IndexStructure<string, HTMLElement> = {};
+
+        /**
          * This is for better identification of base components and instance check
          *
          * @type {boolean}
@@ -105,17 +114,6 @@ export function BaseComponentFactory<TBase extends Constructor<HTMLElement>>(HTM
          * @memberof BaseComponent
          */
         @property({ disableTypeGuard: true }) protected readonly templateString: string | Template = '<div><slot></slot></div>';
-
-        /**
-         * Contains an object which keys matches the interpolations of the template.
-         * This could be used to define a standard style similar to the default
-         * style of normal HTMLElements or to define a standard content.
-         *
-         * @protected
-         * @type {IndexStructure}
-         * @memberof BaseComponent
-         */
-        @property() protected templateParams: IndexStructure = {};
 
         /**
          * Holds a list of all bindings to all models
@@ -281,15 +279,18 @@ export function BaseComponentFactory<TBase extends Constructor<HTMLElement>>(HTM
             if (!(<any>this.constructor).extends) {
                 // Attach a shadow root to the element.
                 let stringToParse = null;
-                if (isString(this.templateString)) {
-                    stringToParse = renderString(this.templateString, this.templateParams);
-                }
-                if (isObject(this.templateString)) {
-                    stringToParse = (<Template>this.templateString).render(this.templateParams);
-                }
+                if (isString(this.templateString)) stringToParse = renderString(this.templateString, this.toJSON());
+                if (isObject(this.templateString)) stringToParse = (<Template>this.templateString).render(this.toJSON());
                 if (stringToParse) {
                     const shadowRoot = this.attachShadow({ mode: 'open' });
                     const doc = new DOMParser().parseFromString(stringToParse, 'text/html');
+                    const refs = Array.from(doc.querySelectorAll("[ref]"));
+                    for (const ref of refs) {
+                        const refName = ref.getAttribute("ref");
+                        if (!refName) continue;
+                        if (refName in this.refs) throw new Error(`ref ${refName} already exists`);
+                        this.refs[refName] = ref;
+                    }
                     shadowRoot.appendChild(<ChildNode>doc.body.firstChild);
                 }
             }

@@ -20,4 +20,13 @@ export default class TestComponent extends BaseComponentFactory(HTMLElement) {
      */
     @property() protected templateString = require('~static/views/testComponent.njk');
 
+    /**
+     * Just a test for the template rendering
+     *
+     * @protected
+     * @type {string}
+     * @memberof TestComponent
+     */
+    @property() protected test: string = "lalala";
+
 }
