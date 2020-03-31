@@ -46,7 +46,7 @@ export function BaseComponentFactory<TBase extends Constructor<HTMLElement>>(HTM
         public static readonly isBaseComponent: boolean = true;
 
         /**
-         * @see BaseConstructor.isProceduralComponentConstruction
+         * @see IBaseConstructorCtor.isProceduralComponentConstruction
          *
          * @static
          * @type {boolean}
@@ -58,6 +58,7 @@ export function BaseComponentFactory<TBase extends Constructor<HTMLElement>>(HTM
          * Gives access to the properties similar to element.attributes
          *
          * @readonly
+         * @type {Map<string, Property<this>>}
          * @memberof BaseComponent
          */
         public get properties(): Map<string, Property<this>> {
@@ -75,6 +76,7 @@ export function BaseComponentFactory<TBase extends Constructor<HTMLElement>>(HTM
          * this contains all HTMLElements with a ref attribute to give fast
          * access to this element without conflicting ids.
          *
+         * @readonly
          * @type {IndexStructure<string, HTMLElement>}
          * @memberof BaseComponent
          */
@@ -278,6 +280,8 @@ export function BaseComponentFactory<TBase extends Constructor<HTMLElement>>(HTM
 
         /**
          * 0. This is called by the BaseConstructor as a part of the "live cycle"
+         *
+         * @see IBaseConstructorCtor.renderTemplate
          *
          * @protected
          * @memberof BaseComponent

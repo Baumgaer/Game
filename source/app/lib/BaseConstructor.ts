@@ -5,7 +5,7 @@ import { isComponent } from "~bdo/utils/framework";
 import { ObjectOptions } from "type-graphql/dist/decorators/ObjectType";
 
 type idyStructureBaseConst<T> = IndexStructure<ConstParams<T>>;
-interface IBaseConstructorCtor {
+export interface IBaseConstructorCtor {
 
     /**
      * In generally this will be called for everything which is decorated with
