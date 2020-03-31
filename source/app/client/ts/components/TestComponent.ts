@@ -1,6 +1,7 @@
 import { BaseComponentFactory } from '~client/lib/BaseComponent';
 import { baseConstructor } from '~bdo/utils/decorators';
 import { property } from '~bdo/utils/decorators';
+import template from "~static/views/testComponent.njk";
 
 /**
  * Test
@@ -18,7 +19,7 @@ export default class TestComponent extends BaseComponentFactory(HTMLElement) {
      * @protected
      * @memberof TestComponent
      */
-    @property() protected templateString = require('~static/views/testComponent.njk');
+    @property() protected templateString = template;
 
     /**
      * Just a test for the template rendering

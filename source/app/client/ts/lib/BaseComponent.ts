@@ -72,21 +72,32 @@ export function BaseComponentFactory<TBase extends Constructor<HTMLElement>>(HTM
         }
 
         /**
-         * To ensure that every component has a unique ID attribute
-         *
-         * @type {string}
-         * @memberof BaseComponent
-         */
-        @attribute() public id: string = this.generateUniqueID();
-
-        /**
          * this contains all HTMLElements with a ref attribute to give fast
          * access to this element without conflicting ids.
          *
          * @type {IndexStructure<string, HTMLElement>}
          * @memberof BaseComponent
          */
-        @property() public refs: IndexStructure<string, HTMLElement> = {};
+        public get refs(): IndexStructure<string, HTMLElement> {
+            const refs: IndexStructure<string, HTMLElement> = {};
+            if (!this.shadowRoot) return refs;
+            const refElements = Array.from(this.shadowRoot.querySelectorAll("[ref]"));
+            for (const refElement of refElements) {
+                const refName = refElement.getAttribute("ref");
+                if (!refName) continue;
+                if (refName in refs) throw new Error(`ref ${refName} already exists`);
+                refs[refName] = refElement;
+            }
+            return refs;
+        }
+
+        /**
+         * To ensure that every component has a unique ID attribute
+         *
+         * @type {string}
+         * @memberof BaseComponent
+         */
+        @attribute() public id: string = this.generateUniqueID();
 
         /**
          * This is for better identification of base components and instance check
@@ -284,13 +295,6 @@ export function BaseComponentFactory<TBase extends Constructor<HTMLElement>>(HTM
                 if (stringToParse) {
                     const shadowRoot = this.attachShadow({ mode: 'open' });
                     const doc = new DOMParser().parseFromString(stringToParse, 'text/html');
-                    const refs = Array.from(doc.querySelectorAll("[ref]"));
-                    for (const ref of refs) {
-                        const refName = ref.getAttribute("ref");
-                        if (!refName) continue;
-                        if (refName in this.refs) throw new Error(`ref ${refName} already exists`);
-                        this.refs[refName] = ref;
-                    }
                     shadowRoot.appendChild(<ChildNode>doc.body.firstChild);
                 }
             }

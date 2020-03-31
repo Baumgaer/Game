@@ -1,5 +1,5 @@
 import { BDORoute } from '~bdo/lib/BDORoute';
-import { Template } from 'nunjucks';
+import template from "~bdo/views/gameLobby.njk";
 
 /**
  * constructs the base for the gameLobby route on server and client
@@ -41,7 +41,7 @@ export function BDOGameLobbyFactory<TBase extends Constructor<BDORoute>>(ctor: T
          * @protected
          * @memberof GameLobby
          */
-        protected templateString: Template = require('~bdo/views/gameLobby.njk');
+        protected templateString = template;
 
         /**
          * @inheritdoc

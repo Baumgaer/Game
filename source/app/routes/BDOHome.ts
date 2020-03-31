@@ -1,5 +1,5 @@
 import { BDORoute } from '~bdo/lib/BDORoute';
-import { Template } from 'nunjucks';
+import template from "~bdo/views/home.njk";
 
 /**
  * constructs the base for the home route on server and client
@@ -41,7 +41,7 @@ export function BDOHomeFactory<TBase extends Constructor<BDORoute>>(ctor: TBase)
          * @protected
          * @memberof BDOHome
          */
-        protected templateString: Template = require('~bdo/views/home.njk');
+        protected templateString = template;
 
         /**
          * @inheritdoc
