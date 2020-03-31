@@ -1,12 +1,11 @@
 import 'reflect-metadata';
 import { pascalCase2kebabCase } from "~bdo/utils/util";
-import { isBrowser } from "~bdo/utils/environment";
 import { IPropertyParams } from "~bdo/lib/Property";
 import { IAttributeParams } from "~bdo/lib/Attribute";
 import { IWatchedParams } from "~bdo/lib/Watched";
 import { baseConstructorFactory, IBaseConstructorOpts } from "~bdo/lib/BaseConstructor";
 import { defineMetadata, getMetadata } from "~bdo/utils/metadata";
-import { beforeDescriptor, createDecoratorDescriptor, isBaseConstructor } from "~bdo/utils/framework";
+import { beforeDescriptor, createDecoratorDescriptor, isBaseConstructor, isComponent, isBDOModel } from "~bdo/utils/framework";
 import { ReturnTypeFunc } from "type-graphql/dist/decorators/types";
 import {
     Field,
@@ -140,7 +139,7 @@ export function baseConstructor(name?: nameOptsIdx, params?: optsIdx, index: num
         if (params && (typeof params === "number")) index = params;
         if (params && (typeof params === "number")) params = undefined;
 
-        if ("isBDOModel" in ctor) {
+        if (isBDOModel(ctor)) {
             // Decide which ObjectType to use
             if (name && (typeof name === "string") && params && (typeof params === "object")) {
                 ObjectType(name, params)(ctor);
@@ -162,7 +161,7 @@ export function baseConstructor(name?: nameOptsIdx, params?: optsIdx, index: num
 
         const BaseConstructor = baseConstructorFactory(ctor, index);
         // Register custom Element
-        if (isBrowser() && ctor.isBaseComponent) {
+        if (isComponent(ctor)) {
             customElements.define(pascalCase2kebabCase(ctor.name), BaseConstructor, {
                 extends: BaseConstructor.extends
             });

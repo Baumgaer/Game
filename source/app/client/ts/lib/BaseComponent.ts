@@ -347,8 +347,12 @@ export function BaseComponentFactory<TBase extends Constructor<HTMLElement>>(HTM
         private generateUniqueID() {
             const className = Object.getPrototypeOf(this.constructor).name;
             const occurrences = Array.from(document.getElementsByTagName(this.tagName));
-            const occurrence = occurrences.indexOf(this);
-            return `${className}_${occurrence >= 0 ? occurrence : occurrences.length}`;
+            const index = occurrences.indexOf(this);
+            let occurrence = index >= 0 ? index : occurrences.length;
+            while (document.getElementById(`${className}_${occurrence}`)) {
+                occurrence++;
+            }
+            return `${className}_${occurrence}`;
         }
     }
 

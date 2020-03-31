@@ -25,7 +25,7 @@ export abstract class BDOModel implements IBaseConstructorOpts {
      * @type {Map<string, Array<Binding<this, DefNonFuncPropNames<this>>>>}
      * @memberof BDOModel
      */
-    protected get bindings(): Map<string, Array<Binding<this>>> {
+    protected get bindings(): Map<string, Binding<this>[]> {
         const bindings = getMetadata(this, "bindings");
         return bindings ? bindings : new Map();
     }

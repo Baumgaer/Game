@@ -97,7 +97,6 @@
         "tslint": "^6.1.0",
         "tslint-no-unused-expression-chai": "^0.1.4",
         "typescript": "^3.8.3",
-        "uuid": "^7.0.2",
         "webpack": "^4.42.1",
         "webpack-cli": "^3.3.11",
         "webpack-filter-warnings-plugin": "^1.2.1"
@@ -142,6 +141,7 @@
         "tslib": "^1.11.1",
         "type-graphql": "^0.17.6",
         "util": "^0.12.2",
+        "uuid": "^7.0.2",
         "walk": "^2.3.14",
         "ws": "^7.2.3"
     },

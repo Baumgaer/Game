@@ -4,8 +4,14 @@ import { Property, IPropertyParams } from "~bdo/lib/Property";
 import { Watched, IWatchedParams } from "~bdo/lib/Watched";
 import { Modification } from "~bdo/lib/Modification";
 import { merge } from "~bdo/utils/util";
+import { isBrowser } from "~bdo/utils/environment";
 import { getMetadata, defineMetadata, getWildcardMetadata, defineWildcardMetadata } from "~bdo/utils/metadata";
 import { baseConstructorFactory } from "~bdo/lib/BaseConstructor";
+import { BDOModel } from "~bdo/lib/BDOModel";
+
+import type { ClientModel } from "~client/lib/ClientModel";
+import type { ServerModel } from "~server/lib/ServerModel";
+import type { BaseComponentFactory } from "~client/lib/BaseComponent";
 
 type defPropOrAttr = "definedProperties" | "definedAttributes" | "definedWatchers";
 type AttrPropWatch = "Attribute" | "Property" | "Watched";
@@ -187,6 +193,59 @@ export function createDecoratorDescriptor<
 export function isBaseConstructor(value: Object): value is ReturnType<typeof baseConstructorFactory> {
     if (typeof value === "function" && value.name === "BaseConstructor") return true;
     if (value instanceof Object && value.constructor.name === "BaseConstructor") return true;
+    return false;
+}
+
+/**
+ * Checks if the given constructor (not an instance!) is a BDOModel. This is useful
+ * to get type security in BDO section when an any type variable must be checked.
+ *
+ * @export
+ * @param {Object} value
+ * @returns {value is BDOModel}
+ */
+export function isBDOModel(value: Object): value is typeof BDOModel {
+    if ("isBDOModel" in value) return true;
+    return false;
+}
+
+/**
+ * Checks if the given constructor (not an instance!) is a ClientModel. This is useful
+ * to get type security in BDO section when an any type variable must be checked.
+ *
+ * @export
+ * @param {Object} value
+ * @returns {value is ClientModel}
+ */
+export function isClientModel(value: Object): value is typeof ClientModel {
+    if (isBDOModel(value) && "isClientModel" in value) return true;
+    return false;
+}
+
+/**
+ * Checks if the given constructor (not an instance!) is a ServerModel. This is useful
+ * to get type security in BDO section when an any type variable must be checked.
+ *
+ * @export
+ * @param {Object} value
+ * @returns {value is ServerModel}
+ */
+export function isServerModel(value: Object): value is typeof ServerModel {
+    if (isBDOModel(value) && "isServerModel" in value) return true;
+    return false;
+}
+
+/**
+ * Checks if the constructor (not an instance!) is a Component for the frontend.
+ * This is useful to get type security in BDO section when an any type variable
+ * must be checked.
+ *
+ * @export
+ * @param {Object} value
+ * @returns {value is ReturnType<typeof BaseComponentFactory>}
+ */
+export function isComponent(value: Object): value is ReturnType<typeof BaseComponentFactory> {
+    if (isBrowser() && "isBaseComponent" in value) return true;
     return false;
 }
 
