@@ -1,6 +1,7 @@
 import { Binding } from "~bdo/lib/Binding";
 import { getMetadata, defineMetadata } from "~bdo/utils/metadata";
 import { isFunction } from "~bdo/utils/util";
+import { isComponent } from "~bdo/utils/framework";
 import { ObjectOptions } from "type-graphql/dist/decorators/ObjectType";
 
 type idyStructureBaseConst<T> = IndexStructure<ConstParams<T>>;
@@ -14,6 +15,15 @@ interface IBaseConstructorCtor {
      * @memberof IBaseConstructorCtor
      */
     constructedCallback?: () => void;
+
+    /**
+     * If the BaseConstructor is part of a Component of the frontend, there
+     * will be a renderTemplate function which looks into the templateString
+     * and tries to render a DOM.
+     *
+     * @memberof IBaseConstructorCtor
+     */
+    renderTemplate?: () => void;
 
     /**
      * Usually used to get items from a storage like the local storage.
@@ -166,6 +176,7 @@ export function baseConstructorFactory<T extends Constructor<IBaseConstructorCto
             }
             Object.assign(this, defaultSettings);
             defineMetadata(this, "constructionComplete", true);
+            if (isComponent(ctor) && isFunction(this.renderTemplate)) this.renderTemplate();
             if (isFunction(this.constructedCallback)) this.constructedCallback();
         }
     }

@@ -277,15 +277,12 @@ export function BaseComponentFactory<TBase extends Constructor<HTMLElement>>(HTM
         }
 
         /**
-         * 1. Called when all provided constructor parameters are assigned to
-         * their corresponding properties / attributes. Also sets predefined
-         * attributes from the dom.
+         * 0. This is called by the BaseConstructor as a part of the "live cycle"
          *
          * @protected
-         * @param {...any[]} _args Same parameters like the constructor
          * @memberof BaseComponent
          */
-        protected constructedCallback(..._args: any[]) {
+        protected renderTemplate() {
             // Render template only if this component doesn't extend a native one
             if (!(<any>this.constructor).extends) {
                 // Attach a shadow root to the element.
@@ -299,6 +296,16 @@ export function BaseComponentFactory<TBase extends Constructor<HTMLElement>>(HTM
                 }
             }
         }
+
+        /**
+         * 1. Called when all provided constructor parameters are assigned to
+         * their corresponding properties / attributes. Also sets predefined
+         * attributes from the dom.
+         *
+         * @protected
+         * @memberof BaseComponent
+         */
+        protected constructedCallback(): void { }
 
         /**
          * 2. Called when a component is connected with the dom.
