@@ -6,6 +6,7 @@ import { Binding } from "~bdo/lib/Binding";
 import { Property } from "~bdo/lib/Property";
 import { getNamespacedStorage, setUpdateNamespacedStorage, deleteFromNamespacedStorage } from "~client/utils/util";
 import { constructTypeOfHTMLAttribute, isPrimitive, isString, isObject, pascalCase2kebabCase } from '~bdo/utils/util';
+import { isComponent } from "~bdo/utils/framework";
 
 /**
  * Creates a new BaseComponent based on the HTMLTypeElement
@@ -18,7 +19,7 @@ import { constructTypeOfHTMLAttribute, isPrimitive, isString, isObject, pascalCa
 export function BaseComponentFactory<TBase extends Constructor<HTMLElement>>(HTMLTypeElement: TBase) {
 
     /**
-     * Provides pase functionality for every component, manages and registers them
+     * Provides base functionality for every component, manages and registers them
      *
      * @class BaseComponent
      * @extends {HTMLTypeElement}
@@ -127,6 +128,117 @@ export function BaseComponentFactory<TBase extends Constructor<HTMLElement>>(HTM
          * @memberof BaseComponent
          */
         @property({ disableTypeGuard: true }) protected readonly templateString: string | Template = '<div><slot></slot></div>';
+
+        /**
+         * Returns the parent component (not normal HTMLElement)
+         *
+         * @readonly
+         * @public
+         * @returns {(BaseComponent | null)}
+         * @memberof BaseComponent
+         */
+        public get parentComponent(): BaseComponent | null {
+            let currentElement: HTMLElement = this;
+            let parentComponent = null;
+            while (!parentComponent) {
+                const parentElement = currentElement.parentElement;
+                if (!parentElement) break;
+                if (isComponent<BaseComponent>(parentElement)) {
+                    parentComponent = parentElement;
+                    break;
+                } else currentElement = parentElement;
+            }
+            return parentComponent;
+        }
+
+        /**
+         * Returns all child components excluding normal HTMLElements
+         *
+         * @readonly
+         * @type {BaseComponent[]}
+         * @memberof BaseComponent
+         */
+        public get childComponents(): BaseComponent[] {
+            const children = Array.from(this.children);
+            const childComponents: BaseComponent[] = [];
+            for (const child of children) {
+                if (isComponent<BaseComponent>(child)) childComponents.push(child);
+            }
+            return childComponents;
+        }
+
+        /**
+         * Returns the first child which is a component
+         *
+         * @readonly
+         * @type {(BaseComponent | null)}
+         * @memberof BaseComponent
+         */
+        public get firstComponentChild(): BaseComponent | null {
+            const children = Array.from(this.children);
+            for (const child of children) {
+                if (isComponent<BaseComponent>(child)) return child;
+            }
+            return null;
+        }
+
+        /**
+         * Returns the last child which is a component
+         *
+         * @readonly
+         * @type {(BaseComponent | null)}
+         * @memberof BaseComponent
+         */
+        public get lastComponentChild(): BaseComponent | null {
+            let currentChild = this.lastElementChild;
+            while (currentChild) {
+                if (isComponent<BaseComponent>(currentChild)) return currentChild;
+                currentChild = currentChild.previousElementSibling;
+            }
+            return null;
+        }
+
+        /**
+         * Returns the next sibling which is a component
+         *
+         * @readonly
+         * @type {(BaseComponent | null)}
+         * @memberof BaseComponent
+         */
+        public get nextComponentSibling(): BaseComponent | null {
+            let currentElement: Element = this;
+            let nextComponentSibling = null;
+            while (!nextComponentSibling) {
+                const nextElementSibling = currentElement.nextElementSibling;
+                if (!nextElementSibling) break;
+                if (isComponent<BaseComponent>(nextElementSibling)) {
+                    nextComponentSibling = nextElementSibling;
+                    break;
+                } else currentElement = nextElementSibling;
+            }
+            return nextComponentSibling;
+        }
+
+        /**
+         * Returns the previous sibling which is a component
+         *
+         * @readonly
+         * @type {(BaseComponent | null)}
+         * @memberof BaseComponent
+         */
+        public get previousComponentSibling(): BaseComponent | null {
+            let currentElement: Element = this;
+            let previousComponentSibling = null;
+            while (!previousComponentSibling) {
+                const previousElementSibling = currentElement.previousElementSibling;
+                if (!previousElementSibling) break;
+                if (isComponent<BaseComponent>(previousElementSibling)) {
+                    previousComponentSibling = previousElementSibling;
+                    break;
+                } else currentElement = previousElementSibling;
+            }
+            return previousComponentSibling;
+        }
 
         /**
          * Holds a list of all bindings to all models

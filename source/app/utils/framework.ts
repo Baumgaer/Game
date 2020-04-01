@@ -244,7 +244,7 @@ export function isServerModel(value: Object): value is typeof ServerModel {
  * @param {Object} value
  * @returns {value is ReturnType<typeof BaseComponentFactory>}
  */
-export function isComponent(value: Object): value is ReturnType<typeof BaseComponentFactory> {
+export function isComponent<T = ReturnType<typeof BaseComponentFactory>>(value: Object): value is T {
     if (isBrowser() && "isBaseComponent" in value) return true;
     return false;
 }
