@@ -138,10 +138,12 @@ export function BaseComponentFactory<TBase extends Constructor<HTMLElement>>(HTM
          * @memberof BaseComponent
          */
         public get parentComponent(): BaseComponent | null {
-            let currentElement: HTMLElement = this;
+            let currentElement: Element = this;
             let parentComponent = null;
             while (!parentComponent) {
-                const parentElement = currentElement.parentElement;
+                const rootNode = currentElement.getRootNode();
+                let parentElement: Element | null = currentElement.parentElement;
+                if (!parentElement && rootNode instanceof ShadowRoot) parentElement = rootNode.host;
                 if (!parentElement) break;
                 if (isComponent<BaseComponent>(parentElement)) {
                     parentComponent = parentElement;
@@ -159,7 +161,7 @@ export function BaseComponentFactory<TBase extends Constructor<HTMLElement>>(HTM
          * @memberof BaseComponent
          */
         public get childComponents(): BaseComponent[] {
-            const children = Array.from(this.children);
+            const children = Array.from(this.shadowRoot?.children ?? []).concat(Array.from(this.children));
             const childComponents: BaseComponent[] = [];
             for (const child of children) {
                 if (isComponent<BaseComponent>(child)) childComponents.push(child);
@@ -175,7 +177,7 @@ export function BaseComponentFactory<TBase extends Constructor<HTMLElement>>(HTM
          * @memberof BaseComponent
          */
         public get firstComponentChild(): BaseComponent | null {
-            const children = Array.from(this.children);
+            const children = Array.from(this.shadowRoot?.children ?? []).concat(Array.from(this.children));
             for (const child of children) {
                 if (isComponent<BaseComponent>(child)) return child;
             }
@@ -194,6 +196,7 @@ export function BaseComponentFactory<TBase extends Constructor<HTMLElement>>(HTM
             while (currentChild) {
                 if (isComponent<BaseComponent>(currentChild)) return currentChild;
                 currentChild = currentChild.previousElementSibling;
+                if (!currentChild) currentChild = this.shadowRoot?.firstElementChild ?? null;
             }
             return null;
         }
@@ -209,7 +212,9 @@ export function BaseComponentFactory<TBase extends Constructor<HTMLElement>>(HTM
             let currentElement: Element = this;
             let nextComponentSibling = null;
             while (!nextComponentSibling) {
-                const nextElementSibling = currentElement.nextElementSibling;
+                const rootNode = currentElement.getRootNode();
+                let nextElementSibling = currentElement.nextElementSibling;
+                if (!nextElementSibling && rootNode instanceof ShadowRoot) nextElementSibling = rootNode.host.firstElementChild;
                 if (!nextElementSibling) break;
                 if (isComponent<BaseComponent>(nextElementSibling)) {
                     nextComponentSibling = nextElementSibling;
@@ -230,7 +235,9 @@ export function BaseComponentFactory<TBase extends Constructor<HTMLElement>>(HTM
             let currentElement: Element = this;
             let previousComponentSibling = null;
             while (!previousComponentSibling) {
-                const previousElementSibling = currentElement.previousElementSibling;
+                const rootNode = currentElement.getRootNode();
+                let previousElementSibling = currentElement.previousElementSibling;
+                if (!previousElementSibling && rootNode instanceof ShadowRoot) previousElementSibling = this.shadowRoot?.firstElementChild ?? null;
                 if (!previousElementSibling) break;
                 if (isComponent<BaseComponent>(previousElementSibling)) {
                     previousComponentSibling = previousElementSibling;
