@@ -38,6 +38,7 @@
         "source/app/config",
         "source/app/tools",
         "source/app/views",
-        "source/app/server/config"
+        "source/app/server/config",
+        "source/app/client/**"
     ]
 }

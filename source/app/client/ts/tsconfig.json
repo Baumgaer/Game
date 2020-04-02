@@ -1,7 +1,7 @@
 {
     "extends": "./../../../../baseTSConfig.json",
     "compilerOptions": {
-        "target": "es6",
+        "target": "es2019",
         "module": "esnext",
         "rootDir": "./../../",
         "outDir": "./../../../../out/app/client/js",
