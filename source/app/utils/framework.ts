@@ -13,33 +13,34 @@ import type { ClientModel } from "~client/lib/ClientModel";
 import type { ServerModel } from "~server/lib/ServerModel";
 import type { BaseComponentFactory } from "~client/lib/BaseComponent";
 
+import { ReturnTypeFunc } from "type-graphql/dist/decorators/types";
+
 type defPropOrAttr = "definedProperties" | "definedAttributes" | "definedWatchers";
 type AttrPropWatch = "Attribute" | "Property" | "Watched";
 type DecoratorTypeParams<T> = T extends "Watched" ?
     IWatchedParams : T extends "Attribute" ?
     IAttributeParams : IPropertyParams;
 type NewVal<T extends Object, K extends DefNonFuncPropNames<T>> = T[K] | Binding<T, K> | Modification<any>;
+type WatchAttrPropParams<T> = T extends "definedProperties" ?
+    IPropertyParams : T extends "definedAttributes" ?
+    IAttributeParams : T extends "definedWatchers" ? IWatchedParams : T;
 
 export interface IWatchAttrPropSettings<T extends defPropOrAttr | IAttributeParams | IPropertyParams | IWatchedParams> {
     /**
      * The function which returns the real type
      *
-     * @type {*}
+     * @type {ReturnTypeFunc}
      * @memberof IWatchAttrPropSettings
      */
-    typeFunc?: any;
+    typeFunc?: ReturnTypeFunc;
 
     /**
      * Parameters for the corresponding decorator
      *
-     * @type {T extends "definedProperties" ? IPropertyParams :
-     *              T extends "definedAttributes" ? IAttributeParams :
-     *              T extends "definedWatchers" ? IWatchedParams : T}
+     * @type {WatchAttrPropParams<T>}
      * @memberof IWatchAttrPropSettings
      */
-    params?: T extends "definedProperties" ? IPropertyParams :
-    T extends "definedAttributes" ? IAttributeParams :
-    T extends "definedWatchers" ? IWatchedParams : T;
+    params?: WatchAttrPropParams<T>;
 }
 
 /**
