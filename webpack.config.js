@@ -10,6 +10,7 @@ const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
 const TsconfigPathsPlugin = require('tsconfig-paths-webpack-plugin').TsconfigPathsPlugin;
 const FilterWarningsPlugin = require('webpack-filter-warnings-plugin');
 const CopyPlugin = require('copy-webpack-plugin');
+const TerserPlugin = require('terser-webpack-plugin');
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 
 const projectStructureUtils = require('./out/utils/projectStructure');
@@ -55,6 +56,7 @@ module.exports = (_env, options) => {
         }),
         output: {
             filename: "bundle.js",
+            chunkFilename: '[name].bundle.js',
             path: path.resolve(arp.path, "out", "app", "client", "js"),
             pathinfo: options.mode !== "development"
         },
@@ -73,21 +75,45 @@ module.exports = (_env, options) => {
                 })
             ]
         },
-        devtool: 'inline-source-map',
+        devtool: options.mode === "development" ? 'inline-source-map' : '',
         optimization: {
             noEmitOnErrors: true,
             removeAvailableModules: options.mode !== "development",
             removeEmptyChunks: options.mode !== "development",
+            minimize: options.mode !== "development",
+            minimizer: [new TerserPlugin({
+                sourceMap: false,
+                extractComments: false,
+                terserOptions: {
+                    warnings: false,
+                    compress: true,
+                    // eslint-disable-next-line camelcase
+                    keep_classnames: true, //
+                    // eslint-disable-next-line camelcase
+                    keep_fnames: true,
+                    output: {
+                        ecma: 6,
+                        comments: false,
+                        beautify: false
+                    },
+                    sourceMap: false
+                }
+            })],
             splitChunks: {
                 cacheGroups: {
                     vendor: {
                         test: /[\\/]node_modules[\\/]/,
                         name: "vendor",
-                        chunks: "initial"
+                        chunks: "all"
                     },
                     templates: {
-                        test: /\.njk/,
+                        test: /[\\/]views[\\/]/,
                         name: "templates",
+                        chunks: "initial"
+                    },
+                    components: {
+                        test: /[\\/]lib[\\/]/,
+                        name: "lib",
                         chunks: "initial"
                     }
                 }
