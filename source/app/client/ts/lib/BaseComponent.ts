@@ -1,5 +1,6 @@
 import 'reflect-metadata';
 import { Template, renderString } from 'nunjucks';
+import { Properties } from "csstype";
 import { property, attribute } from '~bdo/utils/decorators';
 import { getMetadata, getWildcardMetadata } from "~bdo/utils/metadata";
 import { Binding } from "~bdo/lib/Binding";
@@ -7,6 +8,8 @@ import { Property } from "~bdo/lib/Property";
 import { getNamespacedStorage, setUpdateNamespacedStorage, deleteFromNamespacedStorage } from "~client/utils/util";
 import { constructTypeOfHTMLAttribute, isPrimitive, isString, isObject, pascalCase2kebabCase } from '~bdo/utils/util';
 import { isComponent } from "~bdo/utils/framework";
+
+export type Position = "after" | "before" | "replace" | "first" | "last" | number;
 
 /**
  * Creates a new BaseComponent based on the HTMLTypeElement
@@ -78,11 +81,11 @@ export function BaseComponentFactory<TBase extends Constructor<HTMLElement>>(HTM
          * access to this element without conflicting ids.
          *
          * @readonly
-         * @type {IndexStructure<string, HTMLElement>}
+         * @type {IndexStructure<string, Element>}
          * @memberof BaseComponent
          */
-        public get refs(): IndexStructure<string, HTMLElement> {
-            const refs: IndexStructure<string, HTMLElement> = {};
+        public get refs() {
+            const refs: IndexStructure<string, Element> = {};
             if (!this.shadowRoot) return refs;
             const refElements = Array.from(this.shadowRoot.querySelectorAll("[ref]"));
             for (const refElement of refElements) {
@@ -377,6 +380,52 @@ export function BaseComponentFactory<TBase extends Constructor<HTMLElement>>(HTM
             super.removeAttribute(qualifiedName);
             (<any>this)[qualifiedName] = undefined;
         }
+
+        /**
+         * Sets the style of this component if the first parameter is a css
+         * attribute name. Otherwise the style of the given element is set if
+         * the first parameter is an Element.
+         *
+         * @template T
+         * @param {T} key
+         * @param {Properties[T]} value
+         * @memberof BaseComponent
+         */
+        public setStyle<T extends keyof OneOf<Properties>>(key: T, value: Properties[T]): void;
+        public setStyle<T extends keyof OneOf<Properties>>(element: HTMLElement, key: T, value: Properties[T]): void;
+        public setStyle(elementOrName: HTMLElement | string, nameOrValue: string, value?: string): void {
+            let valueToAssign = null;
+            if (!(elementOrName instanceof HTMLElement)) {
+                valueToAssign = nameOrValue;
+                nameOrValue = elementOrName;
+                elementOrName = this;
+            } else if (value) valueToAssign = value;
+            elementOrName.style.setProperty(nameOrValue, valueToAssign);
+        }
+
+        /**
+         * Removes the given style attribute from this component if the first
+         * parameter is a string and removes the given style attribute of the
+         * given element if the first parameter is a HTMLElement.
+         *
+         * @template T
+         * @param {T} name
+         * @memberof BaseComponent
+         */
+        public removeStyle<T extends keyof OneOf<Properties>>(name: T): void;
+        public removeStyle<T extends keyof OneOf<Properties>>(element: HTMLElement, name: T): void;
+        public removeStyle(elementOrName: HTMLElement | string, name?: string): void {
+            let styleToRemove = null;
+            if (!(elementOrName instanceof HTMLElement)) {
+                styleToRemove = elementOrName;
+                elementOrName = this;
+            } else if (name) styleToRemove = name;
+            if (styleToRemove) elementOrName.style.removeProperty(styleToRemove);
+        }
+
+        // public place(refNode: Element, newNode: Element | Position, position: Position): void {
+
+        // }
 
         /**
          * Converts the current instance of this to a json with properties only

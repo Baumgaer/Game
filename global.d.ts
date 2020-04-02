@@ -17,6 +17,10 @@ declare type DefNonFuncPropNames<T> = Exclude<NonFuncPropNames<T>, undefined>
 // The definitely instance type of any object type
 declare type DefInstanceType<T extends Object> = T extends Constructor ? InstanceType<T> : T;
 
+// require only one of the keys
+type EachOfTmp<T> = { [K in keyof T]: { _: { [X in K]: T[K] }; } };
+declare type OneOf<T> = EachOfTmp<T>[keyof T]["_"] & Partial<T>;
+
 // Collects all properties of a class except native functions and readonly properties and wraps them in an object with their types
 declare type ConstParams<T> = Partial<
     Pick<T, T extends HTMLElement ?
@@ -47,7 +51,7 @@ type wsVerifyClientDone = (
 type walkEventFunc = (fileOrDir: string, status: import('walk').WalkStats) => void;
 
 // A general type for JSON
-declare interface IndexStructure<> {
+declare interface IndexStructure {
     [member: string]: any
 }
 declare interface IndexStructure<K = string, V = any> {
@@ -85,3 +89,5 @@ namespace NodeJS {
         localStorage: import('node-localstorage').LocalStorage
     }
 }
+
+declare interface CSSStyleDeclaration extends import('csstype').Properties { }

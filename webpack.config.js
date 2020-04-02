@@ -135,6 +135,15 @@ module.exports = (_env, options) => {
                         }
                     },
                     {
+                        loader: 'babel-loader',
+                        options: {
+                            plugins: [
+                                "@babel/plugin-proposal-nullish-coalescing-operator",
+                                "@babel/plugin-proposal-optional-chaining"
+                            ]
+                        }
+                    },
+                    {
                         loader: 'ts-loader',
                         options: {
                             happyPackMode: true, // IMPORTANT! use happyPackMode mode to speed-up compilation and reduce errors reported to webpack
