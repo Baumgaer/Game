@@ -423,9 +423,52 @@ export function BaseComponentFactory<TBase extends Constructor<HTMLElement>>(HTM
             if (styleToRemove) elementOrName.style.removeProperty(styleToRemove);
         }
 
-        // public place(refNode: Element, newNode: Element | Position, position: Position): void {
-
-        // }
+        /**
+         * Places an element at a specific position relative to a reference
+         * node or replaces the reference node. If only two arguments are given,
+         * this component will be the new node and the given node as first
+         * element is the reference node.
+         *
+         * @param {HTMLElement} newNode
+         * @param {Position} position
+         * @memberof BaseComponent
+         */
+        public place(newNode: HTMLElement, position: Position): void;
+        public place(refNode: HTMLElement, newNode: HTMLElement | Position, position?: Position): void {
+            let thisRefNode: Element = refNode;
+            let thisNewNode: Element = newNode as HTMLElement;
+            let thisPosition = position;
+            if (!(newNode instanceof Element)) {
+                thisPosition = newNode;
+                thisRefNode = refNode;
+                thisNewNode = this;
+            }
+            if (!thisPosition) thisPosition = "last";
+            if (typeof thisPosition === "number") {
+                const children = Array.from(thisRefNode.children);
+                if (children.length <= thisPosition) {
+                    thisPosition = "last";
+                } else if (thisPosition <= 0) {
+                    thisPosition = "first";
+                } else {
+                    thisRefNode = children[thisPosition + 1];
+                    thisPosition = "before";
+                }
+            }
+            if (thisPosition === "after") {
+                if (thisRefNode.nextElementSibling) {
+                    thisRefNode = thisRefNode.nextElementSibling;
+                    thisPosition = "before";
+                } else {
+                    thisRefNode = thisRefNode.parentElement!;
+                    position = "last";
+                }
+            }
+            if (thisPosition === "first") thisRefNode.prepend(thisNewNode);
+            if (thisPosition === "last") thisRefNode.appendChild(thisNewNode);
+            if (thisPosition === "replace") thisRefNode.replaceWith(thisNewNode);
+            if (thisPosition === "before") thisRefNode.parentElement!.insertBefore(thisNewNode, thisRefNode);
+        }
 
         /**
          * Converts the current instance of this to a json with properties only

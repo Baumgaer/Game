@@ -75,7 +75,7 @@ module.exports = (_env, options) => {
                 })
             ]
         },
-        devtool: options.mode === "development" ? 'inline-source-map' : '',
+        devtool: options.mode === "development" ? 'cheap-eval-source-map' : '',
         optimization: {
             noEmitOnErrors: true,
             removeAvailableModules: options.mode !== "development",
@@ -99,7 +99,7 @@ module.exports = (_env, options) => {
                     sourceMap: false
                 }
             })],
-            splitChunks: {
+            splitChunks: options.mode !== "development" ? {
                 cacheGroups: {
                     vendor: {
                         test: /[\\/]node_modules[\\/]/,
@@ -117,7 +117,7 @@ module.exports = (_env, options) => {
                         chunks: "initial"
                     }
                 }
-            }
+            } : false
         },
         plugins: [
             new ForkTsCheckerWebpackPlugin({
@@ -166,7 +166,8 @@ module.exports = (_env, options) => {
                             plugins: [
                                 "@babel/plugin-proposal-nullish-coalescing-operator",
                                 "@babel/plugin-proposal-optional-chaining"
-                            ]
+                            ],
+                            sourceMap: 'inline'
                         }
                     },
                     {
@@ -197,7 +198,10 @@ module.exports = (_env, options) => {
                         }
                     },
                     {
-                        loader: 'nunjucks-loader'
+                        loader: 'nunjucks-loader',
+                        options: {
+                            sourceMap: 'inline'
+                        }
                     }
                 ]
             }]

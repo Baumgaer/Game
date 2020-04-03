@@ -94,6 +94,7 @@
         "nyc": "^15.0.0",
         "redis": "^3.0.2",
         "rxjs": "^6.5.4",
+        "source-map-loader": "^0.2.4",
         "source-map-support": "^0.5.16",
         "terser-webpack-plugin": "^2.3.5",
         "thread-loader": "^2.1.3",
