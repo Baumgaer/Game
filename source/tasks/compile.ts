@@ -1,9 +1,11 @@
 import { render } from 'less';
 import { path as rootPath } from 'app-root-path';
-import { resolve as resolvePath } from 'path';
+import { resolve as resolvePath, dirname, basename } from 'path';
 import { readFileSync, writeFileSync } from 'graceful-fs';
 // @ts-ignore
 import lessPluginCleanCSS from 'less-plugin-clean-css';
+import { sync as mkDirSync } from 'mkdirp';
+import { walk, getCorrespondingFile } from "./../utils/projectStructure";
 
 /**
  * Compiles several formats in source folder to corresponding compilation in out folder
@@ -28,16 +30,7 @@ module.exports = (grunt: IGrunt): void => {
 
     grunt.registerMultiTask('compile', 'Compiles Less', function task() {
         const done = this.async();
-
-        const promises: Array<Promise<any>> = [];
-        for (const _file of this.filesSrc) {
-            if (grunt.task.current.data.program === 'less') {
-                promises.push(compileLess());
-            }
-        }
-        Promise.all(promises).then(() => {
-            done(`Finished!`);
-        });
+        compileLess().then(() => { done(`Finished!`); });
     });
 };
 
@@ -48,20 +41,26 @@ module.exports = (grunt: IGrunt): void => {
  */
 function compileLess(): Promise<any> {
     return new Promise<any>((resolve: Function) => {
-        const sourcePath = resolvePath(rootPath, 'source', 'app', 'client', 'less', 'index.less');
-        render(readFileSync(sourcePath).toString(), {
-            filename: sourcePath,
-            plugins: [
-                new lessPluginCleanCSS({
-                    advanced: true
-                })
-            ]
-        }).then((output) => {
-            const outPath = resolvePath(rootPath, 'out', 'app', 'client', 'css', 'bundle.css');
-            writeFileSync(outPath, output.css, {
-                encoding: 'utf-8'
+        const sourcePath = resolvePath(rootPath, 'source', 'app', 'client', 'less');
+        const promises: Promise<Less.RenderOutput | void>[] = [];
+        walk(sourcePath, (filePath) => {
+            if (!(filePath === resolvePath(sourcePath, "global.less") || filePath.startsWith(resolvePath(sourcePath, "themes")))) return;
+            render(readFileSync(filePath).toString(), {
+                filename: filePath,
+                plugins: [
+                    new lessPluginCleanCSS({
+                        advanced: true
+                    })
+                ]
+            }).then((output) => {
+                const outPath = getCorrespondingFile(filePath);
+                mkDirSync(dirname(outPath));
+                writeFileSync(outPath, output.css, {
+                    encoding: 'utf-8'
+                });
+                resolve();
             });
-            resolve();
         });
+        Promise.all(promises).then(() => resolve());
     });
 }

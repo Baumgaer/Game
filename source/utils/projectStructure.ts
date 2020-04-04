@@ -15,15 +15,27 @@ export function getCorrespondingFile(filePath: string): string {
     const outPath = resolve(rootPath, 'out');
     let correspondingFile = null;
     if (isSourceFile(filePath)) {
-        correspondingFile = filePath.replace(sourcePath, outPath).replace('.ts', '.js');
+        correspondingFile = filePath
+            .replace(sourcePath, outPath)
+            .replace('.ts', '.js')
+            .replace('.less', '.css');
+
         if (isOnClientSide(filePath)) {
-            correspondingFile = correspondingFile.replace(`${sep}ts${sep}`, `${sep}js${sep}`);
+            correspondingFile = correspondingFile
+                .replace(`${sep}ts${sep}`, `${sep}js${sep}`)
+                .replace(`${sep}less${sep}`, `${sep}css${sep}`);
         }
         return correspondingFile;
     }
-    correspondingFile = filePath.replace(outPath, sourcePath).replace('.js', '.ts');
+    correspondingFile = filePath
+        .replace(outPath, sourcePath)
+        .replace('.js', '.ts')
+        .replace('.css', '.less');
+
     if (isOnClientSide(filePath)) {
-        correspondingFile = correspondingFile.replace(`${sep}js${sep}`, `${sep}ts${sep}`);
+        correspondingFile = correspondingFile
+            .replace(`${sep}js${sep}`, `${sep}ts${sep}`)
+            .replace(`${sep}css${sep}`, `${sep}less${sep}`);
     }
     return correspondingFile;
 }
