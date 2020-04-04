@@ -65,7 +65,7 @@ module.exports = (_env, options) => {
             extensions: [".ts", ".tsx", ".js", ".njk", ".less"],
             alias: {
                 //less path resolve. "~" is replaced by less-loader
-                "static": path.resolve(arp.path, "out", "app", "client"),
+                "static": path.resolve(arp.path, "source", "app", "client"),
                 //views path resolve
                 "~static/views": path.resolve(arp.path, "out", "app", "client", "views"),
                 "~bdo/views": path.resolve(arp.path, "out", "app", "views"),

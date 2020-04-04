@@ -1,6 +1,6 @@
 import { render } from 'less';
 import { path as rootPath } from 'app-root-path';
-import { resolve as resolvePath, dirname, basename } from 'path';
+import { resolve as resolvePath, dirname } from 'path';
 import { readFileSync, writeFileSync } from 'graceful-fs';
 // @ts-ignore
 import lessPluginCleanCSS from 'less-plugin-clean-css';
