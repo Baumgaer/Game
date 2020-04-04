@@ -108,16 +108,24 @@ module.exports = (_env, options) => {
                     vendor: {
                         test: /[\\/]node_modules[\\/]/,
                         name: "vendor",
-                        chunks: "all"
+                        chunks: "all",
+                        reuseExistingChunk: true
                     },
                     templates: {
-                        test: /[\\/]views[\\/]/,
+                        test: /\.njk/,
                         name: "templates",
+                        enforce: true,
                         chunks: "initial"
                     },
-                    components: {
+                    lib: {
                         test: /[\\/]lib[\\/]/,
                         name: "lib",
+                        chunks: "initial"
+                    },
+                    styles: {
+                        test: /\.less/,
+                        name: "styles",
+                        enforce: true,
                         chunks: "initial"
                     }
                 }
@@ -209,11 +217,15 @@ module.exports = (_env, options) => {
                 }, {
                     loader: 'to-string-loader'
                 }, {
-                    loader: 'css-loader'
+                    loader: 'css-loader',
+                    options: {
+                        url: false
+                    }
                 }, {
                     loader: 'less-loader',
                     options: {
                         lessOptions: {
+                            url: false,
                             plugins: [
                                 new lessPluginCleanCSS({ advanced: true })
                             ]

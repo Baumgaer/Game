@@ -426,13 +426,71 @@ export function BaseComponentFactory<TBase extends Constructor<HTMLElement>>(HTM
          */
         public removeStyle<T extends keyof OneOf<Properties>>(name: T): void;
         public removeStyle<T extends keyof OneOf<Properties>>(element: HTMLElement, name: T): void;
-        public removeStyle(elementOrName: HTMLElement | string, name?: string): void {
+        public removeStyle(elementOrName: HTMLElement | string, name?: keyof OneOf<Properties>): void {
             let styleToRemove = null;
             if (!(elementOrName instanceof HTMLElement)) {
                 styleToRemove = elementOrName;
                 elementOrName = this;
             } else if (name) styleToRemove = name;
-            if (styleToRemove) elementOrName.style.removeProperty(styleToRemove);
+            if (!styleToRemove) throw new Error("Property name must be provided!");
+            elementOrName.style.removeProperty(styleToRemove);
+        }
+
+        /**
+         * returns the current value of the given style property name of a
+         * reference node. If only one parameter is given, this component will
+         * be the reference node.
+         *
+         * @template T
+         * @param {T} name
+         * @returns {Properties[T]}
+         * @memberof BaseComponent
+         */
+        public getStyle<T extends keyof OneOf<Properties>>(name: T): Properties[T];
+        public getStyle<T extends keyof OneOf<Properties>>(elementOrName: HTMLElement | T, name?: T): Properties[T] {
+            let propToGet = null;
+            if (!(elementOrName instanceof HTMLElement)) {
+                propToGet = elementOrName;
+                elementOrName = this;
+            } else if (name) propToGet = name;
+            if (!propToGet) throw new Error("Property name must be provided!");
+            return elementOrName.style.getPropertyValue(propToGet) as Properties[T];
+        }
+
+        /**
+         * Adds a CSS class name to the given element. If no element is given,
+         * this component will be the target element.
+         *
+         * @param {string} name
+         * @memberof BaseComponent
+         */
+        public addClass(name: string): void;
+        public addClass(elementOrName: HTMLElement | string, name?: string): void {
+            let classToAdd = null;
+            if (!(elementOrName instanceof HTMLElement)) {
+                classToAdd = elementOrName;
+                elementOrName = this;
+            } else if (name) classToAdd = name;
+            if (!classToAdd) throw new Error("Class name must be provided!");
+            elementOrName.classList.add(classToAdd);
+        }
+
+        /**
+         * Removes a CSS class name from the given element. If no element is
+         * given, this component will be the target element.
+         *
+         * @param {string} name
+         * @memberof BaseComponent
+         */
+        public removeClass(name: string): void;
+        public removeClass(elementOrName: HTMLElement | string, name?: string): void {
+            let classToRemove = null;
+            if (!(elementOrName instanceof HTMLElement)) {
+                classToRemove = elementOrName;
+                elementOrName = this;
+            } else if (name) classToRemove = name;
+            if (!classToRemove) throw new Error("Class name must be provided!");
+            elementOrName.classList.remove(classToRemove);
         }
 
         /**
