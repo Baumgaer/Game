@@ -11,6 +11,7 @@ const TsconfigPathsPlugin = require('tsconfig-paths-webpack-plugin').TsconfigPat
 const FilterWarningsPlugin = require('webpack-filter-warnings-plugin');
 const CopyPlugin = require('copy-webpack-plugin');
 const TerserPlugin = require('terser-webpack-plugin');
+const lessPluginCleanCSS = require('less-plugin-clean-css');
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 
 const projectStructureUtils = require('./out/utils/projectStructure');
@@ -61,7 +62,7 @@ module.exports = (_env, options) => {
             pathinfo: options.mode !== "development"
         },
         resolve: {
-            extensions: [".ts", ".tsx", ".js", ".njk"],
+            extensions: [".ts", ".tsx", ".js", ".njk", ".less"],
             alias: {
                 //less path resolve. "~" is replaced by less-loader
                 "static": path.resolve(arp.path, "out", "app", "client"),
@@ -147,66 +148,78 @@ module.exports = (_env, options) => {
         module: {
             rules: [{
                 test: /\.tsx?$/,
-                use: [
-                    {
-                        loader: 'cache-loader',
-                        options: {
-                            cacheDirectory: path.resolve(arp.path, "var", "buildcache", "frontend", "typescript")
-                        }
-                    },
-                    {
-                        loader: 'thread-loader',
-                        options: {
-                            // there should be 1 cpu for the fork-ts-checker-webpack-plugin
-                            workers: (os.cpus().length - 1),
-                            poolRespawn: false,
-                            poolTimeout: options.watch ? Infinity : 1000 // set this to Infinity in watch mode - see https://github.com/webpack-contrib/thread-loader
-                        }
-                    },
-                    {
-                        loader: 'babel-loader',
-                        options: {
-                            plugins: [
-                                "@babel/plugin-proposal-nullish-coalescing-operator",
-                                "@babel/plugin-proposal-optional-chaining"
-                            ],
-                            sourceMap: 'inline'
-                        }
-                    },
-                    {
-                        loader: 'ts-loader',
-                        options: {
-                            happyPackMode: true, // IMPORTANT! use happyPackMode mode to speed-up compilation and reduce errors reported to webpack
-                            transpileOnly: true,
-                            experimentalWatchApi: options.watch === true
-                        }
+                use: [{
+                    loader: 'cache-loader',
+                    options: {
+                        cacheDirectory: path.resolve(arp.path, "var", "buildcache", "frontend", "typescript")
                     }
-                ]
+                }, {
+                    loader: 'thread-loader',
+                    options: {
+                        // there should be 1 cpu for the fork-ts-checker-webpack-plugin
+                        workers: (os.cpus().length - 1),
+                        poolRespawn: false,
+                        poolTimeout: options.watch ? Infinity : 1000 // set this to Infinity in watch mode - see https://github.com/webpack-contrib/thread-loader
+                    }
+                }, {
+                    loader: 'babel-loader',
+                    options: {
+                        plugins: [
+                            "@babel/plugin-proposal-nullish-coalescing-operator",
+                            "@babel/plugin-proposal-optional-chaining"
+                        ],
+                        sourceMap: 'inline'
+                    }
+                }, {
+                    loader: 'ts-loader',
+                    options: {
+                        happyPackMode: true, // IMPORTANT! use happyPackMode mode to speed-up compilation and reduce errors reported to webpack
+                        transpileOnly: true,
+                        experimentalWatchApi: options.watch === true
+                    }
+                }]
             }, {
                 test: /\.(njk|nunjucks)$/,
-                use: [
-                    {
-                        loader: 'cache-loader',
-                        options: {
-                            cacheDirectory: path.resolve(arp.path, "var", "buildcache", "frontend", "templates")
-                        }
-                    },
-                    {
-                        loader: 'thread-loader',
-                        options: {
-                            // there should be 1 cpu for the fork-ts-checker-webpack-plugin
-                            workers: Math.floor((os.cpus().length - 1) / 2),
-                            poolRespawn: false,
-                            poolTimeout: options.watch ? Infinity : 1000 // set this to Infinity in watch mode - see https://github.com/webpack-contrib/thread-loader
-                        }
-                    },
-                    {
-                        loader: 'nunjucks-loader',
-                        options: {
-                            sourceMap: 'inline'
+                use: [{
+                    loader: 'cache-loader',
+                    options: {
+                        cacheDirectory: path.resolve(arp.path, "var", "buildcache", "frontend", "templates")
+                    }
+                }, {
+                    loader: 'thread-loader',
+                    options: {
+                        // there should be 1 cpu for the fork-ts-checker-webpack-plugin
+                        workers: Math.floor((os.cpus().length - 1) / 2),
+                        poolRespawn: false,
+                        poolTimeout: options.watch ? Infinity : 1000 // set this to Infinity in watch mode - see https://github.com/webpack-contrib/thread-loader
+                    }
+                }, {
+                    loader: 'nunjucks-loader',
+                    options: {
+                        sourceMap: 'inline'
+                    }
+                }]
+            }, {
+                test: /\.less$/,
+                use: [{
+                    loader: 'cache-loader',
+                    options: {
+                        cacheDirectory: path.resolve(arp.path, "var", "buildcache", "frontend", "styles")
+                    }
+                }, {
+                    loader: 'to-string-loader'
+                }, {
+                    loader: 'css-loader'
+                }, {
+                    loader: 'less-loader',
+                    options: {
+                        lessOptions: {
+                            plugins: [
+                                new lessPluginCleanCSS({ advanced: true })
+                            ]
                         }
                     }
-                ]
+                }]
             }]
         }
     };

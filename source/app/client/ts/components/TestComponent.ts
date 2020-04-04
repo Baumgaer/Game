@@ -2,6 +2,7 @@ import { BaseComponentFactory } from '~client/lib/BaseComponent';
 import { baseConstructor } from '~bdo/utils/decorators';
 import { property } from '~bdo/utils/decorators';
 import template from "~static/views/testComponent.njk";
+import style from "~static/less/components/TestComponent.less";
 
 /**
  * Test
@@ -20,6 +21,14 @@ export default class TestComponent extends BaseComponentFactory(HTMLElement) {
      * @memberof TestComponent
      */
     @property() protected templateString = template;
+
+    /**
+     * @inheritdoc
+     *
+     * @protected
+     * @memberof TestComponent
+     */
+    @property() protected styleString = style;
 
     /**
      * Just a test for the template rendering

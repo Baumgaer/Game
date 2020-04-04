@@ -123,14 +123,26 @@ export function BaseComponentFactory<TBase extends Constructor<HTMLElement>>(HTM
         @property() public readonly className: string = Object.getPrototypeOf(this.constructor).name;
 
         /**
-         * Defines the template of the of the component.
+         * Defines the template of the component.
          * Must have exactly one root node and can be a string or a Template
-         * for e.g. require("./path/to/template.njk")
+         * for e.g. require("./path/to/template.njk") or module syntax.
          *
          * @type {(string | Template)}
          * @memberof BaseComponent
          */
         @property({ disableTypeGuard: true }) protected readonly templateString: string | Template = '<div><slot></slot></div>';
+
+        /**
+         * Defines the style of the component.
+         * Must not include a style tag, only the rules and can be a string
+         * written here or in a file included by require("./path/to/style.less")
+         * or module syntax.
+         *
+         * @protected
+         * @type {string}
+         * @memberof BaseComponent
+         */
+        @property({ disableTypeGuard: true }) protected readonly styleString: string = '';
 
         /**
          * Returns the parent component (not normal HTMLElement)
@@ -506,8 +518,9 @@ export function BaseComponentFactory<TBase extends Constructor<HTMLElement>>(HTM
                 if (isObject(this.templateString)) stringToParse = (<Template>this.templateString).render(this.toJSON());
                 if (stringToParse) {
                     const shadowRoot = this.attachShadow({ mode: 'open' });
-                    const doc = new DOMParser().parseFromString(stringToParse, 'text/html');
-                    shadowRoot.appendChild(<ChildNode>doc.body.firstChild);
+                    const doc = new DOMParser().parseFromString(`<style>${this.styleString}</style>${stringToParse}`, 'text/html');
+                    shadowRoot.appendChild(doc.head.firstChild!);
+                    shadowRoot.appendChild(doc.body.firstChild!);
                 }
             }
         }
