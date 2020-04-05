@@ -348,6 +348,7 @@ export function BaseComponentFactory<TBase extends Constructor<HTMLElement>>(HTM
          * @memberof BaseComponent
          */
         public getStyle<T extends keyof OneOf<Properties>>(name: T): Properties[T];
+        public getStyle<T extends keyof OneOf<Properties>>(element: HTMLElement, name: T): Properties[T];
         public getStyle<T extends keyof OneOf<Properties>>(elementOrName: HTMLElement | T, name?: T): Properties[T] {
             let propToGet = null;
             if (!(elementOrName instanceof HTMLElement)) {
@@ -366,6 +367,7 @@ export function BaseComponentFactory<TBase extends Constructor<HTMLElement>>(HTM
          * @memberof BaseComponent
          */
         public addClass(name: string): void;
+        public addClass(element: HTMLElement, name: string): void;
         public addClass(elementOrName: HTMLElement | string, name?: string): void {
             let classToAdd = null;
             if (!(elementOrName instanceof HTMLElement)) {
@@ -384,6 +386,7 @@ export function BaseComponentFactory<TBase extends Constructor<HTMLElement>>(HTM
          * @memberof BaseComponent
          */
         public removeClass(name: string): void;
+        public removeClass(element: HTMLElement, name: string): void;
         public removeClass(elementOrName: HTMLElement | string, name?: string): void {
             let classToRemove = null;
             if (!(elementOrName instanceof HTMLElement)) {
@@ -405,6 +408,7 @@ export function BaseComponentFactory<TBase extends Constructor<HTMLElement>>(HTM
          * @memberof BaseComponent
          */
         public place(newNode: HTMLElement, position: Position): void;
+        public place(refNode: HTMLElement, newNode: HTMLElement, position: Position): void;
         public place(refNode: HTMLElement, newNode: HTMLElement | Position, position?: Position): void {
             let thisRefNode: Element = refNode;
             let thisNewNode: Element = newNode as HTMLElement;

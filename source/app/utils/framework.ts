@@ -12,6 +12,7 @@ import { BDOModel } from "~bdo/lib/BDOModel";
 import type { ClientModel } from "~client/lib/ClientModel";
 import type { ServerModel } from "~server/lib/ServerModel";
 import type { BaseComponentFactory } from "~client/lib/BaseComponent";
+import type { BaseControllerFactory } from "~client/lib/BaseController";
 
 import { ReturnTypeFunc } from "type-graphql/dist/decorators/types";
 
@@ -237,6 +238,20 @@ export function isServerModel(value: Object): value is typeof ServerModel {
 }
 
 /**
+ * Checks if the constructor (not an instance!) is a controller for the frontend.
+ * This is useful to get type security in BDO section when an any type variable
+ * must be checked.
+ *
+ * @export
+ * @param {Object} value
+ * @returns {value is ReturnType<typeof BaseControllerFactory>}
+ */
+export function isController(value: Object): value is ReturnType<typeof BaseControllerFactory> {
+    if (isBrowser() && "isBaseController" in value && !("isBaseComponent" in value)) return true;
+    return false;
+}
+
+/**
  * Checks if the constructor (not an instance!) is a Component for the frontend.
  * This is useful to get type security in BDO section when an any type variable
  * must be checked.
@@ -246,7 +261,7 @@ export function isServerModel(value: Object): value is typeof ServerModel {
  * @returns {value is ReturnType<typeof BaseComponentFactory>}
  */
 export function isComponent<T = ReturnType<typeof BaseComponentFactory>>(value: Object): value is T {
-    if (isBrowser() && "isBaseComponent" in value) return true;
+    if (isBrowser() && "isBaseComponent" in value && "isBaseController" in value) return true;
     return false;
 }
 

@@ -177,6 +177,11 @@ export function baseConstructorFactory<T extends Constructor<IBaseConstructorCto
             Object.assign(this, defaultSettings);
             defineMetadata(this, "constructionComplete", true);
             if (isComponent(ctor) && isFunction(this.renderTemplate)) this.renderTemplate();
+            if (isComponent(ctor)) {
+                if (!ctor.extends) {
+                    Object.seal(this);
+                } else setTimeout(() => Object.seal(this));
+            }
             if (isFunction(this.constructedCallback)) this.constructedCallback();
         }
     }
