@@ -51,7 +51,7 @@ interface IMDKeys<T extends object = any> {
      * @type {Map<string, Array<Binding<T, DefNonFuncPropNames<T>>>>}
      * @memberof IMDKeys
      */
-    bindings?: Map<DefNonFuncPropNames<T>, Array<Binding<T, DefNonFuncPropNames<T>>>>;
+    bindings?: Map<DefNonFuncPropNames<T>, Binding<T, DefNonFuncPropNames<T>>[]>;
 
     /**
      * Stores the property descriptor created by the Binding class

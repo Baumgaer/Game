@@ -104,6 +104,7 @@ export class Binding<
     private mode: writeRights;
 
     constructor(object: T, property: K, mode: writeRights = "ReadWrite") {
+        if ((<any>object).bindings.get(property)) throw new Error(`property ${property} of object ${(<any>object).className} is already bound`);
         this.object = object;
         this.property = property;
         this.mode = mode;
