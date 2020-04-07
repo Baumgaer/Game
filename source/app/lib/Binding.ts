@@ -104,7 +104,6 @@ export class Binding<
     private mode: writeRights;
 
     constructor(object: T, property: K, mode: writeRights = "ReadWrite") {
-        if ((<any>object).bindings.get(property)) throw new Error(`property ${property} of object ${(<any>object).className} is already bound`);
         this.object = object;
         this.property = property;
         this.mode = mode;
@@ -225,7 +224,9 @@ export class Binding<
             },
             set: function bindingSet(newVal?: T[K] | Binding<T, K> | Modification<any>) {
                 if (that.mode === "ReadOnly" && this === that.initiator) return;
-                setter(that.object, that.property, newVal, "field");
+                if (newVal instanceof Binding) {
+                    setter(that.initiator, that.initiatorProperty, <Binding>newVal);
+                } else setter(that.object, that.property, newVal, "field");
             },
             configurable: true,
             enumerable: true
