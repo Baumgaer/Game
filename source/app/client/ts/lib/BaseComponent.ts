@@ -260,7 +260,7 @@ export function BaseComponentFactory<TBase extends Constructor<HTMLElement>>(HTM
 
         /**
          * @inheritdoc SetValue is used by proxyHandler to avoid setting a
-         * new value is an object has been changed.
+         * new value if an object has been changed.
          *
          * @param {string} qualifiedName
          * @param {string} value
@@ -407,9 +407,9 @@ export function BaseComponentFactory<TBase extends Constructor<HTMLElement>>(HTM
          * @param {Position} position
          * @memberof BaseComponent
          */
-        public place(newNode: HTMLElement, position: Position): void;
-        public place(refNode: HTMLElement, newNode: HTMLElement, position: Position): void;
-        public place(refNode: HTMLElement, newNode: HTMLElement | Position, position?: Position): void {
+        public placeAt(newNode: HTMLElement, position: Position): void;
+        public placeAt(refNode: HTMLElement, newNode: HTMLElement, position: Position): void;
+        public placeAt(refNode: HTMLElement, newNode: HTMLElement | Position, position?: Position): void {
             let thisRefNode: Element = refNode;
             let thisNewNode: Element = newNode as HTMLElement;
             let thisPosition = position;

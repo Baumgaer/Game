@@ -3,7 +3,7 @@ import { getNamespacedStorage, setUpdateNamespacedStorage, deleteFromNamespacedS
 import { getMetadata, getWildcardMetadata } from "~bdo/utils/metadata";
 import { attribute, property, watched } from "~bdo/utils/decorators";
 import { ControllerRegistry } from "~client/lib/ControllerRegistry";
-import { Binding, writeRights } from "~bdo/lib/Binding";
+import { Binding } from "~bdo/lib/Binding";
 
 import type { Property } from "~bdo/lib/Property";
 
@@ -152,19 +152,6 @@ export function BaseControllerFactory<TBase extends Constructor<Object>>(extensi
          */
         public deleteFromNamespacedStorage(key: string, nsProp?: string) {
             return deleteFromNamespacedStorage(this, key, nsProp);
-        }
-
-        /**
-         * gets the property of this controller / component and converts it to a watched one.
-         * Only useful in combination with the watched decorator.
-         *
-         * @param {string} propName Name of the property which should be watched
-         * @param {writeRights} mode one string of the writeRights
-         * @returns {*} The identity of the property as none primitive
-         * @memberof BDOModel
-         */
-        public bind<K extends DefNonFuncPropNames<this>, M extends writeRights = "ReadWrite">(propName: K, mode?: M) {
-            return new Binding(this, propName, mode) as unknown as (M extends "WriteOnly" ? undefined : this[K]);
         }
 
         /**

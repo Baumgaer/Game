@@ -224,6 +224,10 @@ export class Binding<
             },
             set: function bindingSet(newVal?: T[K] | Binding<T, K> | Modification<any>) {
                 if (that.mode === "ReadOnly" && this === that.initiator) return;
+                // Use the initiators setter when a new binding is coming in to
+                // initiate the installation of the new binding.
+                // NOTE: A binding can only income on the initiator! The Object
+                //       gives the binding!
                 if (newVal instanceof Binding) {
                     setter(that.initiator, that.initiatorProperty, <Binding>newVal);
                 } else setter(that.object, that.property, newVal, "field");
@@ -238,7 +242,8 @@ export class Binding<
     }
 
     /**
-     * restores the original property descriptor of object and sets the current value to the property
+     * restores the original property descriptor of object and sets the current
+     * value to the property.
      *
      * @private
      * @param {IndexStructure} object
@@ -256,7 +261,8 @@ export class Binding<
     }
 
     /**
-     * Determines the original property descriptor which is not named with bindingGet or bindingSet
+     * Determines the original property descriptor which is not named with
+     * bindingGet or bindingSet.
      *
      * @private
      * @param {Object} object
