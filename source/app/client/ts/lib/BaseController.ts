@@ -6,7 +6,9 @@ import { ControllerRegistry } from "~client/lib/ControllerRegistry";
 import { Binding } from "~bdo/lib/Binding";
 
 import type { Property } from "~bdo/lib/Property";
+import type { BaseComponentFactory } from "~client/lib/BaseComponent";
 
+interface IOwnerType extends InstanceType<ReturnType<typeof BaseComponentFactory>> { }
 /**
  * Creates a new BaseController based on extension.
  * NOTE: Every **Component** is a also controller.
@@ -58,6 +60,17 @@ export function BaseControllerFactory<TBase extends Constructor<Object>>(extensi
          * @memberof BaseController
          */
         @watched() @attribute() public id: string = '';
+
+        /**
+         * if this is a controller, the owner will be the component which
+         * initializes this controller. If this is a component it will be
+         * undefined.
+         *
+         * @protected
+         * @type {IOwnerType | undefined}
+         * @memberof BaseController
+         */
+        protected owner!: this extends HTMLElement ? undefined : IOwnerType;
 
         /**
          * Manages all controllers (and components) to be equal in id and provides an overview

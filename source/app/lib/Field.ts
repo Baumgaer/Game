@@ -55,7 +55,7 @@ export class Field<T extends object = any, K extends DefNonFuncPropNames<T> = an
      * @type {Array<watchedAttrProp<T, K>>}
      * @memberof Field
      */
-    private fields: Array<watchedAttrProp<T, K>> = [];
+    private fields: watchedAttrProp<T, K>[] = [];
 
     constructor(object: T, property: K) {
         this.object = object;
