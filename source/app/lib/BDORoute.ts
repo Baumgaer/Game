@@ -47,7 +47,7 @@ export abstract class BDORoute {
      * @abstract
      * @memberof BDORoute
      */
-    public abstract get router(): IndexStructure<string, (params: IndexStructure) => void> | Router;
+    public abstract get router(): IndexStructure<(params: IndexStructure) => void> | Router;
 
     /**
      * The name of the template file in views or a string which is already template.

@@ -51,11 +51,8 @@ type wsVerifyClientDone = (
 type walkEventFunc = (fileOrDir: string, status: import('walk').WalkStats) => void;
 
 // A general type for JSON
-declare interface IndexStructure {
-    [member: string]: any
-}
-declare interface IndexStructure<K = string, V = any> {
-    [member: K]: V
+declare interface IndexStructure<V = any> {
+    [member: string]: V
 }
 
 // General types

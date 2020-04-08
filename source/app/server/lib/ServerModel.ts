@@ -77,10 +77,10 @@ export class ServerModel extends BDOModel {
     /**
      * @inheritdoc
      *
-     * @returns {Promise<IndexStructure<string, any>>}
+     * @returns {Promise<IndexStructure>}
      * @memberof ServerModel
      */
-    public getUnsavedChanges(): Promise<IndexStructure<string, any>> {
+    public getUnsavedChanges(): Promise<IndexStructure> {
         throw new Error("Method not implemented.");
     }
 

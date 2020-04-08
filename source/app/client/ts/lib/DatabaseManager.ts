@@ -63,15 +63,15 @@ export class DatabaseManager<D extends string, C extends string, G extends strin
         return this;
     }
 
-    public get(id: string): Promise<IndexStructure<string, any>> {
+    public get(id: string): Promise<IndexStructure> {
         return this.getDatabase().getItem(id);
     }
 
-    public insert(id: string, value: IndexStructure<string, any>) {
+    public insert(id: string, value: IndexStructure) {
         return this.getDatabase().setItem(id, value);
     }
 
-    public update(id: string, values: IndexStructure<string, any>) {
+    public update(id: string, values: IndexStructure) {
         return new Promise(async (resolve, reject) => {
             try {
                 const result = await this.get(id) || {};
@@ -104,7 +104,7 @@ export class DatabaseManager<D extends string, C extends string, G extends strin
         return this.getDatabase().keys();
     }
 
-    public iterate(iterator: (value: IndexStructure<string, any>, id: string, iterationNumber: number) => unknown) {
+    public iterate(iterator: (value: IndexStructure, id: string, iterationNumber: number) => unknown) {
         return this.getDatabase().iterate(iterator);
     }
 

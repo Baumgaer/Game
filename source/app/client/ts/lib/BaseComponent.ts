@@ -92,11 +92,11 @@ export function BaseComponentFactory<TBase extends Constructor<HTMLElement>>(HTM
          * access to this element without conflicting ids.
          *
          * @readonly
-         * @type {IndexStructure<string, Element>}
+         * @type {IndexStructure<Element>}
          * @memberof BaseComponent
          */
         public get refs() {
-            const refs: IndexStructure<string, Element> = {};
+            const refs: IndexStructure<Element> = {};
             if (!this.shadowRoot) return refs;
             const refElements = Array.from(this.shadowRoot.querySelectorAll("[ref]"));
             for (const refElement of refElements) {

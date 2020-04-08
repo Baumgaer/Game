@@ -73,10 +73,10 @@ interface IMDKeys<T extends object = any> {
      * Stores if an attribute of a DOM element has been initialized.
      * This is used in decorators util.
      *
-     * @type {IndexStructure<DefNonFuncPropNames<T>, boolean>}
+     * @type {IndexStructure<boolean>}
      * @memberof IMDKeys
      */
-    attrInitialized?: IndexStructure<DefNonFuncPropNames<T>, boolean>;
+    attrInitialized?: IndexStructure<boolean>;
 
     /**
      * stores all defined properties of an object which is decorated with the
@@ -109,10 +109,10 @@ interface IMDKeys<T extends object = any> {
      * Indicates in a property which is NOT cached in localStorage but marked
      * as saveInLocalStorage on construction time of the corresponding object.
      *
-     * @type {boolean}
+     * @type {IndexStructure<boolean>}
      * @memberof IMDKeys
      */
-    keyShouldBeUpdated?: IndexStructure<DefNonFuncPropNames<T>, boolean>;
+    keyShouldBeUpdated?: IndexStructure<boolean>;
 
     /**
      * Used to define the name of the database collection where a BDOModel is stored in

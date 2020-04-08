@@ -4,7 +4,6 @@ import { isFunction } from "~bdo/utils/util";
 import { isComponent } from "~bdo/utils/framework";
 import { ObjectOptions } from "type-graphql/dist/decorators/ObjectType";
 
-type idyStructureBaseConst<T> = IndexStructure<ConstParams<T>>;
 export interface IBaseConstructorCtor {
 
     /**
@@ -155,12 +154,12 @@ export function baseConstructorFactory<T extends Constructor<IBaseConstructorCto
         /**
          * Assigns all const params to the current instance and initializes the life cycle
          *
-         * @param {IndexStructure<string, any>} constParams
+         * @param {IndexStructure} constParams
          * @memberof BaseConstructor
          */
-        public invokeLifeCycle(constParams: IndexStructure<string, any>) {
+        public invokeLifeCycle(constParams: IndexStructure) {
             if (!(constParams instanceof Object)) constParams = {};
-            let defaultSettings: idyStructureBaseConst<BaseConstructor> = getMetadata(this, "defaultSettings") || {};
+            let defaultSettings: IndexStructure = getMetadata(this, "defaultSettings") || {};
             defaultSettings = Object.assign(defaultSettings, constParams);
             if (isFunction(this.getNamespacedStorage)) {
                 const id = constParams.id || defaultSettings.id;

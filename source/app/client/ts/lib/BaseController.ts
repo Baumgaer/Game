@@ -62,6 +62,14 @@ export function BaseControllerFactory<TBase extends Constructor<Object>>(extensi
         @watched() @attribute() public id: string = '';
 
         /**
+         * Contains all controllers which are registered on this controller / component
+         *
+         * @type {IndexStructure<BaseController>}
+         * @memberof BaseController
+         */
+        public controllers: IndexStructure<BaseController> = {};
+
+        /**
          * if this is a controller, the owner will be the component which
          * initializes this controller. If this is a component it will be
          * undefined.
@@ -201,7 +209,14 @@ export function BaseControllerFactory<TBase extends Constructor<Object>>(extensi
          * @protected
          * @memberof BaseController
          */
-        protected connectedCallback() { }
+        protected connectedCallback() {
+            for (const controllerName in this.controllers) {
+                if (this.controllers.hasOwnProperty(controllerName)) {
+                    const controller = this.controllers[controllerName];
+                    controller.connectedCallback();
+                }
+            }
+        }
 
         /**
          * 3. Called when the component / owner will be finally removed from the dom.

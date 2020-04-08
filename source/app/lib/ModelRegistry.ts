@@ -82,11 +82,11 @@ export class ModelRegistry {
      * Returns a list of models where all the given attributes corresponds to
      * the models attributes and values.
      *
-     * @param {IndexStructure<string, any>} attributes
+     * @param {IndexStructure} attributes
      * @returns
      * @memberof ModelRegistry
      */
-    public getModelsByAttributes(attributes: IndexStructure<string, any>) {
+    public getModelsByAttributes(attributes: IndexStructure) {
         const models: BDOModel[] = [];
         this.models.forEach((model) => {
             for (const key in attributes) {
