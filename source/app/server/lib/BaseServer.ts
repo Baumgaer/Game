@@ -270,7 +270,7 @@ export abstract class BaseServer {
     protected async resolverCollection(): Promise<void> {
         // Setup the API
         const pathsConfig = await configManager.get('paths');
-        const resolvers: Array<Function | string> = [];
+        const resolvers: (Function | string)[] = [];
         const [subscriber, publisher] = await Promise.all([
             redisClientManager.createThirdPartyClient('graphQLSubscriber'),
             redisClientManager.createThirdPartyClient('graphQLPublisher'),

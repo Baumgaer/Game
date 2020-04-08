@@ -7,6 +7,7 @@ import { ControllerRegistry } from "~client/lib/ControllerRegistry";
 import { Binding } from "~bdo/lib/Binding";
 
 import type { Property } from "~bdo/lib/Property";
+import type { Attribute } from "~bdo/lib/Attribute";
 import type { BaseComponentFactory } from "~client/lib/BaseComponent";
 
 type controllerLifeCycleFuncNames = "constructedCallback" | "connectedCallback" | "disconnectedCallback" | "adoptedCallback" | "remove";
@@ -118,6 +119,24 @@ export function BaseControllerFactory<TBase extends Constructor<any>>(extension:
                 }
             }
             return props;
+        }
+
+        /**
+         * Gives access to the properties similar to element.attributes
+         *
+         * @readonly
+         * @type {Map<string, Property<this>>}
+         * @memberof BaseController
+         */
+        public get attributes(): Map<string, Attribute<this>> {
+            const attrs = new Map<string, Attribute<this>>();
+            const attributes = getMetadata(this, "definedAttributes");
+            if (attributes) {
+                for (const attr of attributes.keys()) {
+                    attrs.set(attr.toString(), getWildcardMetadata(this, attr));
+                }
+            }
+            return attrs;
         }
 
         /**
