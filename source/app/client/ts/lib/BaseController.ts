@@ -1,12 +1,17 @@
 
 import { getNamespacedStorage, setUpdateNamespacedStorage, deleteFromNamespacedStorage } from "~client/utils/util";
 import { getMetadata, getWildcardMetadata } from "~bdo/utils/metadata";
+import { removeElementFromArray } from "~bdo/utils/util";
 import { attribute, property, watched } from "~bdo/utils/decorators";
 import { ControllerRegistry } from "~client/lib/ControllerRegistry";
 import { Binding } from "~bdo/lib/Binding";
 
 import type { Property } from "~bdo/lib/Property";
 import type { BaseComponentFactory } from "~client/lib/BaseComponent";
+
+type controllerLifeCycleFuncNames = "constructedCallback" | "connectedCallback" | "disconnectedCallback" | "adoptedCallback" | "remove";
+type eventMapKey = keyof HTMLElementEventMap;
+type eventListenerFunc<K extends eventMapKey> = (this: ReturnType<typeof BaseControllerFactory>, ev: HTMLElementEventMap[K]) => any;
 
 interface IOwnerType extends InstanceType<ReturnType<typeof BaseComponentFactory>> { }
 /**
@@ -18,7 +23,7 @@ interface IOwnerType extends InstanceType<ReturnType<typeof BaseComponentFactory
  * @param {TBase} extension
  * @returns
  */
-export function BaseControllerFactory<TBase extends Constructor<Object>>(extension: TBase) {
+export function BaseControllerFactory<TBase extends Constructor<any>>(extension: TBase) {
 
     /**
      * Provides basic support for controller
@@ -87,6 +92,15 @@ export function BaseControllerFactory<TBase extends Constructor<Object>>(extensi
          * @memberof BaseController
          */
         private controllerRegistry = ControllerRegistry.getInstance();
+
+        /**
+         * Contains all listeners which are registered on this controller to be
+         * able to remove them when remove method is called.
+         *
+         * @private
+         * @memberof BaseController
+         */
+        private listeners: Map<eventMapKey, eventListenerFunc<OneOf<eventMapKey>>[]> = new Map();
 
         /**
          * Gives access to the properties similar to element.attributes
@@ -195,6 +209,47 @@ export function BaseControllerFactory<TBase extends Constructor<Object>>(extensi
         }
 
         /**
+         * @inheritdoc
+         *
+         * @param {string} name
+         * @param {(event: Event) => void} func
+         * @memberof BaseController
+         */
+        public addEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: eventListenerFunc<K>, options?: boolean | AddEventListenerOptions): void {
+            if (!this.listeners.has(type)) this.listeners.set(type, []);
+            const listenersArray: eventListenerFunc<K>[] = this.listeners.get(type)!;
+            listenersArray.push(listener);
+            if (this instanceof HTMLElement) super.addEventListener(type, listener, options);
+        }
+
+        /**
+         * @inheritdoc
+         *
+         * @param {string} name
+         * @param {(event: Event) => void} func
+         * @memberof BaseController
+         */
+        public removeEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: eventListenerFunc<K>, options?: boolean | EventListenerOptions): void {
+            if (this.listeners.has(type)) removeElementFromArray(this.listeners.get(type)!, listener);
+            if (this instanceof HTMLElement) super.removeEventListener(type, listener, options);
+        }
+
+        /**
+         * Removes components from DOM and controllers from components
+         *
+         * @memberof BaseController
+         */
+        public remove() {
+            for (const listenerName of this.listeners.keys()) {
+                for (const listener of this.listeners.get(listenerName)!) {
+                    this.removeEventListener(listenerName, listener);
+                }
+            }
+            this.callLiveCycleFunctionsOfControllers("remove");
+            if (this instanceof HTMLElement) super.remove();
+        }
+
+        /**
          * 1. Called when all provided constructor parameters are assigned to
          * their corresponding properties / attributes.
          *
@@ -210,12 +265,7 @@ export function BaseControllerFactory<TBase extends Constructor<Object>>(extensi
          * @memberof BaseController
          */
         protected connectedCallback() {
-            for (const controllerName in this.controllers) {
-                if (this.controllers.hasOwnProperty(controllerName)) {
-                    const controller = this.controllers[controllerName];
-                    controller.connectedCallback();
-                }
-            }
+            this.callLiveCycleFunctionsOfControllers("connectedCallback");
         }
 
         /**
@@ -224,7 +274,9 @@ export function BaseControllerFactory<TBase extends Constructor<Object>>(extensi
          * @protected
          * @memberof BaseController
          */
-        protected disconnectedCallback() { }
+        protected disconnectedCallback() {
+            this.callLiveCycleFunctionsOfControllers("disconnectedCallback");
+        }
 
         /**
          * 4. Called when the component / owner is moved to another document.
@@ -232,7 +284,9 @@ export function BaseControllerFactory<TBase extends Constructor<Object>>(extensi
          * @protected
          * @memberof BaseController
          */
-        protected adoptedCallback() { }
+        protected adoptedCallback() {
+            this.callLiveCycleFunctionsOfControllers("adoptedCallback");
+        }
 
         /**
          * Initializes the given controller and returns its instance
@@ -240,7 +294,10 @@ export function BaseControllerFactory<TBase extends Constructor<Object>>(extensi
          * @protected
          * @memberof BaseController
          */
-        protected addController(): void { }
+        protected addController<C extends Constructor<BaseController>>(name: string, controller: C, params: ConstParams<C>): void {
+            if (name in this.controllers) throw new Error(`controller with name "${name}" already exists`);
+            this.controllers[name] = new controller(Object.assign(params, { owner: this }));
+        }
 
         /**
          * Removes the given controller
@@ -248,7 +305,11 @@ export function BaseControllerFactory<TBase extends Constructor<Object>>(extensi
          * @protected
          * @memberof BaseController
          */
-        protected removeController(): void { }
+        protected removeController(name: string): void {
+            if (!(name in this.controllers)) throw new Error(`controller "${name}" does not exist`);
+            this.controllers[name].remove();
+            delete this.controllers[name];
+        }
 
         /**
          * Reacts on id first assignment just to ensure that the id in registry
@@ -290,6 +351,22 @@ export function BaseControllerFactory<TBase extends Constructor<Object>>(extensi
                 occurrence++;
             }
             return `${this.className}_${occurrence}`;
+        }
+
+        /**
+         * Calls the given funcName which is a life cycle func name of the controllers
+         *
+         * @private
+         * @param {controllerLifeCycleFuncNames} funcName
+         * @memberof BaseController
+         */
+        private callLiveCycleFunctionsOfControllers(funcName: controllerLifeCycleFuncNames): void {
+            for (const controllerName in this.controllers) {
+                if (this.controllers.hasOwnProperty(controllerName)) {
+                    const controller = this.controllers[controllerName];
+                    controller[funcName]();
+                }
+            }
         }
     }
 
