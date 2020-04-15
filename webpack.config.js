@@ -137,7 +137,10 @@ module.exports = (_env, options) => {
             new ForkTsCheckerWebpackPlugin({
                 useTypescriptIncrementalApi: true,
                 checkSyntacticErrors: true,
-                tsconfig: path.resolve(arp.path, "source", "app", "client", "ts", "tsconfig.json")
+                tsconfig: path.resolve(arp.path, "source", "app", "client", "ts", "tsconfig.json"),
+                reportFiles: [
+                    "!node_modules/**/*.ts"
+                ]
             }),
             new webpack.NormalModuleReplacementPlugin(/type-graphql$/, resource => {
                 resource.request = resource.request.replace(/type-graphql/, "type-graphql/dist/browser-shim");

@@ -1,4 +1,4 @@
-import { makeNoise2D } from 'open-simplex-noise';
+import { makeNoise2D } from 'open-simplex-noise/src/index';
 import { merge } from '~bdo/utils/util';
 import { Cell } from './Cell';
 
