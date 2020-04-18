@@ -4,6 +4,8 @@ Welcome to the "Game". At the moment there is no good name for this project beca
 
 ## Table of contents
 
+[[_TOC_]]
+
 1. [The Idea of the Game](#the-idea-of-the-game)
 2. [Architecture of the Game](#architecture-of-the-game)
 3. [Getting started](#getting-started)
