@@ -98,25 +98,19 @@ To persist the data we will use [ArangoDB](https://www.arangodb.com/).
     cd Game
     ```
 
-7. Install the Project via NPM:
+7. Install the Project:
 
     ```bash
-    npm run install
+    node setup.js -i
     ```
 
-8. Create junctions (optional but recommended):
-
-    ```bash
-    node setup.js -j
-    ```
-
-9. start the development server:
+8. start the development server:
 
     ```bash
     npm run dev
     ```
 
-10. start the application:
+9. start the application:
 
     ```bash
     npm start
