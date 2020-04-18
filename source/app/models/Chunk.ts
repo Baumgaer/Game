@@ -1,4 +1,4 @@
-import { makeNoise2D } from 'open-simplex-noise/src/index';
+// import { makeNoise2D } from 'open-simplex-noise';
 import { merge } from '~bdo/utils/util';
 import { Cell } from './Cell';
 
@@ -49,7 +49,7 @@ export class Chunk {
      * @type {OpenSimplexNoise}
      * @memberof Chunk
      */
-    protected simplexCave = makeNoise2D(1);
+    protected simplexCave = null; // makeNoise2D(1);
 
     /**
      * The seed to generate river values of a cell
@@ -58,7 +58,7 @@ export class Chunk {
      * @type {OpenSimplexNoise}
      * @memberof Chunk
      */
-    protected simplexRiver = makeNoise2D(2);
+    protected simplexRiver = null; // makeNoise2D(2);
 
     /**
      * The seed to generate temperature values of a cell
@@ -67,7 +67,7 @@ export class Chunk {
      * @type {OpenSimplexNoise}
      * @memberof Chunk
      */
-    protected simplexTemperature = makeNoise2D(3);
+    protected simplexTemperature = null; // makeNoise2D(3);
 
     /**
      * The seed to generate humidity values of a cell
@@ -76,7 +76,7 @@ export class Chunk {
      * @type {OpenSimplexNoise}
      * @memberof Chunk
      */
-    protected simplexHumidity = makeNoise2D(4);
+    protected simplexHumidity = null; // makeNoise2D(4);
 
     constructor(params?: ConstParams<Chunk>) {
         merge(this, params);
@@ -95,20 +95,20 @@ export class Chunk {
                 this.grid.push([]);
             }
             for (let col = 0; col < (<number>this.size); col++) {
-                const xCoordinate = col + this.x * <number>this.size;
-                const yCoordinate = row + this.y * <number>this.size;
+                // const xCoordinate = col + this.x * <number>this.size;
+                // const yCoordinate = row + this.y * <number>this.size;
 
-                this.grid[row].push(
-                    new Cell({
-                        x: xCoordinate,
-                        y: yCoordinate,
-                        cave: this.simplexCave(xCoordinate / 100, yCoordinate / 100),
-                        river: this.simplexRiver(xCoordinate / 500, yCoordinate / 500),
-                        temperature: this.simplexTemperature(xCoordinate / 2500, yCoordinate / 2500),
-                        humidity: this.simplexHumidity(xCoordinate / 2500, yCoordinate / 2500),
-                        chunk: this
-                    })
-                );
+                // this.grid[row].push(
+                //     new Cell({
+                //         x: xCoordinate,
+                //         y: yCoordinate,
+                //         cave: this.simplexCave(xCoordinate / 100, yCoordinate / 100),
+                //         river: this.simplexRiver(xCoordinate / 500, yCoordinate / 500),
+                //         temperature: this.simplexTemperature(xCoordinate / 2500, yCoordinate / 2500),
+                //         humidity: this.simplexHumidity(xCoordinate / 2500, yCoordinate / 2500),
+                //         chunk: this
+                //     })
+                // );
             }
         }
     }

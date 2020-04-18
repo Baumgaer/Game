@@ -8,7 +8,8 @@ interface IOptions {
 }
 
 /**
- * Bans certain imports in certain context
+ * Bans certain imports in certain context to avoid mixing the areas of BDO,
+ * Client and Server
  *
  * @export
  * @class Rule

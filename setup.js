@@ -4,6 +4,7 @@ const path = require('path');
 const colors = require('colors');
 const commandLineArgs = require('command-line-args');
 const commandLineUsage = require('command-line-usage');
+const childProcess = require("child_process");
 
 let VERBOSE = false;
 
@@ -17,7 +18,7 @@ let settings = {
  * Iterates recursively through a folder tree
  *
  * @param {String} dir The folder which should be walked recursively
- * @param {String[]} dirList Already existing folder list
+ * @param {String[]} [dirList] Already existing folder list
  * @returns {String[]} Listing of all folders
  */
 function walkDir(dir, dirList) {
@@ -73,6 +74,21 @@ function createJunctions() {
     }
 }
 
+/**
+ * Installs all dependencies, creates junctions and runs a basic build
+ *
+ * @returns {void}
+ */
+function install() {
+    childProcess.execSync('npm install && npm prune', {
+        stdio: 'inherit'
+    });
+    createJunctions();
+    childProcess.execSync('npm run build', {
+        stdio: 'inherit'
+    });
+}
+
 if (require && require.main === module) {
     let optionList = [{
         name: 'help',
@@ -87,6 +103,13 @@ if (require && require.main === module) {
         type: Boolean,
         defaultValue: false,
         description: 'Offers more output'
+    },
+    {
+        name: 'install',
+        alias: 'i',
+        type: Boolean,
+        defaultValue: false,
+        description: 'installs als dependencies, proceeds a base build for development and creates junctions of folders from the out folder which are not contained in source'
     },
     {
         name: 'junctions',
@@ -109,6 +132,7 @@ if (require && require.main === module) {
     let options = commandLineArgs(optionList);
     VERBOSE = options.verbose;
     if (options.help) console.log(commandLineUsage(sections));
+    if (options.install) install();
     if (options.junctions) createJunctions();
     if (!options.help) {
         console.log(

@@ -33,3 +33,7 @@ var/*/*
 var/*.*
 !var/README.md
 !var/**/README.md
+
+# output stuff
+out/**/*.js
+out/**/*.*.js
