@@ -235,10 +235,11 @@ export function BaseControllerFactory<TBase extends Constructor<any>>(extension:
          * @memberof BaseController
          */
         public addEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: eventListenerFunc<K>, options?: boolean | AddEventListenerOptions): void {
+            if (!(this instanceof HTMLElement) && !(this instanceof EventTarget)) throw new Error("This is not an instance of HTMLElement or EventTarget");
             if (!this.listeners.has(type)) this.listeners.set(type, []);
             const listenersArray: eventListenerFunc<K>[] = this.listeners.get(type)!;
             listenersArray.push(listener);
-            if (this instanceof HTMLElement) super.addEventListener(type, listener, options);
+            if (super.addEventListener) super.addEventListener(type, listener, options);
         }
 
         /**
@@ -249,8 +250,9 @@ export function BaseControllerFactory<TBase extends Constructor<any>>(extension:
          * @memberof BaseController
          */
         public removeEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: eventListenerFunc<K>, options?: boolean | EventListenerOptions): void {
+            if (!(this instanceof HTMLElement) && !(this instanceof EventTarget)) throw new Error("This is not an instance of HTMLElement or EventTarget");
             if (this.listeners.has(type)) removeElementFromArray(this.listeners.get(type)!, listener);
-            if (this instanceof HTMLElement) super.removeEventListener(type, listener, options);
+            if (super.removeEventListener) super.removeEventListener(type, listener, options);
         }
 
         /**
