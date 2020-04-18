@@ -73,7 +73,7 @@ export function BaseControllerFactory<TBase extends Constructor<any>>(extension:
          * @type {IndexStructure<BaseController>}
          * @memberof BaseController
          */
-        public controllers: IndexStructure<BaseController> = {};
+        public readonly controllers: IndexStructure<BaseController> = {};
 
         /**
          * if this is a controller, the owner will be the component which
