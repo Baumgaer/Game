@@ -217,7 +217,7 @@ export function BaseControllerFactory<TBase extends Constructor<any>>(extension:
          * @memberof BaseController
          */
         public toJSON() {
-            const data: IndexStructure = {};
+            const data: IndexStructure<this[keyof this]> = {};
             for (const key in this) {
                 if (this[key] !== undefined) {
                     const element = this[key];
