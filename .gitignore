@@ -37,3 +37,6 @@ var/*.*
 # output stuff
 out/**/*.js
 out/**/*.*.js
+out/app/*.js
+out/lintRules/*.js
+out/*.js
