@@ -24,6 +24,28 @@ export function isBrowser(): boolean {
 }
 
 /**
+ * provides several filters for the template engine
+ *
+ * @param {nunjucks.Environment} env
+ */
+export const templateFilters = (env: nunjucks.Environment) => {
+    env.addFilter('json', (value, spaces) => {
+        if (value instanceof nunjucks.runtime.SafeString) {
+            value = value.toString();
+        }
+        return new nunjucks.runtime.SafeString(JSON.stringify(value, null, spaces));
+    });
+
+    env.addFilter('bind', function (this: any, value, bindingName) {
+        if (value instanceof nunjucks.runtime.SafeString) {
+            value = value.toString();
+        }
+        // @ts-ignore
+        return env.filters.safe(`<bind name="${bindingName}">${value}</bind>`);
+    });
+};
+
+/**
  * Provides the basic template environment of nunjucks and defines several extensions
  */
 export const templateEnvironment = (() => {
@@ -33,12 +55,6 @@ export const templateEnvironment = (() => {
             return { src: require(path), path, noCache };
         }
     }, { noCache });
-
-    env.addFilter('json', (value, spaces) => {
-        if (value instanceof nunjucks.runtime.SafeString) {
-            value = value.toString();
-        }
-        return new nunjucks.runtime.SafeString(JSON.stringify(value, null, spaces));
-    });
+    templateFilters(env);
     return env;
 })();

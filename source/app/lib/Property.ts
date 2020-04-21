@@ -315,6 +315,13 @@ export class Property<T extends object = any, K extends DefNonFuncPropNames<T> =
             this.value = proxyfied;
             this.ownValue = valueToPass;
         }
+        if (isBrowser() && this.object instanceof HTMLElement && this.object.shadowRoot) {
+            const contentNode = this.object.shadowRoot.lastElementChild;
+            if (contentNode) {
+                const bindingNode = contentNode.getElementsByTagName("bind").namedItem(this.property.toString());
+                if (bindingNode) bindingNode.innerHTML = String(this.value);
+            }
+        }
         if (this.shouldUpdateNsStorage() && isFunction((<IndexStructure>this.object).setUpdateNamespacedStorage)) {
             (<IndexStructure>this.object).setUpdateNamespacedStorage(this.property.toString(), valueToPass);
         }

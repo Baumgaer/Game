@@ -3,7 +3,7 @@
 {% block unten %}
 <div>
     <div ref="holla">HOLLA</div>
-    TEST {{ test }}!
+    TEST {{ test | bind("test") }}!
     <slot></slot>
     Name: <slot name="name">-----</slot>
     <a href="/config/config" is="view-link">mimimi</a>

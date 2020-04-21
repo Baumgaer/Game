@@ -217,8 +217,10 @@ module.exports = (_env, options) => {
                     }
                 }, {
                     loader: 'nunjucks-loader',
-                    options: {
-                        sourceMap: 'inline'
+                    query: {
+                        sourceMap: 'inline',
+                        config: path.resolve(arp.path, "nunjucks.config.js"),
+                        quiet: true
                     }
                 }]
             }, {
