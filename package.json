@@ -90,7 +90,7 @@
         "husky": "^4.2.5",
         "js-yaml": "^3.13.1",
         "less": "^3.11.1",
-        "less-loader": "^5.0.0",
+        "less-loader": "^6.0.0",
         "less-plugin-clean-css": "^1.5.1",
         "lint-staged": "^10.1.7",
         "mocha": "^7.1.1",
