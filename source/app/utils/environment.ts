@@ -33,7 +33,8 @@ export const templateFilters = (env: nunjucks.Environment) => {
         if (value instanceof nunjucks.runtime.SafeString) {
             value = value.toString();
         }
-        return new nunjucks.runtime.SafeString(JSON.stringify(value, null, spaces));
+        // @ts-ignore
+        return new env.filters.safe(JSON.stringify(value, null, spaces));
     });
 
     env.addFilter('bind', function (this: any, value, bindingName) {
