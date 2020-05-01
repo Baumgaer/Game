@@ -446,6 +446,19 @@ export function BaseComponentFactory<TBase extends Constructor<HTMLElement>>(HTM
         }
 
         /**
+         * @inheritdoc It also removes all child components depending on their
+         * life cycle.
+         *
+         * @memberof BaseComponent
+         */
+        public remove() {
+            for (const childComponent of this.childComponents) {
+                childComponent.remove();
+            }
+            super.remove();
+        }
+
+        /**
          * 0. This is called by the BaseConstructor as a part of the "live cycle"
          *
          * @see IBaseConstructorCtor.renderTemplate

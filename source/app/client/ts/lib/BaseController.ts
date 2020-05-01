@@ -256,7 +256,7 @@ export function BaseControllerFactory<TBase extends Constructor<any>>(extension:
         }
 
         /**
-         * Removes components from DOM and controllers from components
+         * Removes controllers from components and event listeners from controllers.
          *
          * @memberof BaseController
          */
