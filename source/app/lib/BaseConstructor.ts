@@ -2,7 +2,7 @@ import { Binding } from "~bdo/lib/Binding";
 import { getMetadata, defineMetadata } from "~bdo/utils/metadata";
 import { isFunction } from "~bdo/utils/util";
 import { isComponent } from "~bdo/utils/framework";
-import { ObjectOptions } from "type-graphql/dist/decorators/ObjectType";
+import { ObjectTypeOptions } from "type-graphql/dist/decorators/ObjectType";
 
 export interface IBaseConstructorCtor {
 
@@ -40,7 +40,7 @@ export interface IBaseConstructorCtor {
  * @interface IBaseConstructorOpts
  * @extends {ObjectOptions}
  */
-export interface IBaseConstructorOpts extends ObjectOptions {
+export interface IBaseConstructorOpts extends ObjectTypeOptions {
 
     /**
      * Defines the name of the collection where a model is saved in.

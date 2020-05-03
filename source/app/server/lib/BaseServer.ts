@@ -19,7 +19,7 @@ import { ConfigManager } from '~server/lib/ConfigManager';
 import { RedisClientManager } from '~server/lib/RedisClientManager';
 import { Logger } from '~server/lib/Logger';
 import { walk } from '~root/utils/projectStructure';
-import { includesMemberOfList, toURIPathPart } from '~bdo/utils/util';
+import { includesMemberOfList, toURIPathPart, isNonEmptyArray } from '~bdo/utils/util';
 import { RedisClient } from 'redis';
 import { ServerRoute } from "~server/lib/ServerRoute";
 
@@ -92,7 +92,7 @@ export abstract class BaseServer {
      * @type {(GraphQLSchema | null)}
      * @memberof BaseServer
      */
-    protected apiSchema: GraphQLSchema | null = null;
+    protected apiSchema!: GraphQLSchema;
 
     constructor() {
         const gracefulShutdownHandler = () => {
@@ -270,7 +270,7 @@ export abstract class BaseServer {
     protected async resolverCollection(): Promise<void> {
         // Setup the API
         const pathsConfig = await configManager.get('paths');
-        const resolvers: (Function | string)[] = [];
+        const resolvers: Function[] = [];
         const [subscriber, publisher] = await Promise.all([
             redisClientManager.createThirdPartyClient('graphQLSubscriber'),
             redisClientManager.createThirdPartyClient('graphQLPublisher'),
@@ -278,13 +278,15 @@ export abstract class BaseServer {
                 resolvers.push(require(file).default);
             })
         ]);
-        const pubSub = new GraphQLRedisPubSub({ publisher, subscriber });
 
-        this.apiSchema = await buildSchema({ resolvers, pubSub, skipCheck: true });
-        this.app.use(pathsConfig.apiEntryPoint, expressGraphQL({
-            schema: this.apiSchema,
-            graphiql: process.env.NODE_ENV === 'development' ? true : false
-        }));
+        if (isNonEmptyArray(resolvers)) {
+            const pubSub = new GraphQLRedisPubSub({ publisher, subscriber });
+            this.apiSchema = await buildSchema({ resolvers, pubSub, skipCheck: true });
+            this.app.use(pathsConfig.apiEntryPoint, expressGraphQL({
+                schema: this.apiSchema,
+                graphiql: process.env.NODE_ENV === 'development' ? true : false
+            }));
+        } else logger.info("No resolvers provided! Skipping build of API");
     }
 
     /**

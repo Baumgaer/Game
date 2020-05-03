@@ -1,7 +1,6 @@
 import IORedis from 'ioredis';
 import { merge, isUndefined, pickBy, omit } from '~bdo/utils/util';
 
-export type callbackType = (err: Error, res: number) => void;
 export type messageType = (
     | keyof any
     | boolean
@@ -38,25 +37,6 @@ export class Redis extends IORedis {
     /**
      * @inheritdoc
      *
-     * @param {string} topic
-     * @returns {Promise<number>}
-     * @memberof Redis
-     */
-    public subscribe(topic: string): Promise<number>;
-
-    /**
-     * @inheritdoc
-     *
-     * @param {(string[] | string)} topics
-     * @param {Function} callback
-     * @returns {Promise<number>}
-     * @memberof Redis
-     */
-    public subscribe(topics: string[] | string, callback: Function): Promise<number>;
-
-    /**
-     * @inheritdoc
-     *
      * Subscribes to a topic with callback which should be executed
      * on receiving a message
      *
@@ -64,14 +44,15 @@ export class Redis extends IORedis {
      * @param {Function} callback
      * @memberof Redis
      */
-    public subscribe(topics: string[] | string, callback?: Function): Promise<number> {
+    // @ts-ignore
+    public subscribe(topics: string | string[], callback: Function) {
         if (!Array.isArray(topics)) topics = [topics];
         if (callback) {
             for (const topic of topics) {
                 this.insertIntoTopics(topic, callback);
             }
         }
-        return super.subscribe(...topics);
+        super.subscribe(topics);
     }
 
     /**
@@ -81,7 +62,6 @@ export class Redis extends IORedis {
      *
      * @param {string} topic
      * @param {messageType} params NOTE: Functions are NOT allowed!
-     * @param {callbackType} [callback]
      * @memberof Redis
      */
     // @ts-ignore
@@ -119,6 +99,7 @@ export class Redis extends IORedis {
      * @returns {Promise<string>}
      * @memberof Redis
      */
+    // @ts-ignore
     public set(key: IORedis.KeyType, value: IndexStructure | IORedis.ValueType): Promise<string> {
         return new Promise<string>(async (resolve) => {
             if (typeof value === "number" || typeof value === "string" || value instanceof Array || value instanceof Buffer) {

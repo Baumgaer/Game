@@ -184,3 +184,15 @@ export function toURIPathPart(value: string) {
     }
     return value;
 }
+
+/**
+ * Checks if an array has at least one entry
+ *
+ * @export
+ * @template T
+ * @param {T[]} arr
+ * @returns {arr is NonEmptyArray<T>}
+ */
+export function isNonEmptyArray<T>(arr: T[]): arr is NonEmptyArray<T> {
+    return arr.length > 0;
+}

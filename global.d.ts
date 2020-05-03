@@ -21,6 +21,8 @@ declare type DefInstanceType<T extends Object> = T extends Constructor ? Instanc
 type EachOfTmp<T> = { [K in keyof T]: { _: { [X in K]: T[K] }; } };
 declare type OneOf<T> = EachOfTmp<T>[keyof T]["_"] & Partial<T>;
 
+declare type NonEmptyArray<T> = [T, ...T];
+
 // Collects all properties of a class except native functions and readonly properties and wraps them in an object with their types
 declare type ConstParams<T> = Partial<
     Pick<T, T extends HTMLElement ?
