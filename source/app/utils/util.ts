@@ -1,5 +1,6 @@
 import { getDesignType } from "~bdo/utils/metadata";
 import { isBrowser } from '~bdo/utils/environment';
+import { isBaseConstructor, BaseConstructor } from "~bdo/utils/framework";
 import onChange from "on-change";
 
 export {
@@ -112,19 +113,16 @@ export function constructTypeOfHTMLAttribute(object: HTMLElement, key: string) {
     const type = getDesignType(object, key);
     const attrValue = object.getAttribute(key);
 
-    // if (attrValue === null) throw new Error("No attribute set");
-
     let valueToSet: any = attrValue;
     if (attrValue && type && type.name !== undefined) {
         if (["Number", "Boolean", "Object", "Array"].includes(type.name)) {
             valueToSet = JSON.parse(attrValue.replace(/'/g, '"'));
         }
-        if (type.name === "BaseConstructor") {
-            const obj = JSON.parse(attrValue);
-            const className = obj.className;
-            if (!className) throw new Error("ClassName is missing in component attribute value");
-            delete obj.className;
-            valueToSet = new (type.name)(obj);
+        if (isBaseConstructor(type)) {
+            const correctedAttrValue = attrValue.replace(/'/g, '"');
+            const obj: BaseConstructor = JSON.parse(correctedAttrValue);
+            if (!obj.className) throw new Error("ClassName is missing in component attribute value");
+            valueToSet = new type(obj);
         }
     }
     if (valueToSet && type && valueToSet.constructor.name !== type.name) throw new Error("attribute type equals not defined type");

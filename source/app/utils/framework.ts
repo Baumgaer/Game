@@ -56,8 +56,11 @@ export interface IWatchAttrPropSettings<T extends defPropOrAttr | IAttributePara
     params?: WatchAttrPropParams<T>;
 }
 
+export type BaseConstructor = ReturnType<typeof baseConstructorFactory>;
 export type BaseComponent = ReturnType<typeof BaseComponentFactory>;
 export type BaseController = ReturnType<typeof BaseControllerFactory>;
+
+export type BaseConstructorInstance = InstanceType<BaseConstructor>;
 export type BaseComponentInstance = InstanceType<BaseComponent>;
 export type BaseControllerInstance = InstanceType<BaseController>;
 
@@ -207,9 +210,9 @@ export function createDecoratorDescriptor<
  *
  * @export
  * @param {Function} value
- * @returns {value is ReturnType<typeof baseConstructorFactory>}
+ * @returns {value is BaseConstructor}
  */
-export function isBaseConstructor(value: Object): value is ReturnType<typeof baseConstructorFactory> {
+export function isBaseConstructor(value: Object): value is BaseConstructor {
     if (typeof value === "function" && value.name === "BaseConstructor") return true;
     if (value instanceof Object && value.constructor.name === "BaseConstructor") return true;
     return false;

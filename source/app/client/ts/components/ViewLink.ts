@@ -25,7 +25,7 @@ export default class ViewLink extends BaseComponentFactory(HTMLAnchorElement) {
      *
      * @memberof ViewLink
      */
-    @property() public model = new Test1({ title: String(Date.now()) });
+    @attribute() public model: Test1 = new Test1({ title: String(Date.now()) });
 
     /**
      * Test
