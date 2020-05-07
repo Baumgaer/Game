@@ -276,7 +276,7 @@ export function BaseComponentFactory<TBase extends Constructor<HTMLElement>>(HTM
                 if (!isPrimitive(value)) valueToSet = JSON.stringify(value).replace(/\"/g, "'");
                 super.setAttribute(qualifiedName, valueToSet);
                 valueToSet = constructTypeOfHTMLAttribute(this, qualifiedName);
-                if (setValue) (<any>this)[qualifiedName] = valueToSet;
+                if (setValue) this[qualifiedName] = valueToSet;
             } else this.removeAttribute(qualifiedName);
         }
 
@@ -291,7 +291,7 @@ export function BaseComponentFactory<TBase extends Constructor<HTMLElement>>(HTM
                 throw new Error(`"${qualifiedName}" can't be removed as attribute because it is a defined property`);
             }
             super.removeAttribute(qualifiedName);
-            (<any>this)[qualifiedName] = undefined;
+            this[qualifiedName] = undefined;
         }
 
         /**

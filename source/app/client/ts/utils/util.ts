@@ -8,20 +8,20 @@ import { getMetadata, defineMetadata } from "~bdo/utils/metadata";
  * @param {string} key
  * @param {*} newVal
  */
-export function setUpdateNamespacedStorage(instance: any, key: string, newVal: any, nsProp: string = "id") {
+export function setUpdateNamespacedStorage<T extends Object, K extends DefNonFuncPropNames<T>, P extends DefNonFuncPropNames<T>>(instance: T, key: K, newVal?: T[K], nsProp: P = <P>"id") {
     if (key === "*") throw new Error("* is a special character and does not follow the property convention");
 
     // Get basic information
     const nsPrefix = Object.getPrototypeOf(instance.constructor).name;
-    let nsSuffix = getMetadata(instance, "oldStorageNsSuffix");
+    let nsSuffix: T[K] | T[P] | undefined = getMetadata(instance, "oldStorageNsSuffix") as T[P] | undefined;
     let storageValue: any;
 
     // Create namespace if not available
     if (!nsSuffix) nsSuffix = instance[nsProp];
     let ns = `${nsPrefix}_${nsSuffix}`;
-    if (key === nsProp || nsSuffix !== instance[nsProp]) {
+    if (<string>key === nsProp || nsSuffix !== instance[nsProp]) {
         // Update namespace if changed
-        nsSuffix = key === nsProp ? newVal : instance[nsProp];
+        nsSuffix = <string>key === nsProp ? newVal : instance[nsProp];
         const newNs = `${nsPrefix}_${nsSuffix}`;
         storageValue = localStorage.getItem(ns);
         if (storageValue) {
@@ -44,7 +44,7 @@ export function setUpdateNamespacedStorage(instance: any, key: string, newVal: a
         } else localStorage.setItem(ns, JSON.stringify(Object.assign(storageValue, { [key]: newVal })));
     }
     // Trace namespace suffix
-    defineMetadata(instance, "oldStorageNsSuffix", nsSuffix);
+    defineMetadata(instance, "oldStorageNsSuffix", <any>nsSuffix);
 }
 
 /**
@@ -63,15 +63,17 @@ export function setUpdateNamespacedStorage(instance: any, key: string, newVal: a
  * @param {string} [forceNS]
  * @returns
  */
-export function getNamespacedStorage(instance: any, key: string, nsProp: string = "id", forceNS?: string) {
+export function getNamespacedStorage<T extends Object, K extends DefNonFuncPropNames<T> | "*", P extends DefNonFuncPropNames<T>>(instance: T, key: K, nsProp: P = <P>"id", forceNS?: string) {
     const nsPrefix = Object.getPrototypeOf(instance.constructor).name;
-    let nsSuffix = getMetadata(instance, "oldStorageNsSuffix");
+    let nsSuffix = getMetadata(instance, "oldStorageNsSuffix") as T[P] | string | undefined;
     if (nsSuffix !== instance[nsProp]) nsSuffix = instance[nsProp];
     if (forceNS) nsSuffix = forceNS;
-    let storageValue: any = localStorage.getItem(`${nsPrefix}_${nsSuffix}`);
-    if (storageValue) storageValue = JSON.parse(storageValue);
-    if (storageValue && key === "*") return storageValue;
-    if (storageValue && key in storageValue) return storageValue[key];
+    const storageValueString = localStorage.getItem(`${nsPrefix}_${nsSuffix}`);
+    if (storageValueString) {
+        const storageValue: IndexStructure<T> = JSON.parse(storageValueString);
+        if (storageValue && key === "*") return storageValue;
+        if (storageValue && key in storageValue) return storageValue[<string>key] as unknown as T[Exclude<K, "*">];
+    }
     return undefined;
 }
 
@@ -84,11 +86,11 @@ export function getNamespacedStorage(instance: any, key: string, nsProp: string 
  * @param {string} key
  * @param {string} [nsProp="id"]
  */
-export function deleteFromNamespacedStorage(instance: any, key: string, nsProp: string = "id") {
+export function deleteFromNamespacedStorage<T extends Object, K extends DefNonFuncPropNames<T> | "*", P extends DefNonFuncPropNames<T>>(instance: T, key: K, nsProp: P = <P>"id") {
     if (key === "*") {
         const storage = getNamespacedStorage(instance, key, nsProp);
         for (const prop in storage) {
-            if (storage.hasOwnProperty(prop)) setUpdateNamespacedStorage(instance, prop, undefined, nsProp);
+            if (storage.hasOwnProperty(prop)) setUpdateNamespacedStorage(instance, prop as DefNonFuncPropNames<T>, undefined, nsProp);
         }
-    } else setUpdateNamespacedStorage(instance, key, undefined, nsProp);
+    } else setUpdateNamespacedStorage(instance, key as DefNonFuncPropNames<T>, undefined, nsProp);
 }

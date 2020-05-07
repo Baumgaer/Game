@@ -64,10 +64,10 @@ interface IMDKeys<T extends object = any> {
     /**
      * Stores the previous suffix of the namespace of a namespaced local storage
      *
-     * @type {string}
+     * @type {DefNonFuncPropNames<T>}
      * @memberof IMDKeys
      */
-    oldStorageNsSuffix?: string;
+    oldStorageNsSuffix?: DefNonFuncPropNames<T>;
 
     /**
      * Stores if an attribute of a DOM element has been initialized.

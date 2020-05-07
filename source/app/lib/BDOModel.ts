@@ -141,12 +141,15 @@ export abstract class BDOModel implements IBaseConstructorOpts {
     }
 
     /**
-     * gets the property of this model and converts it to a watched one.
-     * Only useful in combination with the watched decorator.
+     * Gets a property of this model and converts it into a data-binding
+     * depending on the given mode. By default it is a two-way-data-binding.
+     * The binding can be processed by a decorator @attribute, @property or @watched.
      *
-     * @param {string} propName Name of the property which should be watched
-     * @param {writeRights} mode one string of the writeRights
-     * @returns {*} The identity of the property as none primitive
+     * @template K
+     * @template M
+     * @param {K} propName
+     * @param {M} [mode]
+     * @returns {Binding<this, K> as this[K] | undefined}
      * @memberof BDOModel
      */
     public bind<K extends DefNonFuncPropNames<this>, M extends writeRights = "ReadWrite">(propName: K, mode?: M) {

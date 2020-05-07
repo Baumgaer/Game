@@ -3,7 +3,7 @@ import { Attribute, IAttributeParams } from "~bdo/lib/Attribute";
 import { Property, IPropertyParams } from "~bdo/lib/Property";
 import { Watched, IWatchedParams } from "~bdo/lib/Watched";
 import { Modification } from "~bdo/lib/Modification";
-import { merge } from "~bdo/utils/util";
+import { merge, isFunction } from "~bdo/utils/util";
 import { isBrowser } from "~bdo/utils/environment";
 import { getMetadata, defineMetadata, getWildcardMetadata, defineWildcardMetadata } from "~bdo/utils/metadata";
 import { baseConstructorFactory } from "~bdo/lib/BaseConstructor";
@@ -13,8 +13,9 @@ import type { ClientModel } from "~client/lib/ClientModel";
 import type { ServerModel } from "~server/lib/ServerModel";
 import type { BaseComponentFactory } from "~client/lib/BaseComponent";
 import type { BaseControllerFactory } from "~client/lib/BaseController";
+import type { getNamespacedStorage } from "~client/utils/util";
 
-import { ReturnTypeFunc } from "type-graphql/dist/decorators/types";
+import type { ReturnTypeFunc } from "type-graphql/dist/decorators/types";
 
 type defPropOrAttr = "definedProperties" | "definedAttributes" | "definedWatchers";
 type AttrPropWatch = "Attribute" | "Property" | "Watched";
@@ -25,6 +26,17 @@ type NewVal<T extends Object, K extends DefNonFuncPropNames<T>> = T[K] | Binding
 type WatchAttrPropParams<T> = T extends "definedProperties" ?
     IPropertyParams : T extends "definedAttributes" ?
     IAttributeParams : T extends "definedWatchers" ? IWatchedParams : T;
+
+export interface IGetNamespaceStorageAddition<T> {
+
+    /**
+     * @see getNamespacedStorage
+     *
+     * @type {typeof getNamespacedStorage}
+     * @memberof IGetNamespaceStorageAddition
+     */
+    getNamespacedStorage: <K extends DefNonFuncPropNames<T>, P extends DefNonFuncPropNames<T>>(key: K, nsProp?: P, forceNS?: string) => ReturnType<typeof getNamespacedStorage>;
+}
 
 export interface IWatchAttrPropSettings<T extends defPropOrAttr | IAttributeParams | IPropertyParams | IWatchedParams> {
     /**
@@ -43,6 +55,11 @@ export interface IWatchAttrPropSettings<T extends defPropOrAttr | IAttributePara
      */
     params?: WatchAttrPropParams<T>;
 }
+
+export type BaseComponent = ReturnType<typeof BaseComponentFactory>;
+export type BaseController = ReturnType<typeof BaseControllerFactory>;
+export type BaseComponentInstance = InstanceType<BaseComponent>;
+export type BaseControllerInstance = InstanceType<BaseController>;
 
 /**
  * Gets the previous property descriptor and sets metadata for later access and
@@ -244,9 +261,9 @@ export function isServerModel(value: Object): value is typeof ServerModel {
  *
  * @export
  * @param {Object} value
- * @returns {value is ReturnType<typeof BaseControllerFactory>}
+ * @returns {value is BaseController}
  */
-export function isController(value: Object): value is ReturnType<typeof BaseControllerFactory> {
+export function isController(value: Object): value is BaseController {
     if (isBrowser() && "isBaseController" in value && !("isBaseComponent" in value)) return true;
     return false;
 }
@@ -258,9 +275,9 @@ export function isController(value: Object): value is ReturnType<typeof BaseCont
  *
  * @export
  * @param {Object} value
- * @returns {value is ReturnType<typeof BaseComponentFactory>}
+ * @returns {value is BaseComponent}
  */
-export function isComponent<T = ReturnType<typeof BaseComponentFactory>>(value: Object): value is T {
+export function isComponent<T = BaseComponent>(value: Object): value is T {
     if (isBrowser() && "isBaseComponent" in value && "isBaseController" in value) return true;
     return false;
 }
@@ -276,4 +293,17 @@ export function isReferenceString(value: any): value is string {
     if (typeof value !== "string") return false;
     const refRegEx = /_reference\:[A-Z|0-9|_|$]*\:[A-Z|0-9|\-|_]*/gi;
     return Boolean(value.match(refRegEx)).valueOf();
+}
+
+/**
+ * Checks if the value has a function named "getNamespacedStorage"
+ *
+ * @export
+ * @template T
+ * @param {*} value
+ * @returns {(value is T & { getNamespacedStorage: typeof getNamespacedStorage })}
+ */
+export function canGetNamespacedStorage<T extends Object>(value: any): value is T & IGetNamespaceStorageAddition<T> {
+    if ("getNamespacedStorage" in value && isFunction(value.getNamespacedStorage)) return true;
+    return false;
 }

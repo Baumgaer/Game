@@ -65,7 +65,7 @@ export class ClientModel extends BDOModel {
                 .collection(model.collectionName)
                 .get(id);
             if (dataFromLocalDB) {
-                const pendingPromises: Array<Promise<void>> = [];
+                const pendingPromises: Promise<void>[] = [];
                 for (const key in dataFromLocalDB) {
                     if (dataFromLocalDB.hasOwnProperty(key)) {
                         const modelElem = Reflect.get(model, key);
@@ -80,7 +80,7 @@ export class ClientModel extends BDOModel {
                             });
                         }
                         if (elem instanceof Array && difference(correspondingListLikeDB, elem).length) {
-                            const pendingItems: Array<Promise<void>> = [];
+                            const pendingItems: Promise<void>[] = [];
                             for (let item of elem) {
                                 if (isReferenceString(item)) {
                                     const refParts = item.split(":")[1];
@@ -135,7 +135,7 @@ export class ClientModel extends BDOModel {
      * @returns
      * @memberof ClientModel
      */
-    public getNamespacedStorage(key: string, nsProp?: string, forceNS?: string) {
+    public getNamespacedStorage<K extends DefNonFuncPropNames<this>, P extends DefNonFuncPropNames<this>>(key: K, nsProp?: P, forceNS?: string) {
         return getNamespacedStorage(this, key, nsProp, forceNS);
     }
 
@@ -149,7 +149,7 @@ export class ClientModel extends BDOModel {
      * @returns
      * @memberof ClientModel
      */
-    public setUpdateNamespacedStorage(key: string, newVal: any, nsProp?: string) {
+    public setUpdateNamespacedStorage<K extends DefNonFuncPropNames<this>, P extends DefNonFuncPropNames<this>>(key: K, newVal: this[K], nsProp?: P) {
         return setUpdateNamespacedStorage(this, key, newVal, nsProp);
     }
 
@@ -162,7 +162,7 @@ export class ClientModel extends BDOModel {
      * @returns
      * @memberof ClientModel
      */
-    public deleteFromNamespacedStorage(key: string, nsProp?: string) {
+    public deleteFromNamespacedStorage<K extends DefNonFuncPropNames<this> | "*", P extends DefNonFuncPropNames<this>>(key: K, nsProp?: P) {
         return deleteFromNamespacedStorage(this, key, nsProp);
     }
 

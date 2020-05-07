@@ -3,7 +3,7 @@ import { Modification } from "~bdo/lib/Modification";
 import { getMetadata, defineMetadata, getDesignType } from "~bdo/utils/metadata";
 import { isBrowser } from "~bdo/utils/environment";
 import { isPrimitive, ucFirst, isProxy, isFunction, isObject } from "~bdo/utils/util";
-import { IWatchAttrPropSettings } from "~bdo/utils/framework";
+import { IWatchAttrPropSettings, isBDOModel, canGetNamespacedStorage } from "~bdo/utils/framework";
 import { TypeError } from "~bdo/lib/Errors";
 import onChange from "on-change";
 
@@ -223,8 +223,8 @@ export class Property<T extends object = any, K extends DefNonFuncPropNames<T> =
         // Get from Reflect storage
         let value = this.value;
         // Get from localStorage if saveInLocalStorage in params
-        if (!isProxy(value) && this.saveInLocalStorage && isFunction((<any>this.object).getNamespacedStorage)) {
-            value = (<any>this.object).getNamespacedStorage(stringKey);
+        if (!isProxy(value) && this.saveInLocalStorage && canGetNamespacedStorage<T>(this.object)) {
+            value = this.object.getNamespacedStorage(stringKey as K) as T[K] | undefined;
         }
         return value;
     }
@@ -328,7 +328,7 @@ export class Property<T extends object = any, K extends DefNonFuncPropNames<T> =
     }
 
     /**
-     * Proxyfyes the value to detect changes in objects and execute behavior if wanted
+     * Proxyfies the value to detect changes in objects and execute behavior if wanted
      *
      * @protected
      * @param {T[K]} [value]
@@ -336,7 +336,7 @@ export class Property<T extends object = any, K extends DefNonFuncPropNames<T> =
      * @memberof Property
      */
     protected proxyfyValue(value?: T[K]) {
-        if (value instanceof Array || isObject(value) && !(<any>value).isBDOModel) {
+        if (value instanceof Array || isObject(value) && !isBDOModel(value)) {
             value = onChange.target(value);
             return onChange(value, (path, changedVal, prevVal) => {
                 if (this.proxyHandlerReplacement) {

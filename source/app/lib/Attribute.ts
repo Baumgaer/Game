@@ -1,9 +1,8 @@
 import { Property, IPropertyParams } from "~bdo/lib/Property";
 import { AdvancedOptions } from "type-graphql/dist/decorators/types";
-import { isBrowser } from '~bdo/utils/environment';
 import { Modification } from "~bdo/lib/Modification";
 import { constructTypeOfHTMLAttribute, getProxyTarget, isFunction } from '~bdo/utils/util';
-import { IWatchAttrPropSettings } from "~bdo/utils/framework";
+import { IWatchAttrPropSettings, isComponent, BaseComponentInstance, isBDOModel } from "~bdo/utils/framework";
 import { ConfigurationError } from "~bdo/lib/Errors";
 import { ModelRegistry } from "~bdo/lib/ModelRegistry";
 
@@ -159,7 +158,7 @@ export class Attribute<T extends object = any, K extends prop<T> = any> extends 
     public setValue(value?: T[K] | Modification<any>) {
         if (!this.shouldDoSetValue(value)) return;
         let oldID;
-        if (this.object.isBDOModel && this.property === "id") oldID = this.ownValue;
+        if (isBDOModel(this.object) && this.property === "id") oldID = this.ownValue;
         this.doSetValue(value, true, true);
         if (oldID) ModelRegistry.getInstance().updateID(oldID, this.object);
         this.reflectToDOMAttribute(value);
@@ -198,7 +197,7 @@ export class Attribute<T extends object = any, K extends prop<T> = any> extends 
      * @memberof Attribute
      */
     public shouldDoSetValue(value?: T[K] | Modification<any>, skipGuard: boolean = false) {
-        if (isBrowser() && !this.object.isBDOModel && (this.object instanceof HTMLElement)) {
+        if (isBDOModel(this.object) && isComponent<BaseComponentInstance>(this.object)) {
             const constructedType = constructTypeOfHTMLAttribute(this.object, this.property);
             if (!this.inDOMInitialized && this.object.getAttribute(this.property) && value !== constructedType) {
                 this.setValue(constructedType);
@@ -221,7 +220,7 @@ export class Attribute<T extends object = any, K extends prop<T> = any> extends 
      * @memberof Attribute
      */
     public reflectToDOMAttribute(value?: T[K] | Modification<any>) {
-        if (!isBrowser() || !(this.object instanceof HTMLElement)) return;
+        if (!isComponent<BaseComponentInstance>(this.object)) return;
         const stringKey = this.property.toString();
         const attrValue = this.object.getAttribute(stringKey);
         let setAttribute = true;
@@ -237,7 +236,7 @@ export class Attribute<T extends object = any, K extends prop<T> = any> extends 
 
         // Reflect property changes to attribute
         if (setAttribute && attrValue !== pTarget && attrValue !== JSON.stringify(pTarget).replace(/\"/g, "'")) {
-            (<any>this.object).setAttribute(stringKey, pTarget, false);
+            (this.object).setAttribute(stringKey, pTarget, false);
         }
     }
 

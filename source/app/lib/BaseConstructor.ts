@@ -1,10 +1,10 @@
 import { Binding } from "~bdo/lib/Binding";
 import { getMetadata, defineMetadata } from "~bdo/utils/metadata";
 import { isFunction } from "~bdo/utils/util";
-import { isComponent } from "~bdo/utils/framework";
+import { isComponent, IGetNamespaceStorageAddition } from "~bdo/utils/framework";
 import { ObjectTypeOptions } from "type-graphql/dist/decorators/ObjectType";
 
-export interface IBaseConstructorCtor {
+export interface IBaseConstructorCtor<T = any> extends IGetNamespaceStorageAddition<T> {
 
     /**
      * In generally this will be called for everything which is decorated with
@@ -23,14 +23,6 @@ export interface IBaseConstructorCtor {
      * @memberof IBaseConstructorCtor
      */
     renderTemplate?: () => void;
-
-    /**
-     * Usually used to get items from a storage like the local storage.
-     * The most important thing is, that this storage is a synchronous storage.
-     *
-     * @memberof IBaseConstructorCtor
-     */
-    getNamespacedStorage?: (key: string, nsProp: string, forceNS: string) => any;
 }
 /**
  * This parameters should only be used on models because on other objects they

@@ -177,9 +177,9 @@ export function BaseControllerFactory<TBase extends Constructor<any>>(extension:
          * @param {string} [nsProp]
          * @param {string} [forceNS]
          * @returns
-         * @memberof ClientModel
+         * @memberof BaseController
          */
-        public getNamespacedStorage(key: string, nsProp?: string, forceNS?: string) {
+        public getNamespacedStorage<K extends DefNonFuncPropNames<this>, P extends DefNonFuncPropNames<this>>(key: K, nsProp?: P, forceNS?: string) {
             return getNamespacedStorage(this, key, nsProp, forceNS);
         }
 
@@ -190,9 +190,9 @@ export function BaseControllerFactory<TBase extends Constructor<any>>(extension:
          * @param {*} newVal
          * @param {string} [nsProp]
          * @returns
-         * @memberof ClientModel
+         * @memberof BaseController
          */
-        public setUpdateNamespacedStorage(key: string, newVal: any, nsProp?: string) {
+        public setUpdateNamespacedStorage<K extends DefNonFuncPropNames<this>, P extends DefNonFuncPropNames<this>>(key: K, newVal: this[K], nsProp?: P) {
             return setUpdateNamespacedStorage(this, key, newVal, nsProp);
         }
 
@@ -202,9 +202,9 @@ export function BaseControllerFactory<TBase extends Constructor<any>>(extension:
          * @param {string} key
          * @param {string} [nsProp]
          * @returns
-         * @memberof ClientModel
+         * @memberof BaseController
          */
-        public deleteFromNamespacedStorage(key: string, nsProp?: string) {
+        public deleteFromNamespacedStorage<K extends DefNonFuncPropNames<this> | "*", P extends DefNonFuncPropNames<this>>(key: K, nsProp?: P) {
             return deleteFromNamespacedStorage(this, key, nsProp);
         }
 
