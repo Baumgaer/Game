@@ -3,9 +3,6 @@ import { merge, toURIPathPart } from '~bdo/utils/util';
 import { globalTemplateVars } from '~server/utils/environment';
 import { BDORoute } from '~bdo/lib/BDORoute';
 import { BaseServer } from "~server/lib/BaseServer";
-import { Logger } from "~server/lib/Logger";
-
-const logger = new Logger();
 
 /**
  * Provides basic functionality of a route for the express router and encapsulates
@@ -83,18 +80,6 @@ export class ServerRoute extends BDORoute {
     protected async handleGet(request: Request, response: Response, next: NextFunction): Promise<void> {
         let templateParams: IndexStructure;
         let content: string | null = null;
-        if (request.query.flush === "server" && process.env.NODE_ENV === "development") {
-            const redirectURL = request.baseUrl + request.path + Object.keys(request.query).map((key) => {
-                if (key === "flush") return '';
-                return key + '=' + request.query[key];
-            }).join('&');
-            logger.debug("restarting server");
-            response.redirect(redirectURL);
-            setTimeout(() => {
-                process.exit();
-            }, 500);
-            return;
-        }
 
         try {
             templateParams = await this.templateParams(request);

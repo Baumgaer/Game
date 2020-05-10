@@ -1,7 +1,7 @@
 import { Binding } from "~bdo/lib/Binding";
 import { getMetadata, defineMetadata } from "~bdo/utils/metadata";
 import { isFunction } from "~bdo/utils/util";
-import { isComponent, IGetNamespaceStorageAddition } from "~bdo/utils/framework";
+import { isComponent, IGetNamespaceStorageAddition, BaseComponentInstance, canGetNamespacedStorage } from "~bdo/utils/framework";
 import { ObjectTypeOptions } from "type-graphql/dist/decorators/ObjectType";
 
 export interface IBaseConstructorCtor<T = any> extends IGetNamespaceStorageAddition<T> {
@@ -144,7 +144,9 @@ export function baseConstructorFactory<T extends Constructor<IBaseConstructorCto
         }
 
         /**
-         * Assigns all const params to the current instance and initializes the life cycle
+         * Assigns all const params and other values which are used for
+         * initialization to the current instance and initializes the life
+         * cycle.
          *
          * @param {IndexStructure} constParams
          * @memberof BaseConstructor
@@ -152,23 +154,62 @@ export function baseConstructorFactory<T extends Constructor<IBaseConstructorCto
         public invokeLifeCycle(constParams: IndexStructure) {
             if (!(constParams instanceof Object)) constParams = {};
             let defaultSettings: IndexStructure = getMetadata(this, "defaultSettings") || {};
+            // Assign attributes for declarative instantiation of component
+            this.assignComponentDeclarativeAttributes(defaultSettings);
+            // Assign constParams for programmatically instantiation
             defaultSettings = Object.assign(defaultSettings, constParams);
-            if (isFunction(this.getNamespacedStorage)) {
-                const id = constParams.id || defaultSettings.id;
-                const cachedSettings = this.getNamespacedStorage("*", "id", id) || {};
-                for (const key in cachedSettings) {
-                    if (cachedSettings.hasOwnProperty(key)) {
-                        const element = defaultSettings[key];
-                        if (element instanceof Binding) {
-                            element.setValue(cachedSettings[key]);
-                        } else defaultSettings[key] = cachedSettings[key];
-                    }
-                }
-            }
+            // Assign cached settings which are the strongest settings
+            this.assignCachedSettings(constParams.id || defaultSettings.id, defaultSettings);
+            // Assign all merged settings which are collected
             Object.assign(this, defaultSettings);
             defineMetadata(this, "constructionComplete", true);
             if (isComponent(ctor) && isFunction(this.renderTemplate)) this.renderTemplate();
             if (isFunction(this.constructedCallback)) this.constructedCallback();
+        }
+
+        /**
+         * Assigns values of declared attributes in DOM to bindings and setters.
+         * This is important because DOM attributes are stronger than any
+         * default setting which implies that a binding should be changed, too.
+         *
+         * @private
+         * @param {IndexStructure<any>} defaultSettings
+         * @returns {void}
+         * @memberof BaseConstructor
+         */
+        private assignComponentDeclarativeAttributes(defaultSettings: IndexStructure<any>) {
+            if (!isComponent<BaseComponentInstance>(this)) return;
+            const attributes = Array.from(this.attributes.keys());
+            for (const attribute of attributes) {
+                const attrValue = this.getAttribute(attribute);
+                if (!attrValue) continue;
+                if (defaultSettings[attribute] && defaultSettings[attribute] instanceof Binding) {
+                    defaultSettings[attribute].setValue(attrValue);
+                } else Object.assign(defaultSettings, { [attribute]: attrValue });
+            }
+        }
+
+        /**
+         * Assigns values from cache to setters and bindings because they are
+         * the strongest settings (because they are cached).
+         *
+         * @private
+         * @param {string} id
+         * @param {IndexStructure<any>} defaultSettings
+         * @returns {void}
+         * @memberof BaseConstructor
+         */
+        private assignCachedSettings(id: string, defaultSettings: IndexStructure<any>) {
+            if (!canGetNamespacedStorage(this)) return;
+            const cachedSettings = this.getNamespacedStorage("*", "id", id) || {};
+            for (const key in cachedSettings) {
+                if (cachedSettings.hasOwnProperty(key)) {
+                    const element = defaultSettings[key];
+                    if (element instanceof Binding) {
+                        element.setValue(cachedSettings[key]);
+                    } else defaultSettings[key] = cachedSettings[key];
+                }
+            }
         }
     }
     return BaseConstructor;
