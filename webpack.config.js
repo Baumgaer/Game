@@ -150,7 +150,7 @@ module.exports = (_env, options) => {
             }),
             new CleanWebpackPlugin({
                 protectWebpackAssets: true,
-                cleanOnceBeforeBuildPatterns: ["!*.md"],
+                cleanOnceBeforeBuildPatterns: ["!*.md", "*.bundle.js"],
                 cleanStaleWebpackAssets: false
             }),
             new EventHooksPlugin({

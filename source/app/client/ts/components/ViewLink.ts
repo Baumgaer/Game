@@ -1,6 +1,9 @@
 import { BaseComponentFactory } from '~client/lib/BaseComponent';
 import { property, attribute, baseConstructor, watched } from '~bdo/utils/decorators';
 import { Test1 } from "~client/models/Test1";
+import { Logger } from "~client/lib/Logger";
+
+const logger = new Logger();
 
 /**
  * Test
@@ -73,7 +76,7 @@ export default class ViewLink extends BaseComponentFactory(HTMLAnchorElement) {
      * @memberof ViewLink
      */
     protected onTestTypeCheck(value: this["test"]) {
-        console.log("checking type of test with value", value);  // tslint:disable-line
+        logger.info("checking type of test with value", value);  // tslint:disable-line
     }
 
     /**
