@@ -10,7 +10,7 @@ const rimraf = require('rimraf');
 const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
 const TsconfigPathsPlugin = require('tsconfig-paths-webpack-plugin').TsconfigPathsPlugin;
 const FilterWarningsPlugin = require('webpack-filter-warnings-plugin');
-const CopyPlugin = require('copy-webpack-plugin');
+// const CopyPlugin = require('copy-webpack-plugin');
 const TerserPlugin = require('terser-webpack-plugin');
 const lessPluginCleanCSS = require('less-plugin-clean-css');
 const EventHooksPlugin = require('event-hooks-webpack-plugin');
@@ -135,6 +135,7 @@ module.exports = (_env, options) => {
         },
         plugins: [
             new ForkTsCheckerWebpackPlugin({
+                async: true,
                 useTypescriptIncrementalApi: true,
                 checkSyntacticErrors: true,
                 tsconfig: path.resolve(arp.path, "source", "app", "client", "ts", "tsconfig.json"),
@@ -161,11 +162,11 @@ module.exports = (_env, options) => {
                         rimraf.sync(tsOutDir);
                     }
                 }
-            }),
-            new CopyPlugin([{
-                from: path.resolve(arp.path, "node_modules", "source-map-support", "browser-source-map-support.js"),
-                to: path.resolve(arp.path, "out", "app", "client", "js", "browser-source-map-support.js")
-            }])
+            })
+            // new CopyPlugin([{
+            //     from: path.resolve(arp.path, "node_modules", "source-map-support", "browser-source-map-support.js"),
+            //     to: path.resolve(arp.path, "out", "app", "client", "js", "browser-source-map-support.js")
+            // }])
         ],
         module: {
             rules: [{

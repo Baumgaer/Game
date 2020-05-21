@@ -193,8 +193,8 @@ export class ClientModel extends BDOModel {
                 }
                 if (proxyVal instanceof ClientModel) proxyVal = proxyVal.getReferenceString();
                 // Get corresponding attribute
-                let wildCardMetadata: Attribute = getWildcardMetadata(this, strAttr);
-                if (wildCardMetadata instanceof Watched) wildCardMetadata = wildCardMetadata.subObject as Attribute;
+                let wildCardMetadata = getWildcardMetadata(this, strAttr) as (Attribute<this, typeof attribute> | Watched<this, typeof attribute>);
+                if (wildCardMetadata instanceof Watched) wildCardMetadata = wildCardMetadata.subObject as Attribute<this, typeof attribute>;
                 // Determine attributes to save in local database
                 if (!wildCardMetadata.doNotPersist) toSave[strAttr] = proxyVal;
                 // Determine attributes to send to server
