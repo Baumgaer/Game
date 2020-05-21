@@ -37,6 +37,6 @@ export default class TestComponent extends BaseComponentFactory(HTMLElement) {
      * @type {string}
      * @memberof TestComponent
      */
-    @property() protected test: string = "lalala";
+    @property() protected test: string = this.translation("hello");
 
 }
