@@ -5,6 +5,11 @@ import { removeElementFromArray } from "~bdo/utils/util";
 import { attribute, property, watched } from "~bdo/utils/decorators";
 import { ControllerRegistry } from "~client/lib/ControllerRegistry";
 import { Binding } from "~bdo/lib/Binding";
+import { isComponent, BaseComponentInstance } from '~bdo/utils/framework';
+import languageResources from "~static/locales";
+
+import i18next from "i18next";
+import LanguageDetector from 'i18next-browser-languagedetector';
 
 import type { Property } from "~bdo/lib/Property";
 import type { Attribute } from "~bdo/lib/Attribute";
@@ -15,6 +20,18 @@ type eventMapKey = keyof HTMLElementEventMap;
 type eventListenerFunc<K extends eventMapKey> = (this: ReturnType<typeof BaseControllerFactory>, ev: HTMLElementEventMap[K]) => any;
 
 interface IOwnerType extends InstanceType<ReturnType<typeof BaseComponentFactory>> { }
+
+i18next.use(LanguageDetector).init({
+    resources: languageResources,
+    cleanCode: true,
+    lowerCaseLng: true,
+    initImmediate: true,
+    detection: {
+        caches: ["sessionStorage"],
+        order: ['querystring', 'cookie', 'sessionStorage', 'navigator', 'htmlTag', 'path', 'subdomain']
+    }
+});
+
 /**
  * Creates a new BaseController based on extension.
  * NOTE: Every **Component** is a also controller.
@@ -168,6 +185,40 @@ export function BaseControllerFactory<TBase extends Constructor<any>>(extension:
          */
         public invokeLifeCycle<T extends BaseController>(_ConstParams?: ConstParams<T>) {
             throw new Error("This is not a BaseConstructor");
+        }
+
+        /**
+         * Translates a given translationKey in the given Namespace.
+         * If no translationKey is given, the namespace will be used as the
+         * translationKey and the used namespace will be detected by tha name
+         * of the component or - in case of controller - owner.
+         *
+         * @param {string} namespaceOrTranslationKey
+         * @param {string} [translationKey]
+         * @returns {string}
+         * @memberof BaseController
+         */
+        translation(namespaceOrTranslationKey: string, translationKey?: string): string {
+            let namespace = namespaceOrTranslationKey;
+            let key = translationKey;
+
+            // Because translations on client side are on
+            let classToTakeCareOf = this as unknown as BaseComponentInstance;
+            if (!isComponent<BaseComponentInstance>(this)) classToTakeCareOf = this.owner;
+
+            if (!key) {
+                namespace = classToTakeCareOf.className;
+                key = namespaceOrTranslationKey;
+            }
+
+            let translation = i18next.getResource(i18next.language, namespace, key);
+            let prototype = Object.getPrototypeOf(classToTakeCareOf.constructor);
+            while (!translation && isComponent(prototype) && !(namespaceOrTranslationKey && translationKey)) {
+                prototype = Object.getPrototypeOf(prototype);
+                translation = i18next.getResource(i18next.language, prototype.name, key);
+            }
+
+            return translation || `${namespace}:${key}`;
         }
 
         /**

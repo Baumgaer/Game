@@ -202,6 +202,13 @@ module.exports = (_env, options) => {
                     }
                 }]
             }, {
+                test: /locales/, // TODO: Test could be more specific
+                loader: '@alienfast/i18next-loader',
+                // options here
+                query: {
+                    basenameAsNamespace: true
+                }
+            }, {
                 test: /\.(njk|nunjucks)$/,
                 use: [{
                     loader: 'cache-loader',
