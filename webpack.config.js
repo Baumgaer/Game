@@ -26,6 +26,25 @@ const virtualEntryPointFilePath = path.resolve(arp.path, "var", "tmp", "virtualE
 let lastVirtualEntryPointHash = '';
 
 module.exports = (_env, options) => {
+    const cacheLoaderSettings = (cacheName) => {
+        return {
+            loader: 'cache-loader',
+            options: {
+                cacheDirectory: path.resolve(arp.path, "var", "buildcache", "frontend", cacheName)
+            }
+        };
+    };
+    const threadLoaderSettings = () => {
+        return {
+            loader: 'thread-loader',
+            options: {
+                // there should be 1 cpu for the fork-ts-checker-webpack-plugin
+                workers: Math.max(Math.floor((os.cpus().length) / 2), 1),
+                poolRespawn: false,
+                poolTimeout: options.watch ? Infinity : 1000 // set this to Infinity in watch mode - see https://github.com/webpack-contrib/thread-loader
+            }
+        };
+    };
     const settings = {
         entry: () => new Promise((resolve) => {
             const md5 = crypto.createHash("md5");
@@ -171,20 +190,7 @@ module.exports = (_env, options) => {
         module: {
             rules: [{
                 test: /\.tsx?$/,
-                use: [{
-                    loader: 'cache-loader',
-                    options: {
-                        cacheDirectory: path.resolve(arp.path, "var", "buildcache", "frontend", "typescript")
-                    }
-                }, {
-                    loader: 'thread-loader',
-                    options: {
-                        // there should be 1 cpu for the fork-ts-checker-webpack-plugin
-                        workers: (os.cpus().length - 1),
-                        poolRespawn: false,
-                        poolTimeout: options.watch ? Infinity : 1000 // set this to Infinity in watch mode - see https://github.com/webpack-contrib/thread-loader
-                    }
-                }, {
+                use: [cacheLoaderSettings("typescript"), threadLoaderSettings(), {
                     loader: 'babel-loader',
                     options: {
                         plugins: [
@@ -205,25 +211,10 @@ module.exports = (_env, options) => {
                 test: /locales/, // TODO: Test could be more specific
                 loader: '@alienfast/i18next-loader',
                 // options here
-                query: {
-                    basenameAsNamespace: true
-                }
+                query: { basenameAsNamespace: true }
             }, {
                 test: /\.(njk|nunjucks)$/,
-                use: [{
-                    loader: 'cache-loader',
-                    options: {
-                        cacheDirectory: path.resolve(arp.path, "var", "buildcache", "frontend", "templates")
-                    }
-                }, {
-                    loader: 'thread-loader',
-                    options: {
-                        // there should be 1 cpu for the fork-ts-checker-webpack-plugin
-                        workers: Math.floor((os.cpus().length - 1) / 2),
-                        poolRespawn: false,
-                        poolTimeout: options.watch ? Infinity : 1000 // set this to Infinity in watch mode - see https://github.com/webpack-contrib/thread-loader
-                    }
-                }, {
+                use: [cacheLoaderSettings("templates"), threadLoaderSettings(), {
                     loader: 'nunjucks-loader',
                     query: {
                         sourceMap: 'inline',
@@ -233,28 +224,14 @@ module.exports = (_env, options) => {
                 }]
             }, {
                 test: /\.less$/,
-                use: [{
-                    loader: 'cache-loader',
-                    options: {
-                        cacheDirectory: path.resolve(arp.path, "var", "buildcache", "frontend", "styles")
-                    }
-                }, {
+                use: [cacheLoaderSettings("styles"), threadLoaderSettings(), {
                     loader: 'to-string-loader'
                 }, {
                     loader: 'css-loader',
-                    options: {
-                        url: false
-                    }
+                    options: { url: false }
                 }, {
                     loader: 'less-loader',
-                    options: {
-                        lessOptions: {
-                            url: false,
-                            plugins: [
-                                new lessPluginCleanCSS({ advanced: true })
-                            ]
-                        }
-                    }
+                    options: { lessOptions: { url: false, plugins: [new lessPluginCleanCSS({ advanced: true })] } }
                 }]
             }]
         }
