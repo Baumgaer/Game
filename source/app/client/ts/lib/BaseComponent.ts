@@ -468,26 +468,25 @@ export function BaseComponentFactory<TBase extends Constructor<HTMLElement>>(HTM
          */
         protected renderTemplate() {
             // Render template only if this component doesn't extend a native one
-            if (!(<any>this.constructor).extends) {
-                // Attach a shadow root to the element.
-                let stringToParse = null;
-                const fields: IndexStructure = {};
-                for (const [key, value] of this.properties.entries()) {
-                    if (!isPrimitive(value.valueOf())) continue;
-                    fields[key] = value.valueOf();
-                }
-                for (const [key, value] of this.attributes.entries()) {
-                    if (!isPrimitive(value.valueOf())) continue;
-                    fields[key] = value.valueOf();
-                }
-                if (isString(this.templateString)) stringToParse = renderString(this.templateString, fields);
-                if (isObject(this.templateString)) stringToParse = (<Template>this.templateString).render(fields);
-                if (stringToParse) {
-                    const shadowRoot = this.attachShadow({ mode: 'open' });
-                    const doc = new DOMParser().parseFromString(`<style>${this.styleString}</style>${stringToParse}`, 'text/html');
-                    shadowRoot.appendChild(doc.head.firstChild!);
-                    shadowRoot.appendChild(doc.body.firstChild!);
-                }
+            if ((<any>this.constructor).extends) return;
+            // Attach a shadow root to the element.
+            let stringToParse = null;
+            const fields: IndexStructure = {};
+            for (const [key, value] of this.properties.entries()) {
+                if (!isPrimitive(value.valueOf())) continue;
+                fields[key] = value.valueOf();
+            }
+            for (const [key, value] of this.attributes.entries()) {
+                if (!isPrimitive(value.valueOf())) continue;
+                fields[key] = value.valueOf();
+            }
+            if (isString(this.templateString)) stringToParse = renderString(this.templateString, fields);
+            if (isObject(this.templateString)) stringToParse = (<Template>this.templateString).render(fields);
+            if (stringToParse) {
+                const shadowRoot = this.attachShadow({ mode: 'open' });
+                const doc = new DOMParser().parseFromString(`<style>${this.styleString}</style>${stringToParse}`, 'text/html');
+                shadowRoot.appendChild(doc.head.firstChild!);
+                shadowRoot.appendChild(doc.body.firstChild!);
             }
         }
     }

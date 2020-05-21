@@ -2,6 +2,9 @@
 node_modules
 .vscode
 
+# Third-Party created stuff
+.nyc_output
+
 # Development configuration
 out/app/config/development/**/*.ini
 out/app/client/config/development/**/*.ini
@@ -25,9 +28,6 @@ source/app/views/**/*
 source/app/server/config/**/*
 source/app/server/views/**/*
 
-# Third-Party created stuff
-.nyc_output
-
 # Variable content
 var/*/*
 var/*.*
@@ -40,3 +40,4 @@ out/**/*.*.js
 out/app/*.js
 out/lintRules/*.js
 out/*.js
+out/app/client/css/*.css
