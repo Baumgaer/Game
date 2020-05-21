@@ -40,4 +40,4 @@ out/**/*.*.js
 out/app/*.js
 out/lintRules/*.js
 out/*.js
-out/app/client/css/*.css
+out/app/client/css/**/*.css
