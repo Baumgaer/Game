@@ -84,7 +84,7 @@
         "eslint": "^7.4.0",
         "eslint-plugin-mysticatea": "^4.2.4",
         "event-hooks-webpack-plugin": "^2.1.7",
-        "fork-ts-checker-webpack-plugin": "^4.1.6",
+        "fork-ts-checker-webpack-plugin": "^5.0.7",
         "grunt-contrib-watch-chokidar": "^1.0.0",
         "husky": "^4.2.5",
         "js-yaml": "^3.14.0",
