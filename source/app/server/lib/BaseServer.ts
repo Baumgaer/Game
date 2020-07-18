@@ -5,8 +5,8 @@ import helmet from 'helmet';
 import compression from 'compression';
 import expressSession from 'express-session';
 import connectRedis from 'connect-redis';
-import expressGraphQL from 'express-graphql';
 import ms from "ms";
+import { graphqlHTTP } from 'express-graphql';
 import { buildSchema } from 'type-graphql';
 import { resolve } from 'path';
 import { path as rootPath } from 'app-root-path';
@@ -282,7 +282,7 @@ export abstract class BaseServer {
         if (isNonEmptyArray(resolvers)) {
             const pubSub = new GraphQLRedisPubSub({ publisher, subscriber });
             this.apiSchema = await buildSchema({ resolvers, pubSub, skipCheck: true });
-            this.app.use(pathsConfig.apiEntryPoint, expressGraphQL({
+            this.app.use(pathsConfig.apiEntryPoint, graphqlHTTP({
                 schema: this.apiSchema,
                 graphiql: process.env.NODE_ENV === 'development' ? true : false
             }));
