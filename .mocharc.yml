@@ -1,0 +1,7 @@
+spec: './out/specs/**/*.spec.js'
+recursive: true
+retries: 3
+slow: 10000
+require:
+    - 'source-map-support/register'
+    - './out/specs/mocha.env.js'
