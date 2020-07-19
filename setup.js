@@ -1,10 +1,42 @@
+const childProcess = require("child_process");
+
+/**
+ * Starts the same process with same arguments and exits the current process
+ *
+ * @returns {void}
+ */
+function restartProcess() {
+    childProcess.execSync(`node ${__filename} ${process.argv.slice(2).join(" ")}`, {
+        stdio: 'inherit'
+    });
+    process.exit();
+}
+
+try {
+    // Check if minimum dependency is installed and if not make a npm install
+    require.resolve("check-dependencies");
+} catch (error) {
+    if (error.code === "MODULE_NOT_FOUND") {
+        console.warn("First execution? installing dependencies!");
+        childProcess.execSync('npm install', { stdio: 'inherit' });
+        restartProcess();
+    }
+}
+// Check if all dependencies are installed and if not make a npm install && npm prune
+const checkDependencies = require("check-dependencies");
+const checkResult = checkDependencies.sync();
+if (!(checkResult instanceof Promise) && checkResult.error.length) {
+    console.warn("Not all dependencies are installed! Installing missing dependencies");
+    childProcess.execSync('npm install && npm prune', { stdio: 'inherit' });
+    restartProcess();
+}
+
 const fs = require('graceful-fs');
 const arp = require('app-root-path');
 const path = require('path');
 const colors = require('colors');
 const commandLineArgs = require('command-line-args');
 const commandLineUsage = require('command-line-usage');
-const childProcess = require("child_process");
 
 let VERBOSE = false;
 
@@ -31,9 +63,7 @@ function walkDir(dir, dirList) {
         try {
             isDir = fs.statSync(newDir).isDirectory() && fs.realpathSync(newDir) === newDir;
         } catch (error) {
-            if (VERBOSE) {
-                console.log(`${colors.yellow('WARNING')}: ${colors.cyan(newDir)} marked as ${colors.red('UNKNOWN')}!`);
-            }
+            if (VERBOSE) console.log(`${colors.yellow('WARNING')}: ${colors.cyan(newDir)} marked as ${colors.red('UNKNOWN')}!`);
         }
         if (isDir) {
             dirList.push(newDir);
@@ -50,6 +80,8 @@ function walkDir(dir, dirList) {
  * @returns {void}
  */
 function createJunctions() {
+    console.log(colors.bold.green("create junctions"));
+
     let outPath = path.join(arp.path, 'out');
     let sourcePath = path.join(arp.path, 'source');
     let outPaths = walkDir(outPath);
@@ -62,7 +94,7 @@ function createJunctions() {
         if (!sourcePaths.includes(item.replace(outPath, sourcePath))) {
             if (!item.includes(lastJunction) && !settings.junctions.ignoredPaths.includes(item)) {
                 lastJunction = item;
-                console.log(colors.cyan.bold('create junction:'), item, colors.cyan('<=>'), target);
+                if (VERBOSE) console.log(colors.cyan.bold('create junction:'), item, colors.cyan('<=>'), target);
                 fs.symlink(item, target, 'junction', (error) => {
                     if (error && error.code === 'EEXIST') {
                         fs.unlinkSync(target);
@@ -80,12 +112,17 @@ function createJunctions() {
  * @returns {void}
  */
 function install() {
+    console.log(colors.bold.green("installing project"));
+
     childProcess.execSync('npm install && npm prune', {
-        stdio: 'inherit'
+        stdio: VERBOSE ? 'inherit' : "ignore"
     });
+
     createJunctions();
+
+    console.log(colors.bold.green("building project"));
     childProcess.execSync('npm run build', {
-        stdio: 'inherit'
+        stdio: VERBOSE ? 'inherit' : "ignore"
     });
 }
 
@@ -131,16 +168,32 @@ if (require && require.main === module) {
     ];
     let options = commandLineArgs(optionList);
     VERBOSE = options.verbose;
+
+    const providedArguments = [];
+    for (const option in options) {
+        if (option in options) {
+            const element = options[option];
+            if (element) providedArguments.push(option);
+        }
+    }
+
+    if (providedArguments.length) {
+        if (providedArguments.length === 1 && providedArguments.includes("verbose")) options.help = true;
+        if (providedArguments.length > 1 && providedArguments.includes("help")) options.help = false;
+    } else options.help = true;
+
     if (options.help) console.log(commandLineUsage(sections));
     if (options.install) install();
     if (options.junctions) createJunctions();
     if (!options.help) {
-        console.log(
-            `\n${colors.magenta.bold(
-                'NOTE'
-            )}: Execute junction creation on original OS to see junctions in the editors tree.`
-        );
-        console.log('      Type node setup.js --help for more information!');
+        if (options.junctions || options.install) {
+            console.log(
+                `\n${colors.magenta.bold(
+                    'NOTE'
+                )}: Execute junction creation on original OS to see junctions in the editors tree.`
+            );
+            console.log('      Type node setup.js --help for more information!');
+        }
         console.log(colors.green('\nFINISHED!'));
     }
 }

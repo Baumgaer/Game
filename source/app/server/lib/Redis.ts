@@ -100,8 +100,8 @@ export class Redis extends IORedis {
      * @memberof Redis
      */
     // @ts-ignore
-    public set(key: IORedis.KeyType, value: IndexStructure | IORedis.ValueType): Promise<string> {
-        return new Promise<string>(async (resolve) => {
+    public set(key: IORedis.KeyType, value: IndexStructure | IORedis.ValueType): Promise<string | null> {
+        return new Promise(async (resolve) => {
             if (typeof value === "number" || typeof value === "string" || value instanceof Array || value instanceof Buffer) {
                 resolve(await super.set(key, value));
             } else resolve(await super.set(key, JSON.stringify(value)));
@@ -117,8 +117,8 @@ export class Redis extends IORedis {
      * @returns {Promise<string>}
      * @memberof Redis
      */
-    public update(key: IORedis.KeyType, value: IndexStructure): Promise<string> {
-        return new Promise<string>(async (resolve) => {
+    public update(key: IORedis.KeyType, value: IndexStructure): Promise<string | null> {
+        return new Promise(async (resolve) => {
             const propsToRemove = pickBy(value, isUndefined);
             value = omit(merge(await this.get(key), value), Object.keys(propsToRemove));
             resolve(await this.set(key, value));
