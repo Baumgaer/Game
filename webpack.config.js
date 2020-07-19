@@ -3,27 +3,18 @@ const path = require('path');
 const os = require('os');
 const webpack = require('webpack');
 const fs = require('graceful-fs');
-const crypto = require('crypto');
-const mkdirp = require('mkdirp');
 const rimraf = require('rimraf');
 
 const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
 const TsconfigPathsPlugin = require('tsconfig-paths-webpack-plugin').TsconfigPathsPlugin;
 const FilterWarningsPlugin = require('webpack-filter-warnings-plugin');
-// const CopyPlugin = require('copy-webpack-plugin');
 const TerserPlugin = require('terser-webpack-plugin');
 const lessPluginCleanCSS = require('less-plugin-clean-css');
 const EventHooksPlugin = require('event-hooks-webpack-plugin');
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 
 const projectStructureUtils = require('./out/utils/projectStructure');
-
-const appDir = path.resolve(arp.path, "source", "app");
-const routesDir = path.resolve(arp.path, "source", "app", "client", "routes");
-const notStartWith = path.resolve(appDir, "server");
-const virtualEntryPointFilePath = path.resolve(arp.path, "var", "tmp", "virtualEntryPoint.ts");
-
-let lastVirtualEntryPointHash = '';
+const componentsDir = path.resolve(arp.path, "source", "app", "client", "ts", "components");
 
 module.exports = (_env, options) => {
     const cacheLoaderSettings = (cacheName) => {
@@ -47,34 +38,13 @@ module.exports = (_env, options) => {
     };
     const settings = {
         entry: () => new Promise((resolve) => {
-            const md5 = crypto.createHash("md5");
             const entryPoints = [
-                path.resolve(arp.path, "node_modules/@webcomponents/webcomponentsjs/webcomponents-bundle.js"),
-                virtualEntryPointFilePath
+                path.resolve(arp.path, "node_modules/@webcomponents/webcomponentsjs/webcomponents-bundle.js")
             ];
-            const virtualEntryPoints = [];
-            projectStructureUtils.walk(appDir, (file) => {
-                if (file.endsWith(".ts") &&
-                    !file.endsWith(".d.ts") &&
-                    !file.startsWith(notStartWith) &&
-                    path.dirname(file) !== appDir &&
-                    path.dirname(file) !== routesDir
-                ) {
-                    entryPoints.push(file);
-                    if (file.startsWith(path.resolve(appDir, "client", "ts", "routes"))) {
-                        virtualEntryPoints.push(path.basename(file).replace(".ts", ""));
-                    }
-                }
-            }).then(() => {
-                const fileContent = `(<any>window).virtualRoutes = ${JSON.stringify(virtualEntryPoints)};\n`;
-                const currentVirtualEntryPointHash = md5.update(fileContent).digest('hex');
-                if (currentVirtualEntryPointHash != lastVirtualEntryPointHash) {
-                    lastVirtualEntryPointHash = currentVirtualEntryPointHash;
-                    mkdirp.sync(path.dirname(virtualEntryPointFilePath));
-                    fs.writeFileSync(virtualEntryPointFilePath, fileContent);
-                }
-                resolve(entryPoints);
-            });
+            projectStructureUtils.walk(componentsDir, (file) => {
+                if (file.endsWith(".d.ts") || !file.endsWith(".ts")) return;
+                entryPoints.push(file);
+            }).then(() => resolve(entryPoints));
         }),
         output: {
             filename: "bundle.js",
@@ -179,29 +149,14 @@ module.exports = (_env, options) => {
                 done: () => {
                     // Cleanup annoying output of client because of type only imports triggered by ts-node...
                     const tsOutDir = path.resolve(arp.path, "out", "app", "client", "ts");
-                    if (fs.existsSync(tsOutDir)) {
-                        rimraf.sync(tsOutDir);
-                    }
+                    if (fs.existsSync(tsOutDir)) rimraf.sync(tsOutDir);
                 }
             })
-            // new CopyPlugin([{
-            //     from: path.resolve(arp.path, "node_modules", "source-map-support", "browser-source-map-support.js"),
-            //     to: path.resolve(arp.path, "out", "app", "client", "js", "browser-source-map-support.js")
-            // }])
         ],
         module: {
             rules: [{
                 test: /\.tsx?$/,
                 use: [cacheLoaderSettings("typescript"), threadLoaderSettings(), {
-                    loader: 'babel-loader',
-                    options: {
-                        plugins: [
-                            "@babel/plugin-proposal-nullish-coalescing-operator",
-                            "@babel/plugin-proposal-optional-chaining"
-                        ],
-                        sourceMap: 'inline'
-                    }
-                }, {
                     loader: 'ts-loader',
                     options: {
                         happyPackMode: true, // IMPORTANT! use happyPackMode mode to speed-up compilation and reduce errors reported to webpack
@@ -239,7 +194,6 @@ module.exports = (_env, options) => {
         }
     };
     if (options.watch) {
-        settings.plugins.push(new webpack.WatchIgnorePlugin([path.basename(virtualEntryPointFilePath)]));
         settings.watchOptions = {
             ignored: ["node_modules", "var/**/*"]
         };

@@ -26,6 +26,8 @@
             "grunt",
             "mocha",
             "express",
+            "webpack",
+            "webpack-env",
             "babylonjs",
             "babylonjs-gui",
             "babylonjs-loaders",

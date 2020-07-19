@@ -43,10 +43,8 @@ export default class ViewRouter extends BaseComponentFactory(HTMLElement) {
      * @memberof ViewRouter
      */
     private routeCollection() {
-        for (const route of window.virtualRoutes) {
-            const myRoute = require(`./../routes/${route}.ts`).default;
-            this.singeRouteCollection(myRoute);
-        }
+        const context = require.context("./../routes", true, /.+\.ts/, "sync");
+        context.keys().forEach((key) => this.singeRouteCollection(context(key).default));
     }
 
     /**
@@ -58,15 +56,11 @@ export default class ViewRouter extends BaseComponentFactory(HTMLElement) {
      * @memberof ViewRouter
      */
     private singeRouteCollection(Route: typeof ClientRoute) {
-        try {
-            if (!includesMemberOfList(<string[]>Route.attachToServers, [<string>global.process.env.name, '*'])) return;
-            const RouteClass = new Route();
-            if (!RouteClass.isClientRoute) {
-                throw new Error(`${RouteClass.constructor.name} is not instance of ~client/lib/BaseRoute`);
-            }
-            this.router.on(RouteClass.router);
-        } catch (error) {
-            throw error;
+        if (!includesMemberOfList(<string[]>Route.attachToServers, [<string>global.process.env.name, '*'])) return;
+        const RouteClass = new Route();
+        if (!RouteClass.isClientRoute) {
+            throw new Error(`${RouteClass.constructor.name} is not instance of ~client/lib/BaseRoute`);
         }
+        this.router.on(RouteClass.router);
     }
 }
