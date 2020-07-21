@@ -33,9 +33,8 @@ type optsIdx = IBaseConstructorOpts | number;
  * Example: The property is named test and is of type string, then the
  * reactionFunction is called onTestChange.
  *
- * @export
- * @param {IndexStructure} params
- * @returns {PropertyDecorator}
+ * @param params The parameters which effects the behavior of the watcher. Default: {}
+ * @returns A property descriptor to watch the property
  */
 export function watched(params: IWatchedParams = {}): PropertyDecorator {
     return (target: any, key: string | symbol) => {
@@ -52,12 +51,11 @@ export function watched(params: IWatchedParams = {}): PropertyDecorator {
  * Furthermore it handles type checking, caching and more. Read comments of
  * IPropertyParams for more information.
  *
- * @export
- * @param {FuncOrPropParams} [typeFunc] Used in type guard if the type is not
- *                                    determinable automatically for example
- *                                    the types inside an array or union types
- * @param {IPropertyParams} [params] used to modify the behavior of the decorator
- * @returns {PropertyDecorator}
+ * @param typeFunc Used in type guard if the type is not
+ *                 determinable automatically for example
+ *                 the types inside an array or union types
+ * @param params used to modify the behavior of the decorator
+ * @returns A property descriptor to mark a field as a property and give more functionality
  */
 export function property(typeFunc?: FuncOrPropParams, params?: IPropertyParams): PropertyDecorator {
     return (target: any, key: string | symbol) => {
@@ -86,12 +84,12 @@ export function property(typeFunc?: FuncOrPropParams, params?: IPropertyParams):
  *
  * Read IAttributeParams for more Information.
  *
- * @export
- * @param {FuncOrAttrParams} [typeFunc] Used in type guard if the type is not
- *                                      determinable automatically for example
- *                                      the types inside an array or union types
- * @param {IAttributeParams} [params] used to modify the behavior of the decorator
- * @returns {PropertyDecorator}
+ * @param typeFunc Used in type guard if the type is not
+ *                 determinable automatically for example
+ *                 the types inside an array or union types
+ * @param params used to modify the behavior of the decorator
+ * @returns A property descriptor to mark a field as an attribute which adds
+ *          functionality to components and models
  */
 export function attribute(typeFunc?: FuncOrAttrParams, params?: IAttributeParams): PropertyDecorator {
     return (target: any, key: string | symbol) => {
@@ -120,13 +118,14 @@ export function attribute(typeFunc?: FuncOrAttrParams, params?: IAttributeParams
  * is used on the server (in case of name correction) and some options which allow
  * to define name of database or collection and many more.
  *
- * @export
- * @param {nameOptsIdx} [name]
- * @param {optsIdx} [params]
- * @param {number} [index=0]
- * @returns {ClassDecorator}
+ * @param name The name which effects models in the way to query them
+ * @param params The params which mainly effects models in their behavior and
+ *               prevents abstract components to be registered
+ * @param index The index of the position of the constructor parameters. Default: 0
+ * @returns A class decorator which changes the prototype chain to achieve better
+ *          OOP behavior and implements a life cycle
  */
-export function baseConstructor(name?: nameOptsIdx, params?: optsIdx, index: number = 0): ClassDecorator {
+export function baseConstructor(name?: nameOptsIdx, params?: optsIdx, index = 0): ClassDecorator {
 
     return (ctor: any) => {
         const prototype = Object.getPrototypeOf(ctor);
@@ -170,12 +169,12 @@ export function baseConstructor(name?: nameOptsIdx, params?: optsIdx, index: num
     };
 }
 
-export let query = Query;
-export let arg = Arg;
-export let args = Args;
-export let resolver = Resolver;
-export let root = Root;
-export let mutation = Mutation;
-export let subscription = Subscription;
-export let pubSub = PubSub;
-export let inputType = InputType;
+export const query = Query;
+export const arg = Arg;
+export const args = Args;
+export const resolver = Resolver;
+export const root = Root;
+export const mutation = Mutation;
+export const subscription = Subscription;
+export const pubSub = PubSub;
+export const inputType = InputType;

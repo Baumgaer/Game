@@ -4,17 +4,16 @@ import { BDOModel } from '~bdo/lib/BDOModel';
 /**
  * Test
  *
- * @export
- * @param {*} [ctor=BDOModel]
- * @returns
+ * @template TBase
+ * @param ctor The type to extend with
+ * @returns The mixed in class BDOTest
  */
 export function BDOTestFactory<TBase extends Constructor<BDOModel>>(ctor: TBase) {
 
     /**
      * Test
      *
-     * @export
-     * @class Test
+     * @extends TBase
      */
     @baseConstructor({ isAbstract: true, collectionName: "BDOTest" })
     abstract class BDOTest extends ctor {
@@ -39,55 +38,44 @@ export function BDOTestFactory<TBase extends Constructor<BDOModel>>(ctor: TBase)
          * Test
          *
          * @protected
-         * @param {this["test"]} changed
-         * @memberof ViewLink
-         */
-        protected onTestChange(changed: this["tester"]) {
-            console.log("test changed", changed, this);  // tslint:disable-line
-        }
-
-        /**
-         * Test
-         *
-         * @protected
-         * @param {this["test"]} init
+         * @param init The value of tester on initialization
          * @memberof ViewLink
          */
         protected onTesterInit(init: this["tester"]) {
-            console.log("tester init", init, this);  // tslint:disable-line
+            console.log("tester init", init, this);  // eslint-disable-line
         }
 
         /**
          * Test
          *
          * @protected
-         * @param {this["test"]} changed
+         * @param changed The old value of tester
          * @memberof ViewLink
          */
         protected onTesterChange(changed: this["tester"]) {
-            console.log("tester changed", changed, this);  // tslint:disable-line
+            console.log("tester changed", changed, this);  // eslint-disable-line
         }
 
         /**
          * Test
          *
          * @protected
-         * @param {this["test"]} added
+         * @param added The value which has been added to tester
          * @memberof ViewLink
          */
-        protected onTesterAdd(added: this["tester"]) {
-            console.log("tester added", added, this);  // tslint:disable-line
+        protected onTesterAdd(added: this["tester"][0]) {
+            console.log("tester added", added, this);  // eslint-disable-line
         }
 
         /**
          * Test
          *
          * @protected
-         * @param {this["test"]} removed
+         * @param removed The value of tester which has been removed
          * @memberof ViewLink
          */
-        protected onTesterRemove(removed: this["tester"]) {
-            console.log("tester removed", removed, this);  // tslint:disable-line
+        protected onTesterRemove(removed: this["tester"][0]) {
+            console.log("tester removed", removed, this);  // eslint-disable-line
         }
 
     }

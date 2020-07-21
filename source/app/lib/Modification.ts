@@ -3,15 +3,12 @@
  * equal to the old value.
  * It also forces the execution of a setter when the value must be undefined
  * but the setter must be executed
- *
- * @class Modification
  */
 export class Modification<T extends "delete" | "update"> {
 
     /**
      * Represents the type of the modification. Things should happen depending in this.
      *
-     * @type {T}
      * @memberof Modification
      */
     public type: T;
@@ -20,7 +17,6 @@ export class Modification<T extends "delete" | "update"> {
      * The value which should be used to reset the property/attribute
      *
      * @private
-     * @type {*}
      * @memberof Modification
      */
     private value: any;
@@ -33,7 +29,7 @@ export class Modification<T extends "delete" | "update"> {
     /**
      * Returns the original value
      *
-     * @returns
+     * @returns The value of the modification
      * @memberof Modification
      */
     public valueOf() {
@@ -43,7 +39,7 @@ export class Modification<T extends "delete" | "update"> {
     /**
      * Updated the value which was used at initialization
      *
-     * @param {*} value
+     * @param value The value to set on the modification
      * @memberof Modification
      */
     public setValue(value: any) {

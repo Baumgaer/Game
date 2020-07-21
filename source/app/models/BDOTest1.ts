@@ -4,18 +4,16 @@ import { baseConstructor, attribute } from "~bdo/utils/decorators";
 /**
  * Test
  *
- * @export
- * @param {*} [ctor=BDOTestFactory()]
- * @returns
+ * @template TBase
+ * @param ctor The type to extend with
+ * @returns The mixed in class BDOTest1
  */
 export function BDOTest1Factory<TBase extends ReturnType<typeof BDOTestFactory>>(ctor: TBase) {
 
     /**
      * Test
      *
-     * @export
-     * @class Test1
-     * @extends {Test}
+     * @extends TBase
      */
     @baseConstructor({ isAbstract: true, collectionName: "BDOTest1" })
     abstract class BDOTest1 extends ctor {
@@ -31,7 +29,7 @@ export function BDOTest1Factory<TBase extends ReturnType<typeof BDOTestFactory>>
         /**
          * Test
          *
-         * @returns
+         * @returns A test string
          * @memberof Test1
          */
         public doSomething() {
@@ -42,7 +40,7 @@ export function BDOTest1Factory<TBase extends ReturnType<typeof BDOTestFactory>>
          * Test
          *
          * @protected
-         * @param {string} value
+         * @param _value The initialization value
          * @memberof Test1
          */
         protected onOhaInit(_value: string) {

@@ -6,9 +6,7 @@ import { baseConstructor } from "~bdo/utils/decorators";
 /**
  * Test
  *
- * @export
- * @class Test1
- * @extends {BDOTest1Factory()}
+ * @extends returnType<BDOTest1Factory<Test>>
  */
 @baseConstructor({ collectionName: "Test1" })
 export class Test1 extends BDOTest1Factory(Test) {
@@ -20,6 +18,7 @@ export class Test1 extends BDOTest1Factory(Test) {
     /**
      * Test
      *
+     * @returns The unsaved changes of this parent model
      * @memberof Test1
      */
     public async wadde(): Promise<IndexStructure | undefined> {

@@ -10,9 +10,7 @@ import { ModelRegistry } from "~bdo/lib/ModelRegistry";
  * Provides basic functionality and fields for each Model on each side
  * (server and client)
  *
- * @export
  * @abstract
- * @class BDOModel
  */
 @baseConstructor({ isAbstract: true })
 export abstract class BDOModel implements IBaseConstructorOpts {
@@ -22,7 +20,7 @@ export abstract class BDOModel implements IBaseConstructorOpts {
      *
      * @readonly
      * @protected
-     * @type {Map<string, Array<Binding<this, DefNonFuncPropNames<this>>>>}
+     * @returns A map with all bindings on this model
      * @memberof BDOModel
      */
     protected get bindings(): Map<string, Binding<this>[]> {
@@ -35,15 +33,12 @@ export abstract class BDOModel implements IBaseConstructorOpts {
      * baseConstructor - for the GraphQL resolver
      *
      * @static
-     * @type {*}
      * @memberof BDOModel
      */
     public static readonly graphQLType: any = Object.getPrototypeOf(BDOModel.constructor);
 
     /**
      * @inheritdoc
-     *
-     * This will be set by BaseConstructor
      *
      * @static
      * @type {string}
@@ -53,8 +48,6 @@ export abstract class BDOModel implements IBaseConstructorOpts {
 
     /**
      * @inheritdoc
-     *
-     * This will be set by BaseConstructor
      *
      * @static
      * @type {string}
@@ -115,25 +108,26 @@ export abstract class BDOModel implements IBaseConstructorOpts {
      */
     @attribute() public readonly className: string = Object.getPrototypeOf(this.constructor).name;
 
+    constructor() {
+        ModelRegistry.getInstance().register(this);
+    }
+
     /**
      * Test
      *
      * @static
-     * @param {string} id
+     * @param this The this context of the method which can not be overwritten
+     * @param _id The id of the instance of the model
      * @memberof BDOModel
      */
     public static getInstanceByID<T extends BDOModel>(this: new () => T, _id: T["id"]): Promise<T | undefined> {
         throw new Error("Not implemented");
     }
 
-    constructor() {
-        ModelRegistry.getInstance().register(this);
-    }
-
     /**
      * Returns the reference string which is stored in the database instead of the model itself
      *
-     * @returns
+     * @returns A string representing the model in the database within another model
      * @memberof BDOModel
      */
     public getReferenceString() {
@@ -147,9 +141,9 @@ export abstract class BDOModel implements IBaseConstructorOpts {
      *
      * @template K
      * @template M
-     * @param {K} propName
-     * @param {M} [mode]
-     * @returns {Binding<this, K> as this[K] | undefined}
+     * @param propName The name of the property to bind to the caller
+     * @param mode The mode which should be used for write access
+     * @returns A binding to the models property
      * @memberof BDOModel
      */
     public bind<K extends DefNonFuncPropNames<this>, M extends writeRights = "ReadWrite">(propName: K, mode?: M) {
@@ -159,7 +153,7 @@ export abstract class BDOModel implements IBaseConstructorOpts {
     /**
      * Converts the current instance if this to a stringified JSON with properties only
      *
-     * @returns
+     * @returns The model as a JSON string
      * @memberof BDOModel
      */
     public toString() {
@@ -172,7 +166,7 @@ export abstract class BDOModel implements IBaseConstructorOpts {
      * NOTE: This will be used by JSON.stringify() to make a string out of this
      *       instance.
      *
-     * @returns
+     * @returns The model as a simple JSON
      * @memberof BDOModel
      */
     public toJSON() {
@@ -187,6 +181,33 @@ export abstract class BDOModel implements IBaseConstructorOpts {
     }
 
     /**
+     * Checks if a value of an attribute is stored in the database
+     *
+     * @abstract
+     * @param attr The attribute which should be checked for persisted state or not
+     * @returns true if attribute is not persisted and false else
+     * @memberof BDOModel
+     */
+    public async isUnsaved(attr: DefNonFuncPropNames<this>): Promise<boolean> {
+        const unsavedChanges = await this.getUnsavedChanges();
+        let unsaved = false;
+        if (unsavedChanges && attr in unsavedChanges) unsaved = true;
+        return Promise.resolve(unsaved);
+    }
+
+    /**
+     * Checks if all values of all attributes are stored in the database
+     *
+     * @abstract
+     * @returns true if there are unsaved changes and false else
+     * @memberof BDOModel
+     */
+    public async hasUnsavedChanges(): Promise<boolean> {
+        const unsavedChanges = await this.getUnsavedChanges();
+        return Promise.resolve(Boolean(Object.keys(unsavedChanges).length));
+    }
+
+    /**
      * Stores the unsaved changes into the corresponding collection of the model.
      * It is also possible to save only a single attribute.
      *
@@ -198,44 +219,17 @@ export abstract class BDOModel implements IBaseConstructorOpts {
      * Discards the changes of the given attribute or all attributes to the value saved in the database
      *
      * @abstract
-     * @param {DefNonFuncPropNames<this>} attr
+     * @param attr The attribute which should be discarded
      * @returns {Promise<void>}
      * @memberof BDOModel
      */
     public abstract async discard(attr?: DefNonFuncPropNames<this>): Promise<void>;
 
     /**
-     * Checks if a value of an attribute is stored in the database
-     *
-     * @abstract
-     * @param {DefNonFuncPropNames<this>} attr
-     * @returns {Promise<boolean>}
-     * @memberof BDOModel
-     */
-    public async isUnsaved(attr: DefNonFuncPropNames<this>): Promise<boolean> {
-        const unsavedChanges = await this.getUnsavedChanges();
-        let unsaved = false;
-        if (unsavedChanges && unsavedChanges.hasOwnProperty(attr)) unsaved = true;
-        return Promise.resolve(unsaved);
-    }
-
-    /**
-     * Checks if all values of all attributes are stored in the database
-     *
-     * @abstract
-     * @returns {Promise<boolean>}
-     * @memberof BDOModel
-     */
-    public async hasUnsavedChanges(): Promise<boolean> {
-        const unsavedChanges = await this.getUnsavedChanges();
-        return Promise.resolve(Boolean(Object.keys(unsavedChanges).length));
-    }
-
-    /**
      * Returns all values of all attributes which are not stored in the database
      *
      * @abstract
-     * @returns {Promise<ConstParams<this>>}
+     * @returns An object with all attributes which are not persisted yet
      * @memberof BDOModel
      */
     public abstract async getUnsavedChanges(): Promise<IndexStructure>;

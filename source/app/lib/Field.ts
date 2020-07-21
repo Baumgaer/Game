@@ -1,13 +1,12 @@
 import { Attribute } from "~bdo/lib/Attribute";
 import { Property } from "~bdo/lib/Property";
 import { Watched } from "~bdo/lib/Watched";
-import { BDOModel } from "~bdo/lib/BDOModel";
 import { removeElementFromArray, getProxyTarget, isObject } from "~bdo/utils/util";
 import { defineWildcardMetadata } from "~bdo/utils/metadata";
 import onChange from "on-change";
 import { Modification } from '~bdo/lib/Modification';
 
-type watchedAttrProp<T extends Object, K extends DefNonFuncPropNames<T>> =
+type watchedAttrProp<T extends Record<string, any>, K extends DefNonFuncPropNames<T>> =
     Attribute<T, K> |
     Property<T, K> |
     Watched<T, K>;
@@ -16,17 +15,14 @@ type watchedAttrProp<T extends Object, K extends DefNonFuncPropNames<T>> =
  * This is used to bundle the values which are bound and to handle all
  * mechanisms of watched, property and attribute in an organized way.
  *
- * @export
- * @class Field
- * @template T
- * @template K
+ * @template T The type of the field
+ * @template K The name of the field
  */
-export class Field<T extends object = any, K extends DefNonFuncPropNames<T> = any> {
+export class Field<T extends Record<string, any> = any, K extends DefNonFuncPropNames<T> = any> {
 
     /**
      * The model where this field is placed
      *
-     * @type {T}
      * @memberof Field
      */
     public object: T;
@@ -34,7 +30,6 @@ export class Field<T extends object = any, K extends DefNonFuncPropNames<T> = an
     /**
      * The property of the model where the field is placed
      *
-     * @type {K}
      * @memberof Field
      */
     public property: K;
@@ -43,7 +38,6 @@ export class Field<T extends object = any, K extends DefNonFuncPropNames<T> = an
      * The global value of all bound fields
      *
      * @private
-     * @type {T[K]}
      * @memberof Field
      */
     private value?: T[K];
@@ -52,7 +46,6 @@ export class Field<T extends object = any, K extends DefNonFuncPropNames<T> = an
      * All fields which are bound to the model
      *
      * @private
-     * @type {Array<watchedAttrProp<T, K>>}
      * @memberof Field
      */
     private fields: watchedAttrProp<T, K>[] = [];
@@ -66,14 +59,13 @@ export class Field<T extends object = any, K extends DefNonFuncPropNames<T> = an
      * Adds a field (watched, attribute, property) to this global field and
      * uses the value of the model field.
      *
-     * @param {watchedAttrProp<T, K>} field
-     * @returns
+     * @param field The field which should be added
      * @memberof Field
      */
     public addField(field: watchedAttrProp<T, K>) {
         if (this.fields.includes(field)) return;
         // Take value of the model
-        if (field.object && (<BDOModel>field.object).isBDOModel) this.value = this.proxyfyValue(field.valueOf());
+        if (field.object && field.object.isBDOModel) this.value = this.proxyfyValue(field.valueOf());
         if (field instanceof Watched && field.subObject) this.redefineValue(field.subObject);
         this.redefineValue(field);
         this.fields.push(field);
@@ -83,8 +75,7 @@ export class Field<T extends object = any, K extends DefNonFuncPropNames<T> = an
      * Removes a field from this global field and sets the value of the removed
      * field to the current value.
      *
-     * @param {watchedAttrProp<T, K>} field
-     * @returns
+     * @param field The field to remove
      * @memberof Field
      */
     public removeField(field: watchedAttrProp<T, K>) {
@@ -98,7 +89,7 @@ export class Field<T extends object = any, K extends DefNonFuncPropNames<T> = an
      * Follows the convention of all fields with its name and sets the values
      * of all registered fields.
      *
-     * @param {(T[K] | Modification<any>)} [value]
+     * @param value The value which should be set
      * @memberof Field
      */
     public setValue(value?: T[K] | Modification<any>) {
@@ -108,7 +99,7 @@ export class Field<T extends object = any, K extends DefNonFuncPropNames<T> = an
     /**
      * Follows the convention of all fields with its name and returns the current value
      *
-     * @returns
+     * @returns The current value of the field
      * @memberof Field
      */
     public valueOf() {
@@ -120,12 +111,11 @@ export class Field<T extends object = any, K extends DefNonFuncPropNames<T> = an
      * proxy handler to ensure only one identity of observed objects.
      *
      * @private
-     * @param {watchedAttrProp<T, K>} field
-     * @returns
+     * @param field The field where the value should be redefined
      * @memberof Field
      */
     private redefineValue(field: watchedAttrProp<T, K>) {
-        defineWildcardMetadata(<Object>field, "value", field.valueOf());
+        defineWildcardMetadata(field, "value", field.valueOf());
         const that = this;
         Reflect.deleteProperty(field, "value");
         Reflect.defineProperty(field, "value", {
@@ -147,7 +137,7 @@ export class Field<T extends object = any, K extends DefNonFuncPropNames<T> = an
      * Restores the original property "value" of the field
      *
      * @private
-     * @param {watchedAttrProp<T, K>} field
+     * @param field The field where the value should be restored on
      * @memberof Field
      */
     private restoreValue(field: watchedAttrProp<T, K>) {
@@ -159,11 +149,11 @@ export class Field<T extends object = any, K extends DefNonFuncPropNames<T> = an
      * Puts the value into a proxy to handle all proxy handler globally
      *
      * @private
-     * @param {T[K]} value
-     * @returns
+     * @param value The value of the field
+     * @returns A proxy version of the value
      * @memberof Field
      */
-    private proxyfyValue(value?: T[K]) {
+    private proxyfyValue(value?: any) {
         if (value instanceof Array || isObject(value) && !(<any>value).isBDOModel) {
             let isShallow = true;
             for (const field of this.fields) {

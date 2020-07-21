@@ -4,13 +4,10 @@ import { path as rootPath } from 'app-root-path';
 import { resolve } from 'path';
 import { parse } from 'ini';
 import { merge } from '~bdo/utils/util';
+
 /**
  * Manages the configuration on server side. See BDOConfigManager for mode
  * information
- *
- * @export
- * @class ConfigManager
- * @extends {BDOConfigManager}
  */
 export class ConfigManager extends BDOConfigManager {
     /**
@@ -41,32 +38,21 @@ export class ConfigManager extends BDOConfigManager {
      * Redirects the config manager to client environment and loads the
      * corresponding config file.
      *
-     * @param {string} config
-     * @returns
+     * @param config the name of the config file which should be loaded
+     * @returns The configuration as a plain JSObject (key value)
      * @memberof ConfigManager
      */
-    public getForClient(config: string) {
-        config = config.replace(/\/{0,1}\.\.\/{0,1}/g, "");
+    public getForClient(config: string): Promise<IndexStructure> {
+        config = config.replace(/\/{0,1}\.\.\/{0,1}/g, ""); // Security for path traversal
         return this.get(`client/${config}`);
-    }
-
-    /**
-     * @inheritdoc The old value will be overwritten
-     *
-     * @param {string} _config
-     * @returns {object}
-     * @memberof ConfigManager
-     */
-    public set(_config: string): object {
-        throw new Error('Method not implemented.');
     }
 
     /**
      * @inheritdoc
      *
      * @protected
-     * @param {string} config
-     * @returns {object}
+     * @param config the name of the config file which should be loaded
+     * @returns A plain object with key => value of the given config. This can be an empty object!
      * @memberof ConfigManager
      */
     protected async load(config: string): Promise<IndexStructure> {
@@ -100,7 +86,7 @@ export class ConfigManager extends BDOConfigManager {
      * Converts parsed values to its real datatype because the module ini is
      * too stupid for arrays and numbers.
      *
-     * @param {IndexStructure} obj
+     * @param obj The loaded configuration with key => value
      * @memberof ConfigManager
      */
     private correctDataTypes(obj: IndexStructure): void {
@@ -128,8 +114,8 @@ export class ConfigManager extends BDOConfigManager {
      * Promisfies the readFile api of fs
      *
      * @private
-     * @param {string} path the path to the file to read
-     * @returns {Promise<string>} read data
+     * @param path the path to the file to read
+     * @returns read data
      * @memberof ConfigManager
      */
     private getFile(path: string): Promise<string> {

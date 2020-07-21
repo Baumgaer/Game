@@ -39,20 +39,21 @@ class Entity<V> {
 /**
  * Caches the given key for a certain amount of time
  *
- * @export
- * @class BDOMapCache
- * @extends {Map}
+ * @template K The type of the key
+ * @template V The type of the value
+ * @extends Map
  */
 export class BDOMapCache<K, V> extends Map<K, Entity<V>> {
     /**
      * @inheritdoc
      *
-     * @param {K} key
-     * @param {V} value
-     * @param {number} [duration] time in milliseconds to expiration if not given it will be Infinity
-     * @returns {this}
+     * @param key The key to set or overwrite
+     * @param value The value to set for the key
+     * @param duration time in milliseconds to expiration if not given it will be Infinity
+     * @returns This instance
      * @memberof BDOMapCache
      */
+    // eslint-disable-next-line
     // @ts-ignore
     public set(key: K, value: V, duration?: number): this {
         const entity = new Entity(value, duration);
@@ -62,8 +63,8 @@ export class BDOMapCache<K, V> extends Map<K, Entity<V>> {
     /**
      * @inheritdoc
      *
-     * @param {*} key
-     * @returns {*}
+     * @param key The key to get
+     * @returns The value of the key
      * @memberof BDOMapCache
      */
     public get(key: K): any {

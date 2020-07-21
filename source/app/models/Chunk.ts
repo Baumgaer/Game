@@ -4,15 +4,11 @@ import { Cell } from './Cell';
 
 /**
  * Test
- *
- * @export
- * @class Chunk
  */
 export class Chunk {
     /**
      * The absolute x coordinate
      *
-     * @type {number}
      * @memberof Chunk
      */
     public x: number = 0;
@@ -20,7 +16,6 @@ export class Chunk {
     /**
      * The absolute y coordinate
      *
-     * @type {number}
      * @memberof Chunk
      */
     public y: number = 0;
@@ -28,7 +23,6 @@ export class Chunk {
     /**
      * The square size
      *
-     * @type {number}
      * @memberof Chunk
      */
     public size?: number = 64;
@@ -37,7 +31,6 @@ export class Chunk {
      * The cell collection based on the square size
      *
      * @protected
-     * @type {Array<any>}
      * @memberof Chunk
      */
     protected grid: Cell[][] = [];
@@ -46,7 +39,6 @@ export class Chunk {
      * The seed to generate cave values of a cell
      *
      * @protected
-     * @type {OpenSimplexNoise}
      * @memberof Chunk
      */
     protected simplexCave = null; // makeNoise2D(1);
@@ -55,7 +47,6 @@ export class Chunk {
      * The seed to generate river values of a cell
      *
      * @protected
-     * @type {OpenSimplexNoise}
      * @memberof Chunk
      */
     protected simplexRiver = null; // makeNoise2D(2);
@@ -64,7 +55,6 @@ export class Chunk {
      * The seed to generate temperature values of a cell
      *
      * @protected
-     * @type {OpenSimplexNoise}
      * @memberof Chunk
      */
     protected simplexTemperature = null; // makeNoise2D(3);
@@ -73,7 +63,6 @@ export class Chunk {
      * The seed to generate humidity values of a cell
      *
      * @protected
-     * @type {OpenSimplexNoise}
      * @memberof Chunk
      */
     protected simplexHumidity = null; // makeNoise2D(4);
@@ -89,7 +78,7 @@ export class Chunk {
      * @protected
      * @memberof Chunk
      */
-    protected generateGrid() {
+    protected generateGrid(): void {
         for (let row = 0; row < (<number>this.size); row++) {
             if (!this.grid[row]) {
                 this.grid.push([]);

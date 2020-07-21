@@ -19,7 +19,7 @@ type controllerLifeCycleFuncNames = "constructedCallback" | "connectedCallback" 
 type eventMapKey = keyof HTMLElementEventMap;
 type eventListenerFunc<K extends eventMapKey> = (this: ReturnType<typeof BaseControllerFactory>, ev: HTMLElementEventMap[K]) => any;
 
-interface IOwnerType extends InstanceType<ReturnType<typeof BaseComponentFactory>> { }
+interface OwnerType extends InstanceType<ReturnType<typeof BaseComponentFactory>> { } // eslint-disable-line
 
 i18next.use(LanguageDetector).init({
     resources: languageResources,
@@ -36,17 +36,16 @@ i18next.use(LanguageDetector).init({
  * Creates a new BaseController based on extension.
  * NOTE: Every **Component** is a also controller.
  *
- * @export
  * @template TBase
- * @param {TBase} extension
- * @returns
+ * @param extension The type to extend with
+ * @returns The mixedin class BaseController
  */
 export function BaseControllerFactory<TBase extends Constructor<any>>(extension: TBase) {
 
     /**
      * Provides basic support for controller
      *
-     * @class BaseController
+     * @extends TBase
      */
     abstract class BaseController extends (extension ?? Object) {
 
@@ -87,7 +86,6 @@ export function BaseControllerFactory<TBase extends Constructor<any>>(extension:
         /**
          * Contains all controllers which are registered on this controller / component
          *
-         * @type {IndexStructure<BaseController>}
          * @memberof BaseController
          */
         public readonly controllers: IndexStructure<BaseController> = {};
@@ -98,10 +96,9 @@ export function BaseControllerFactory<TBase extends Constructor<any>>(extension:
          * undefined.
          *
          * @protected
-         * @type {IOwnerType | undefined}
          * @memberof BaseController
          */
-        protected owner!: this extends HTMLElement ? undefined : IOwnerType;
+        protected owner!: this extends HTMLElement ? undefined : OwnerType;
 
         /**
          * Manages all controllers (and components) to be equal in id and provides an overview
@@ -124,7 +121,7 @@ export function BaseControllerFactory<TBase extends Constructor<any>>(extension:
          * Gives access to the properties similar to element.attributes
          *
          * @readonly
-         * @type {Map<string, Property<this>>}
+         * @returns a Map with all registered properties
          * @memberof BaseController
          */
         public get properties(): Map<string, Property<this>> {
@@ -142,7 +139,7 @@ export function BaseControllerFactory<TBase extends Constructor<any>>(extension:
          * Gives access to the properties similar to element.attributes
          *
          * @readonly
-         * @type {Map<string, Property<this>>}
+         * @returns A map with all registerd attributes
          * @memberof BaseController
          */
         public get attributes(): Map<string, Attribute<this>> {
@@ -161,7 +158,7 @@ export function BaseControllerFactory<TBase extends Constructor<any>>(extension:
          *
          * @readonly
          * @protected
-         * @type {Map<string, Binding<this, DefNonFuncPropNames<this>>>}
+         * @returns A map with registered bindings
          * @memberof BaseController
          */
         protected get bindings(): Map<string, Binding<this, DefNonFuncPropNames<this>>> {
@@ -179,8 +176,7 @@ export function BaseControllerFactory<TBase extends Constructor<any>>(extension:
          * Assigns all const params to the current instance and initializes the life cycle
          *
          * @template T
-         * @param {Constructor<T>} this
-         * @param {ConstParams<T>} ConstParams
+         * @param _ConstParams The parameters which were used to construct the controller
          * @memberof BaseController
          */
         public invokeLifeCycle<T extends BaseController>(_ConstParams?: ConstParams<T>) {
@@ -193,9 +189,9 @@ export function BaseControllerFactory<TBase extends Constructor<any>>(extension:
          * translationKey and the used namespace will be detected by tha name
          * of the component or - in case of controller - owner.
          *
-         * @param {string} namespaceOrTranslationKey
-         * @param {string} [translationKey]
-         * @returns {string}
+         * @param namespaceOrTranslationKey A namespace which should be used or the key to translate
+         * @param translationKey The key to translate
+         * @returns The translation of the key
          * @memberof BaseController
          */
         translation(namespaceOrTranslationKey: string, translationKey?: string): string {
@@ -224,10 +220,10 @@ export function BaseControllerFactory<TBase extends Constructor<any>>(extension:
         /**
          * See doc string in ~client/utils/util
          *
-         * @param {string} key
-         * @param {string} [nsProp]
-         * @param {string} [forceNS]
-         * @returns
+         * @param key The key of the namespaced storage to get
+         * @param nsProp The property which should be used as a namespace suffix (The prefix is the name of the instance)
+         * @param forceNS This will overwrite every property value (nsProp value) and will be used as namespace suffix
+         * @returns The value of the given key respecting the namespace
          * @memberof BaseController
          */
         public getNamespacedStorage<K extends DefNonFuncPropNames<this>, P extends DefNonFuncPropNames<this>>(key: K, nsProp?: P, forceNS?: string) {
@@ -237,26 +233,24 @@ export function BaseControllerFactory<TBase extends Constructor<any>>(extension:
         /**
          * See doc string in ~client/utils/util
          *
-         * @param {string} key
-         * @param {*} newVal
-         * @param {string} [nsProp]
-         * @returns
+         * @param key The key of the namespaced storage to set
+         * @param newVal The value which should bet set to the key
+         * @param nsProp The property which should be used as a namespace suffix (The prefix is the name of the instance)
          * @memberof BaseController
          */
-        public setUpdateNamespacedStorage<K extends DefNonFuncPropNames<this>, P extends DefNonFuncPropNames<this>>(key: K, newVal: this[K], nsProp?: P) {
-            return setUpdateNamespacedStorage(this, key, newVal, nsProp);
+        public setUpdateNamespacedStorage<K extends DefNonFuncPropNames<this>, P extends DefNonFuncPropNames<this>>(key: K, newVal: this[K], nsProp?: P): void {
+            setUpdateNamespacedStorage(this, key, newVal, nsProp);
         }
 
         /**
          * see doc string in ~client/utils/util
          *
-         * @param {string} key
-         * @param {string} [nsProp]
-         * @returns
+         * @param key The key of the namespaced storage to delete
+         * @param nsProp The property which should be used as a namespace suffix (The prefix is the name of the instance)
          * @memberof BaseController
          */
         public deleteFromNamespacedStorage<K extends DefNonFuncPropNames<this> | "*", P extends DefNonFuncPropNames<this>>(key: K, nsProp?: P) {
-            return deleteFromNamespacedStorage(this, key, nsProp);
+            deleteFromNamespacedStorage(this, key, nsProp);
         }
 
         /**
@@ -264,7 +258,7 @@ export function BaseControllerFactory<TBase extends Constructor<any>>(extension:
          * NOTE: This will be used by JSON.stringify() to make a string out of this
          *       instance.
          *
-         * @returns
+         * @returns The controller as a simple JSON
          * @memberof BaseController
          */
         public toJSON() {
@@ -281,14 +275,15 @@ export function BaseControllerFactory<TBase extends Constructor<any>>(extension:
         /**
          * @inheritdoc
          *
-         * @param {string} name
-         * @param {(event: Event) => void} func
+         * @param type The name of the event to listen to
+         * @param listener The handler function to react to the event
+         * @param options Special options to change behavior of the listener
          * @memberof BaseController
          */
         public addEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: eventListenerFunc<K>, options?: boolean | AddEventListenerOptions): void {
             if (!(this instanceof HTMLElement) && !(this instanceof EventTarget)) throw new Error("This is not an instance of HTMLElement or EventTarget");
             if (!this.listeners.has(type)) this.listeners.set(type, []);
-            const listenersArray: eventListenerFunc<K>[] = this.listeners.get(type)!;
+            const listenersArray: eventListenerFunc<K>[] = this.listeners.get(type) || [];
             listenersArray.push(listener);
             if (super.addEventListener) super.addEventListener(type, listener, options);
         }
@@ -296,13 +291,15 @@ export function BaseControllerFactory<TBase extends Constructor<any>>(extension:
         /**
          * @inheritdoc
          *
-         * @param {string} name
-         * @param {(event: Event) => void} func
+         * @param type The name of the event  to remove from object
+         * @param listener The handler to remove
+         * @param options Special options to change the behavior of the handler
          * @memberof BaseController
          */
         public removeEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: eventListenerFunc<K>, options?: boolean | EventListenerOptions): void {
             if (!(this instanceof HTMLElement) && !(this instanceof EventTarget)) throw new Error("This is not an instance of HTMLElement or EventTarget");
-            if (this.listeners.has(type)) removeElementFromArray(this.listeners.get(type)!, listener);
+            if (!this.listeners.has(type)) return;
+            if (this.listeners.has(type)) removeElementFromArray(this.listeners.get(type) || [], listener);
             if (super.removeEventListener) super.removeEventListener(type, listener, options);
         }
 
@@ -313,7 +310,7 @@ export function BaseControllerFactory<TBase extends Constructor<any>>(extension:
          */
         public remove() {
             for (const listenerName of this.listeners.keys()) {
-                for (const listener of this.listeners.get(listenerName)!) {
+                for (const listener of this.listeners.get(listenerName) || []) {
                     this.removeEventListener(listenerName, listener);
                 }
             }
@@ -328,7 +325,9 @@ export function BaseControllerFactory<TBase extends Constructor<any>>(extension:
          * @protected
          * @memberof BaseController
          */
-        protected constructedCallback() { }
+        protected constructedCallback() {
+            // Nothing to do here
+        }
 
         /**
          * 2. Called when the component / owner is connected with the dom.
@@ -363,6 +362,9 @@ export function BaseControllerFactory<TBase extends Constructor<any>>(extension:
         /**
          * Initializes the given controller and returns its instance
          *
+         * @param name The registration name of the controller
+         * @param controller The class of the controller
+         * @param params The construction params of the controller class
          * @protected
          * @memberof BaseController
          */
@@ -374,6 +376,7 @@ export function BaseControllerFactory<TBase extends Constructor<any>>(extension:
         /**
          * Removes the given controller
          *
+         * @param name The registration name of the controller
          * @protected
          * @memberof BaseController
          */
@@ -398,7 +401,7 @@ export function BaseControllerFactory<TBase extends Constructor<any>>(extension:
          * Reacts on id change and updates or sets the id in the controller registry
          *
          * @protected
-         * @param {string} oldId
+         * @param oldId The old value of the id of the controller
          * @memberof BaseController
          */
         protected onIdChange(oldId: string) {
@@ -412,7 +415,7 @@ export function BaseControllerFactory<TBase extends Constructor<any>>(extension:
          * class name and occurrence position.
          *
          * @private
-         * @returns
+         * @returns A unique id for the controller
          * @memberof BaseController
          */
         private generateUniqueID(): string {
@@ -429,12 +432,12 @@ export function BaseControllerFactory<TBase extends Constructor<any>>(extension:
          * Calls the given funcName which is a life cycle func name of the controllers
          *
          * @private
-         * @param {controllerLifeCycleFuncNames} funcName
+         * @param funcName The name of the live cycle function which should be called
          * @memberof BaseController
          */
         private callLiveCycleFunctionsOfControllers(funcName: controllerLifeCycleFuncNames): void {
             for (const controllerName in this.controllers) {
-                if (this.controllers.hasOwnProperty(controllerName)) {
+                if (controllerName in this.controllers) {
                     const controller = this.controllers[controllerName];
                     controller[funcName]();
                 }

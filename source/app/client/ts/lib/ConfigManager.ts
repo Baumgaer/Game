@@ -5,30 +5,15 @@ import { BDOConfigManager } from '~bdo/lib/BDOConfigManager';
  * administrator or refresh the config cache.
  *
  * @see BDOConfigManager for more information
- *
- * @export
- * @class ConfigManager
- * @extends {BDOConfigManager}
+ * @extends BDOConfigManager
  */
 export class ConfigManager extends BDOConfigManager {
 
     /**
      * @inheritdoc
      *
-     * @param {string} config
-     * @returns {object}
-     * @memberof ConfigManager
-     */
-    public set(_config: string): object {
-        throw new Error('Method not implemented.');
-    }
-
-    /**
-     * @inheritdoc
-     *
      * @protected
-     * @param {string} config
-     * @returns {Promise<any>}
+     * @param _config The name of the config file
      * @memberof ConfigManager
      */
     protected load(_config: string): Promise<any> {
@@ -39,8 +24,7 @@ export class ConfigManager extends BDOConfigManager {
      * @inheritdoc
      *
      * @protected
-     * @param {string} config
-     * @returns {Promise<any>}
+     * @param _config The name of the config
      * @memberof ConfigManager
      */
     protected getCache(_config: string): Promise<any> {
@@ -51,9 +35,8 @@ export class ConfigManager extends BDOConfigManager {
      * @inheritdoc
      *
      * @protected
-     * @param {string} config
-     * @param {*} value
-     * @returns {Promise<boolean>}
+     * @param _config The name of the config to set
+     * @param _value The value of the config to set
      * @memberof ConfigManager
      */
     protected setCache(_config: string, _value: any): Promise<void> {

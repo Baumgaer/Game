@@ -1,0 +1,25 @@
+{
+    "extends": "./../../../../.eslintrc",
+    "env": {
+        "worker": true,
+        "serviceworker": true,
+        "browser": true,
+        "shared-node-browser": false
+    },
+    "parserOptions": {
+        "project": "./source/app/client/ts/tsconfig.json"
+    },
+    "rules": {
+        "import/no-restricted-paths": [
+            "error",
+            {
+                "zones": [
+                    {
+                        "target": "./source/app/client/ts/",
+                        "from": "./source/app/server/"
+                    }
+                ]
+            }
+        ]
+    }
+}

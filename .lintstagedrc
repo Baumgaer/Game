@@ -1,12 +1,6 @@
 {
-    "source/**/*.ts": [
-        "tslint --project ./tsconfig.json --exclude source/app/client/ts/**/*.ts --fix"
-    ],
-    "source/**/*.*.ts": [
-        "tslint --project ./tsconfig.json --exclude source/app/client/ts/**/*.ts --fix"
-    ],
-    "source/app/client/ts/**/*.ts": [
-        "tslint --project ./source/app/client/ts/tsconfig.json --fix"
+    "*.ts": [
+        "eslint --fix"
     ],
     "*.js": [
         "eslint --fix"

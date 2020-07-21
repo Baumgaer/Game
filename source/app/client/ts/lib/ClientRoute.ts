@@ -10,7 +10,7 @@ const logger = new Logger();
  *
  * @abstract
  * @class BaseRoute
- * @extends {RouteType}
+ * @extends BDORoute
  */
 export class ClientRoute extends BDORoute {
 
@@ -18,7 +18,7 @@ export class ClientRoute extends BDORoute {
      * This is for better identification of client routes and instance check
      *
      * @type {boolean}
-     * @memberof BaseRoute
+     * @memberof ClientRoute
      */
     public readonly isClientRoute: boolean = true;
 
@@ -26,7 +26,7 @@ export class ClientRoute extends BDORoute {
      * @inheritdoc
      *
      * @readonly
-     * @memberof BaseRoute
+     * @memberof ClientRoute
      */
     public get router(): IndexStructure<(params: IndexStructure) => void> {
         const routes: IndexStructure = {};
@@ -41,9 +41,9 @@ export class ClientRoute extends BDORoute {
      *
      * @protected
      * @abstract
-     * @param {IndexStructure} params
-     * @returns {Promise<IndexStructure>}
-     * @memberof BaseRoute
+     * @param params a response from the http server
+     * @returns the processed template parameters
+     * @memberof ClientRoute
      */
     protected async templateParams(params: IndexStructure): Promise<IndexStructure> {
         return super.templateParams(params);
@@ -54,7 +54,7 @@ export class ClientRoute extends BDORoute {
      *
      * @protected
      * @returns {Promise<void>}
-     * @memberof BaseRoute
+     * @memberof ClientRoute
      */
     protected async handleGet(params: IndexStructure): Promise<void> {
         logger.log(merge(await this.templateParamsFromServer(), await this.templateParams(params)));
@@ -65,8 +65,8 @@ export class ClientRoute extends BDORoute {
      * be overwritten by local template params.
      *
      * @private
-     * @returns {Promise<IndexStructure>}
-     * @memberof BaseRoute
+     * @returns The response parameters of the server
+     * @memberof ClientRoute
      */
     private async templateParamsFromServer(): Promise<IndexStructure> {
         let urlToAskFor = location.pathname;

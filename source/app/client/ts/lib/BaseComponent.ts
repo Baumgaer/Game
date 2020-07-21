@@ -12,9 +12,8 @@ export type Position = "after" | "before" | "replace" | "first" | "last" | numbe
  * Creates a new BaseComponent based on the HTMLTypeElement.
  * NOTE: Every component is also a controller.
  *
- * @export
  * @template TBase An interface which is derived from HTMLElement
- * @param {TBase} HTMLTypeElement Derived class from HTMLElement
+ * @param HTMLTypeElement Derived class from HTMLElement
  * @returns The BaseComponent
  */
 export function BaseComponentFactory<TBase extends Constructor<HTMLElement>>(HTMLTypeElement: TBase) {
@@ -23,8 +22,7 @@ export function BaseComponentFactory<TBase extends Constructor<HTMLElement>>(HTM
      * Provides base functionality for every component, manages and registers
      * them and add some handy functions for navigation and styling.
      *
-     * @class BaseComponent
-     * @extends {HTMLTypeElement}
+     * @extends TBase
      */
     abstract class BaseComponent extends BaseControllerFactory<TBase>(HTMLTypeElement) {
 
@@ -92,7 +90,7 @@ export function BaseComponentFactory<TBase extends Constructor<HTMLElement>>(HTM
          * access to this element without conflicting ids.
          *
          * @readonly
-         * @type {IndexStructure<Element>}
+         * @returns An object of string => HTMLElement and HTMLElement is a part of the template
          * @memberof BaseComponent
          */
         public get refs() {
@@ -113,7 +111,7 @@ export function BaseComponentFactory<TBase extends Constructor<HTMLElement>>(HTM
          *
          * @readonly
          * @public
-         * @returns {(BaseComponent | null)}
+         * @returns The parent component if available and null else
          * @memberof BaseComponent
          */
         public get parentComponent(): BaseComponent | null {
@@ -136,7 +134,7 @@ export function BaseComponentFactory<TBase extends Constructor<HTMLElement>>(HTM
          * Returns all child components excluding normal HTMLElements
          *
          * @readonly
-         * @type {BaseComponent[]}
+         * @returns An array of child components
          * @memberof BaseComponent
          */
         public get childComponents(): BaseComponent[] {
@@ -152,7 +150,7 @@ export function BaseComponentFactory<TBase extends Constructor<HTMLElement>>(HTM
          * Returns the first child which is a component
          *
          * @readonly
-         * @type {(BaseComponent | null)}
+         * @returns The first component which is a child and null else
          * @memberof BaseComponent
          */
         public get firstComponentChild(): BaseComponent | null {
@@ -167,7 +165,7 @@ export function BaseComponentFactory<TBase extends Constructor<HTMLElement>>(HTM
          * Returns the last child which is a component
          *
          * @readonly
-         * @type {(BaseComponent | null)}
+         * @returns the last component which is a child if available and null else
          * @memberof BaseComponent
          */
         public get lastComponentChild(): BaseComponent | null {
@@ -184,7 +182,7 @@ export function BaseComponentFactory<TBase extends Constructor<HTMLElement>>(HTM
          * Returns the next sibling which is a component
          *
          * @readonly
-         * @type {(BaseComponent | null)}
+         * @returns The component which is the next sibling if available and null else
          * @memberof BaseComponent
          */
         public get nextComponentSibling(): BaseComponent | null {
@@ -207,7 +205,7 @@ export function BaseComponentFactory<TBase extends Constructor<HTMLElement>>(HTM
          * Returns the previous sibling which is a component
          *
          * @readonly
-         * @type {(BaseComponent | null)}
+         * @returns The previous component which is a sibling if available and null else
          * @memberof BaseComponent
          */
         public get previousComponentSibling(): BaseComponent | null {
@@ -226,15 +224,19 @@ export function BaseComponentFactory<TBase extends Constructor<HTMLElement>>(HTM
             return previousComponentSibling;
         }
 
+        constructor(...args: any[]) {
+            super(...args);
+        }
+
         /**
          * Provides the possibility to construct a component programmatically
          * with respecting default settings.
          *
          * @static
          * @template T
-         * @param {new () => T} this
-         * @param {ConstParams<T>} [params]
-         * @returns
+         * @param this The Current this context (Should not be recognized)
+         * @param params The params to use for construction
+         * @returns The created component of type "this"
          * @memberof BaseComponent
          */
         public static create<T extends BaseComponent>(this: Constructor<T>, params?: ConstParams<T>) {
@@ -254,17 +256,10 @@ export function BaseComponentFactory<TBase extends Constructor<HTMLElement>>(HTM
             return element;
         }
 
-        constructor(...args: any[]) {
-            super(...args);
-        }
-
         /**
-         * @inheritdoc SetValue is used by proxyHandler to avoid setting a
-         * new value if an object has been changed.
-         *
-         * @param {string} qualifiedName
-         * @param {string} value
-         * @returns {void}
+         * @inheritdoc
+         * @param qualifiedName The name of the attribute which should be set
+         * @param value The value of the attribute which should be set
          * @memberof BaseComponent
          */
         public setAttribute(qualifiedName: string, value: string, setValue: boolean = true): void {
@@ -273,7 +268,7 @@ export function BaseComponentFactory<TBase extends Constructor<HTMLElement>>(HTM
             }
             if (value) {
                 let valueToSet = value;
-                if (!isPrimitive(value)) valueToSet = JSON.stringify(value).replace(/\"/g, "'");
+                if (!isPrimitive(value)) valueToSet = JSON.stringify(value).replace(/"/g, "'");
                 super.setAttribute(qualifiedName, valueToSet);
                 valueToSet = constructTypeOfHTMLAttribute(this, qualifiedName);
                 if (setValue) this[qualifiedName] = valueToSet;
@@ -283,7 +278,7 @@ export function BaseComponentFactory<TBase extends Constructor<HTMLElement>>(HTM
         /**
          * @inheritdoc
          *
-         * @param {string} qualifiedName
+         * @param qualifiedName The attribute which should be removed
          * @memberof BaseComponent
          */
         public removeAttribute(qualifiedName: string): void {
@@ -300,8 +295,8 @@ export function BaseComponentFactory<TBase extends Constructor<HTMLElement>>(HTM
          * the first parameter is an Element.
          *
          * @template T
-         * @param {T} key
-         * @param {Properties[T]} value
+         * @param key The name of the style key
+         * @param value The value of the style key
          * @memberof BaseComponent
          */
         public setStyle<T extends keyof OneOf<Properties>>(key: T, value: Properties[T]): void;
@@ -322,7 +317,7 @@ export function BaseComponentFactory<TBase extends Constructor<HTMLElement>>(HTM
          * given element if the first parameter is a HTMLElement.
          *
          * @template T
-         * @param {T} name
+         * @param name The name of the style key
          * @memberof BaseComponent
          */
         public removeStyle<T extends keyof OneOf<Properties>>(name: T): void;
@@ -343,8 +338,8 @@ export function BaseComponentFactory<TBase extends Constructor<HTMLElement>>(HTM
          * be the reference node.
          *
          * @template T
-         * @param {T} name
-         * @returns {Properties[T]}
+         * @param name The name of style key
+         * @returns The value of the style key
          * @memberof BaseComponent
          */
         public getStyle<T extends keyof OneOf<Properties>>(name: T): Properties[T];
@@ -363,7 +358,7 @@ export function BaseComponentFactory<TBase extends Constructor<HTMLElement>>(HTM
          * Adds a CSS class name to the given element. If no element is given,
          * this component will be the target element.
          *
-         * @param {string} name
+         * @param name The name of the css class to add
          * @memberof BaseComponent
          */
         public addClass(name: string): void;
@@ -382,7 +377,7 @@ export function BaseComponentFactory<TBase extends Constructor<HTMLElement>>(HTM
          * Removes a CSS class name from the given element. If no element is
          * given, this component will be the target element.
          *
-         * @param {string} name
+         * @param name The name of the css class to remove
          * @memberof BaseComponent
          */
         public removeClass(name: string): void;
@@ -403,8 +398,8 @@ export function BaseComponentFactory<TBase extends Constructor<HTMLElement>>(HTM
          * this component will be the new node and the given node as first
          * element is the reference node.
          *
-         * @param {HTMLElement} newNode
-         * @param {Position} position
+         * @param newNode The reference node for the position
+         * @param position a relative or absolute position
          * @memberof BaseComponent
          */
         public placeAt(newNode: HTMLElement, position: Position): void;
@@ -435,20 +430,18 @@ export function BaseComponentFactory<TBase extends Constructor<HTMLElement>>(HTM
                     thisRefNode = thisRefNode.nextElementSibling;
                     thisPosition = "before";
                 } else {
-                    thisRefNode = thisRefNode.parentElement!;
+                    thisRefNode = <HTMLElement>thisRefNode.parentElement;
                     position = "last";
                 }
             }
             if (thisPosition === "first") thisRefNode.prepend(thisNewNode);
             if (thisPosition === "last") thisRefNode.appendChild(thisNewNode);
             if (thisPosition === "replace") thisRefNode.replaceWith(thisNewNode);
-            if (thisPosition === "before") thisRefNode.parentElement!.insertBefore(thisNewNode, thisRefNode);
+            if (thisPosition === "before") (<HTMLElement>thisRefNode.parentElement).insertBefore(thisNewNode, thisRefNode);
         }
 
         /**
-         * @inheritdoc It also removes all child components depending on their
-         * life cycle.
-         *
+         * @inheritdoc
          * @memberof BaseComponent
          */
         public remove() {
@@ -485,8 +478,8 @@ export function BaseComponentFactory<TBase extends Constructor<HTMLElement>>(HTM
             if (stringToParse) {
                 const shadowRoot = this.attachShadow({ mode: 'open' });
                 const doc = new DOMParser().parseFromString(`<style>${this.styleString}</style>${stringToParse}`, 'text/html');
-                shadowRoot.appendChild(doc.head.firstChild!);
-                shadowRoot.appendChild(doc.body.firstChild!);
+                shadowRoot.appendChild(<HTMLElement>doc.head.firstChild);
+                shadowRoot.appendChild(<HTMLElement>doc.body.firstChild);
             }
         }
     }

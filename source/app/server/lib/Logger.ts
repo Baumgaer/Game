@@ -10,8 +10,7 @@ import { BDOLogger, logLevels, printEnvironments } from '~bdo/lib/BDOLogger';
 /**
  * Logs colored console output and writes to files
  *
- * @export
- * @class Logger
+ * @extends BDOLogger
  */
 @baseConstructor()
 export class Logger extends BDOLogger {
@@ -37,9 +36,9 @@ export class Logger extends BDOLogger {
      * @inheritdoc
      *
      * @protected
-     * @param {string} logLevel
-     * @param {('console' | 'file')} [printEnv='console']
-     * @returns {string}
+     * @param logLevel level of the logging which effects the colorization
+     * @param printEnv effects the environment where the header will be printed. Default: console
+     * @returns The ready to use and formatted header
      * @memberof Logger
      */
     protected getHeader(logLevel: logLevels, printEnv: printEnvironments = 'console'): string {
@@ -61,11 +60,11 @@ export class Logger extends BDOLogger {
      * @inheritdoc
      *
      * @protected
-     * @param {logLevels} logLevel
-     * @param {*} message
+     * @param logLevel the loglevel which effects the colorization
+     * @param message the message which should be written to a file. Can be any data structure
      * @memberof Logger
      */
-    protected writeToFile(logLevel: logLevels, message: any): void {
+    protected writeToFile(logLevel: logLevels, message: unknown): void {
         const path = resolve(rootPath, 'var', 'logs', <string>this.logFile);
         const data = `${this.getHeader(logLevel, 'file')} ${message}\n`;
         mkDirSync(dirname(path));
@@ -77,7 +76,7 @@ export class Logger extends BDOLogger {
 
         stream.write(data, (error) => {
             if (!error) return stream.end();
-            console.error(error);
+            console.error(error); // eslint-disable-line
         });
     }
 }

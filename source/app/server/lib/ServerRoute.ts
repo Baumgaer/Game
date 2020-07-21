@@ -8,9 +8,8 @@ import { BaseServer } from "~server/lib/BaseServer";
  * Provides basic functionality of a route for the express router and encapsulates
  * this framework.
  *
- * @export
  * @abstract
- * @class BaseRoute
+ * @extends BDORoute
  */
 export class ServerRoute extends BDORoute {
 
@@ -60,8 +59,8 @@ export class ServerRoute extends BDORoute {
      *
      * @protected
      * @abstract
-     * @param {Request} _request
-     * @returns {Promise<IndexStructure>}
+     * @param request The request given by the http server
+     * @returns An object with key => value used for templates to fill variables
      * @memberof BaseRoute
      */
     protected async templateParams(request: Request): Promise<IndexStructure> {
@@ -72,9 +71,9 @@ export class ServerRoute extends BDORoute {
      * @inheritdoc
      *
      * @private
-     * @param {Request} request
-     * @param {Response} response
-     * @param {NextFunction} next
+     * @param request The request given by the http server
+     * @param response The response given by the http server
+     * @param next A function which calls the next middleware function
      * @memberof BaseRoute
      */
     protected async handleGet(request: Request, response: Response, next: NextFunction): Promise<void> {
@@ -102,9 +101,9 @@ export class ServerRoute extends BDORoute {
      * Handles the HTTP post requests
      *
      * @private
-     * @param {Request} _request
-     * @param {Response} _response
-     * @param {NextFunction} _next
+     * @param _request The request given by the http server
+     * @param _response The response given by the http server
+     * @param _next A function which calls the next middleware function
      * @memberof BaseRoute
      */
     private async handlePost(_request: Request, _response: Response, _next: NextFunction): Promise<void> {
@@ -115,9 +114,9 @@ export class ServerRoute extends BDORoute {
      * Handles HTTP put requests
      *
      * @private
-     * @param {Request} _request
-     * @param {Response} _response
-     * @param {NextFunction} _next
+     * @param _request The request given by the http server
+     * @param _response The response given by the http server
+     * @param _next A function which calls the next middleware function
      * @memberof BaseRoute
      */
     private async handlePut(_request: Request, _response: Response, _next: NextFunction): Promise<void> {
@@ -128,9 +127,9 @@ export class ServerRoute extends BDORoute {
      * Handles HTTP Patch requests
      *
      * @private
-     * @param {Request} _request
-     * @param {Response} _response
-     * @param {NextFunction} _next
+     * @param _request The request given by the http server
+     * @param _response The response given by the http server
+     * @param _next A function which calls the next middleware function
      * @memberof BaseRoute
      */
     private async handlePatch(_request: Request, _response: Response, _next: NextFunction): Promise<void> {
@@ -141,9 +140,9 @@ export class ServerRoute extends BDORoute {
      * Handles HTTP delete requests
      *
      * @private
-     * @param {Request} _request
-     * @param {Response} _response
-     * @param {NextFunction} _next
+     * @param _request The request given by the http server
+     * @param _response The response given by the http server
+     * @param _next A function which calls the next middleware function
      * @memberof BaseRoute
      */
     private async handleDelete(_request: Request, _response: Response, _next: NextFunction): Promise<void> {

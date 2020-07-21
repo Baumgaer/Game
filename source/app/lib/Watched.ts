@@ -9,7 +9,6 @@ import cloneDeep from "clone-deep";
  * This parameters are in fact for all objects with or without baseConstructor
  * but a baseConstructor can help to avoid strange behavior.
  *
- * @export
  * @interface IWatchParams
  */
 export interface IWatchedParams {
@@ -17,7 +16,6 @@ export interface IWatchedParams {
      * The name of the function which should be called when the value will be initialized.
      * Gets a parameter with initial value.
      *
-     * @type {string}
      * @memberof IWatchParams
      */
     onInit?: string;
@@ -27,7 +25,6 @@ export interface IWatchedParams {
      * Gets a parameter with new value and if it is an object or array it gets
      * additionally a parameter with the path which was changed.
      *
-     * @type {string}
      * @memberof IWatchParams
      */
     onChange?: string;
@@ -36,7 +33,6 @@ export interface IWatchedParams {
      * The name of the function which should be called when a value will be added to the array.
      * Gets a parameter with the added value and the path.
      *
-     * @type {string}
      * @memberof IWatchParams
      */
     onAdd?: string;
@@ -45,7 +41,6 @@ export interface IWatchedParams {
      * The name of the function which should be called when a value will be removed from the array.
      * Gets a parameter with the removed value and the path.
      *
-     * @type {string}
      * @memberof IWatchParams
      */
     onRemove?: string;
@@ -55,7 +50,6 @@ export interface IWatchedParams {
      * changes, removes and additions.
      *
      * @default true No recursive observation
-     * @type {boolean}
      * @memberof IWatchParams
      */
     isShallow?: boolean;
@@ -66,14 +60,12 @@ interface ICaseDetectParams {
     /**
      * length of keys1
      *
-     * @type {number}
      * @memberof ICaseDetectParams
      */
     len1: number;
     /**
      * length of keys2
      *
-     * @type {number}
      * @memberof ICaseDetectParams
      */
     len2: number;
@@ -81,7 +73,6 @@ interface ICaseDetectParams {
     /**
      * Name of function to execute
      *
-     * @type {string}
      * @memberof ICaseDetectParams
      */
     func: string;
@@ -89,7 +80,6 @@ interface ICaseDetectParams {
     /**
      * First keys to detect the case
      *
-     * @type {string[]}
      * @memberof ICaseDetectParams
      */
     keys1: string[];
@@ -97,7 +87,6 @@ interface ICaseDetectParams {
     /**
      * Second keys to detect the case
      *
-     * @type {string[]}
      * @memberof ICaseDetectParams
      */
     keys2: string[];
@@ -106,7 +95,6 @@ interface ICaseDetectParams {
      * The changed value (the value not the name of the value) of an object or
      * array which is observed.
      *
-     * @type {*}
      * @memberof ICaseDetectParams
      */
     changedVal: any;
@@ -115,7 +103,6 @@ interface ICaseDetectParams {
      * The path of the changed value inside an object
      * (THIS is is name of the value with path).
      *
-     * @type {string}
      * @memberof ICaseDetectParams
      */
     path: string;
@@ -125,16 +112,12 @@ interface ICaseDetectParams {
  * Holds all the logic of the watched decorator. If the decorator is used with
  * property or attribute, the corresponding decorator logic musst be passed into
  * this logic with setSubObject.
- *
- * @export
- * @class Watched
  */
-export class Watched<T extends object = any, K extends DefNonFuncPropNames<T> = any> implements IWatchedParams {
+export class Watched<T extends Record<string, any> = any, K extends DefNonFuncPropNames<T> = any> implements IWatchedParams {
 
     /**
      * A reference to the object where this property/attribute is defined on
      *
-     * @type {*}
      * @memberof Property
      */
     public object: T;
@@ -142,7 +125,6 @@ export class Watched<T extends object = any, K extends DefNonFuncPropNames<T> = 
     /**
      * the name of the property/attribute on the object
      *
-     * @type {string}
      * @memberof Property
      */
     public property: K;
@@ -150,7 +132,6 @@ export class Watched<T extends object = any, K extends DefNonFuncPropNames<T> = 
     /**
      * This is the real object which executes getter and setter if provided
      *
-     * @type {Attribute}
      * @memberof Watched
      */
     public subObject?: Property<T, K> | Attribute<T, K>;
@@ -159,7 +140,6 @@ export class Watched<T extends object = any, K extends DefNonFuncPropNames<T> = 
      * @inheritdoc
      *
      * @public
-     * @type {string}
      * @memberof Watched
      */
     public onInit: string;
@@ -168,7 +148,6 @@ export class Watched<T extends object = any, K extends DefNonFuncPropNames<T> = 
      * @inheritdoc
      *
      * @public
-     * @type {string}
      * @memberof Watched
      */
     public onChange: string;
@@ -177,7 +156,6 @@ export class Watched<T extends object = any, K extends DefNonFuncPropNames<T> = 
      * @inheritdoc
      *
      * @public
-     * @type {string}
      * @memberof Watched
      */
     public onAdd: string;
@@ -186,7 +164,6 @@ export class Watched<T extends object = any, K extends DefNonFuncPropNames<T> = 
      * @inheritdoc
      *
      * @public
-     * @type {string}
      * @memberof Watched
      */
     public onRemove: string;
@@ -195,7 +172,6 @@ export class Watched<T extends object = any, K extends DefNonFuncPropNames<T> = 
      * @inheritdoc
      *
      * @public
-     * @type {boolean}
      * @memberof Watched
      */
     public isShallow: boolean = true;
@@ -205,7 +181,6 @@ export class Watched<T extends object = any, K extends DefNonFuncPropNames<T> = 
      * This will probably manipulated by a field.
      *
      * @private
-     * @type {T[K]}
      * @memberof Property
      */
     private value?: T[K];
@@ -215,7 +190,6 @@ export class Watched<T extends object = any, K extends DefNonFuncPropNames<T> = 
      * used for the decision whether to change the value or not.
      *
      * @private
-     * @type {T[K]}
      * @memberof Property
      */
     private ownValue?: T[K];
@@ -253,8 +227,7 @@ export class Watched<T extends object = any, K extends DefNonFuncPropNames<T> = 
      * Sets the value depending on the parameters which are passed into the
      * decorator and stops early if the value is not changed.
      *
-     * @param {T[K]} value
-     * @returns
+     * @param value The vale which should be set on the watcher
      * @memberof Watched
      */
     public setValue(value?: T[K] | Modification<any>) {
@@ -300,7 +273,7 @@ export class Watched<T extends object = any, K extends DefNonFuncPropNames<T> = 
      * This method will be called by some other objects and will get a managed
      * value depending on the parameters which are passed into the decorator.
      *
-     * @returns
+     * @returns The current value of the watcher
      * @memberof Watched
      */
     public valueOf() {
@@ -313,7 +286,7 @@ export class Watched<T extends object = any, K extends DefNonFuncPropNames<T> = 
      * decorators in the right way and to avoid multiple calls of methods of
      * this decorators.
      *
-     * @param {Property} subObject
+     * @param subObject The sub object to set to the watcher
      * @memberof Watched
      */
     public setSubObject(subObject: Property<T, K> | Attribute<T, K>) {
@@ -325,9 +298,9 @@ export class Watched<T extends object = any, K extends DefNonFuncPropNames<T> = 
     /**
      * Handles the behavior of the proxy if value is an Object
      *
-     * @param {string} path
-     * @param {T[K]} changedValue
-     * @param {T[K]} previousValue
+     * @param path The path where thy proxy action was triggered on
+     * @param changedVal The value which was assigned or unassigned
+     * @param prevVal The old value
      * @memberof Watched
      */
     public proxyHandler(path: string, changedVal: T[K], prevVal: T[K]) {
@@ -367,12 +340,12 @@ export class Watched<T extends object = any, K extends DefNonFuncPropNames<T> = 
      * Determines wether to set the value respecting the DOM attribute, old value and type
      *
      * @private
-     * @param {(T[K] | Modification<any>)} [value]
-     * @param {boolean} [skipGuard=false]
-     * @returns
+     * @param value The value to check for permission to assign
+     * @param skipGuard Wether to skip the type guard or not. Default: false
+     * @returns true if the value should be set and false else
      * @memberof Property
      */
-    private shouldDoSetValue(value?: T[K] | Modification<any>, skipGuard: boolean = false) {
+    private shouldDoSetValue(value?: T[K] | Modification<any>, skipGuard = false) {
         if (this.subObject) {
             return this.subObject.shouldDoSetValue(value, skipGuard);
         } else return (value !== this.ownValue);
@@ -383,11 +356,11 @@ export class Watched<T extends object = any, K extends DefNonFuncPropNames<T> = 
      * about changes inside of the watched objects.
      *
      * @private
-     * @param {(any[] | object)} value
-     * @returns
+     * @param value The value which should be converted into a proxy
+     * @returns The proxy version of the value
      * @memberof Watched
      */
-    private proxyfyValue(value?: T[K]) {
+    private proxyfyValue(value?: any) {
         if (value instanceof Array || isObject(value) && !(<any>value).isBDOModel) {
             value = onChange.target(value);
             return onChange(value, (path, changedValue, previousValue) => {
@@ -401,7 +374,7 @@ export class Watched<T extends object = any, K extends DefNonFuncPropNames<T> = 
      * Detects case of change and executes corresponding function
      *
      * @private
-     * @param {ICaseDetectParams} cdParams
+     * @param cdParams The parameters to detect the case of add, remove or change
      * @memberof Watched
      */
     private caseDetectExec(cdParams: ICaseDetectParams) {

@@ -7,7 +7,6 @@ import { templateEnvironment } from '~bdo/utils/environment';
  * Provides basic functionality for ALL routes on server and client and
  * especially provides a template for client and server route.
  *
- * @export
  * @class BDORoute
  */
 export abstract class BDORoute {
@@ -74,8 +73,8 @@ export abstract class BDORoute {
      * passes the templateParams to it.
      *
      * @protected
-     * @param {IndexStructure} templateParams
-     * @returns {(Promise<string | null>)}
+     * @param templateParams The processed template parameters
+     * @returns A rendered template if available
      * @memberof BDORoute
      */
     protected renderTemplate(templateParams: IndexStructure): string | null {
@@ -94,8 +93,8 @@ export abstract class BDORoute {
      *
      * @protected
      * @abstract
-     * @param {(Request | IndexStructure)} [_requestOrParams]
-     * @returns {Promise<IndexStructure>}
+     * @param _requestOrParams The request given by the http server or a response from the http server
+     * @returns the processed template parameters
      * @memberof BDORoute
      */
     protected async templateParams(_requestOrParams: Request | IndexStructure): Promise<IndexStructure> {

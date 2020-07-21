@@ -1,0 +1,21 @@
+{
+    "extends": "./../../../.eslintrc",
+    "env": {
+        "node": true,
+        "shared-node-browser": false,
+        "worker": true
+    },
+    "rules": {
+        "import/no-restricted-paths": [
+            "error",
+            {
+                "zones": [
+                    {
+                        "target": "./source/app/server/",
+                        "from": "./source/app/client/ts/"
+                    }
+                ]
+            }
+        ]
+    }
+}

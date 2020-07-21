@@ -7,16 +7,12 @@ export type logLevels = 'log' | 'debug' | 'info' | 'warn' | 'error';
 export type printEnvironments = 'console' | 'file' | 'browser';
 
 /**
- * Prints nice formated strings to console and file and adds some useful information.
- *
- * @export
- * @class BDOLogger
+ * Prints nice formatted strings to console and file and adds some useful information.
  */
 export abstract class BDOLogger {
     /**
      * The file to write logging in
      *
-     * @type {string}
      * @memberof BDOLogger
      */
     public logFile?: string = 'default.log';
@@ -24,7 +20,6 @@ export abstract class BDOLogger {
     /**
      * Disables console printing when logger is not a normal log or error
      *
-     * @type {boolean}
      * @memberof BDOLogger
      */
     public preventConsolePrint?: boolean = false;
@@ -32,7 +27,6 @@ export abstract class BDOLogger {
     /**
      * Disables file printing when logger is not an error
      *
-     * @type {boolean}
      * @memberof BDOLogger
      */
     public preventFilePrint?: boolean = false;
@@ -47,7 +41,6 @@ export abstract class BDOLogger {
      * 4. warn
      * 5. error
      *
-     * @type {logLevels}
      * @memberof BDOLogger
      */
     public logLevel?: logLevels = 'debug';
@@ -55,22 +48,22 @@ export abstract class BDOLogger {
     /**
      * Holds a list of prototype names to determine the log point correctly
      *
-     * @protected
-     * @readonly
-     * @type {string[]}
      * @memberof BDOLogger
      */
     protected readonly prototypeNames: string[] = getPrototypeNamesRecursive(this);
 
-    constructor(_params?: ConstParams<BDOLogger>) { }
+    constructor(_params?: ConstParams<BDOLogger>) {
+        // Just for type save programming
+    }
 
     /**
      * Logs the message to console and file with given log level.
      * If log level is log or error "preventConsolePrint" will be ignored.
      * If log level is error "preventFilePrint" will be ignored.
      *
-     * @param {*} message
-     * @param {logLevels} [loglevel='log']
+     * @param message The message which should be logged
+     * @param loglevel The log level which effects the colorization
+     * @param args Additional arguments for the logging
      * @memberof BDOLogger
      */
     public log(message: any, loglevel: logLevels = 'log', ...args: any[]): void {
@@ -94,52 +87,52 @@ export abstract class BDOLogger {
     /**
      * Prints a nice green debug information
      *
-     * @param {*} message
+     * @param message The debug message
+     * @param args Additional arguments to add to the logging
      * @memberof BDOLogger
      */
     public debug(message: any, ...args: any): void {
-        const apply = [message, 'debug'].concat(args);
-        this.log.apply(this, <[any, logLevels]>apply);
+        this.log(message, "debug", ...args);
     }
 
     /**
      * Prints a nice cyan info text
      *
-     * @param {*} message
+     * @param message The info message
+     * @param args Additional arguments to add to the logging
      * @memberof BDOLogger
      */
     public info(message: any, ...args: any): void {
-        const apply = [message, 'info'].concat(args);
-        this.log.apply(this, <[any, logLevels]>apply);
+        this.log(message, "info", ...args);
     }
 
     /**
      * Prints a barely nice yellow warning :/
      *
-     * @param {*} message
+     * @param message The warning message
+     * @param args Additional arguments to add to the logging
      * @memberof BDOLogger
      */
     public warn(message: any, ...args: any): void {
-        const apply = [message, 'warn'].concat(args);
-        this.log.apply(this, <[any, logLevels]>apply);
+        this.log(message, "warn", ...args);
     }
 
     /**
      * Prints a very ugly red error :'(
      *
-     * @param {*} message
+     * @param message The error message
+     * @param args Additional arguments to add to the logging
      * @memberof BDOLogger
      */
     public error(message: any, ...args: any): void {
-        const apply = [message, 'error'].concat(args);
-        this.log.apply(this, <[any, logLevels]>apply);
+        this.log(message, "error", ...args);
     }
 
     /**
      * Collects information from pm2 about the current process
      *
      * @private
-     * @returns {string}
+     * @returns A string containing the process name, host name and process id
      * @memberof BDOLogger
      */
     protected getProcInfo(): string {
@@ -147,32 +140,11 @@ export abstract class BDOLogger {
     }
 
     /**
-     * Creates the information added header for every log
-     *
-     * @private
-     * @param {string} logLevel
-     * @param {printEnvironments} [printEnv]
-     * @returns {string}
-     * @memberof BDOLogger
-     */
-    protected abstract getHeader(logLevel: logLevels, printEnv?: printEnvironments): string | string[];
-
-    /**
-     * Writes the message to configured log file
-     *
-     * @protected
-     * @param {logLevels} logLevel
-     * @param {*} message
-     * @memberof BDOLogger
-     */
-    protected abstract writeToFile(logLevel: logLevels, message: any): void;
-
-    /**
      * Determines wether a logging is allowed or not.
      *
      * @protected
-     * @param {logLevels} logLevel
-     * @returns
+     * @param logLevel The log level which should be checked for permission to be logged
+     * @returns true if is allowed and false else
      * @memberof BDOLogger
      */
     protected isAllowed(logLevel: logLevels): boolean {
@@ -181,10 +153,10 @@ export abstract class BDOLogger {
     }
 
     /**
-     * Creates a formated file string
+     * Creates a formatted file string
      *
      * @private
-     * @returns {string}
+     * @returns The current formatted time
      * @memberof BDOLogger
      */
     protected currentTime(): string {
@@ -195,7 +167,7 @@ export abstract class BDOLogger {
      * Determines the log point of this logger and returns the corresponding
      * file name and line number.
      *
-     * @returns {string}
+     * @returns the name of the file where the loggin is triggered with line and column
      * @memberof Logger
      */
     protected getLogPoint(): string {
@@ -215,4 +187,24 @@ export abstract class BDOLogger {
         }
         return callpoint;
     }
+
+    /**
+     * Creates the information added header for every log
+     *
+     * @private
+     * @param logLevel The log level which effects the colorization
+     * @param printEnv The environment where to print a message
+     * @memberof BDOLogger
+     */
+    protected abstract getHeader(logLevel: logLevels, printEnv?: printEnvironments): string | string[];
+
+    /**
+     * Writes the message to configured log file
+     *
+     * @protected
+     * @param logLevel The log level which effects the colorization
+     * @param message The message which should be written to file
+     * @memberof BDOLogger
+     */
+    protected abstract writeToFile(logLevel: logLevels, message: any): void;
 }

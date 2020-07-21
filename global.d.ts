@@ -1,13 +1,13 @@
 // Constructor type
-declare type Constructor<T = {}> = new (...args: any[]) => T;
-declare type AbstractConstructor<T = {}> = Function & { prototype: T };
+declare type Constructor<T = Record<string, any>> = new (...args: any[]) => T;
+declare type AbstractConstructor<T = Record<string, any>> = AnyFunction & { prototype: T };
 
 // Next two type decide wether a property is writable or not
 declare type IfNotEquals<X, Y, A, B> = (<T>() => T extends X ? 1 : 2) extends (<T>() => T extends Y ? 1 : 2) ? B : A;
 declare type NoneWritableKeysOf<T> = { [P in keyof T]: IfNotEquals<{ [Q in P]: T[P] }, { -readonly [Q in P]: T[P] }, P, never> }[keyof T];
 
 // Filer all properties out which are not a function
-declare type FuncPropNames<T> = { [K in keyof T]: T[K] extends Function ? K : never }[keyof T];
+declare type FuncPropNames<T> = { [K in keyof T]: T[K] extends AnyFunction ? K : never }[keyof T];
 
 // Filters all properties out which are undefined or a function
 declare type NonFuncPropNames<T> = { [K in keyof T]: T[K] extends (...args: any) => any ? never : K }[keyof T];
@@ -15,13 +15,15 @@ declare type NonFuncPropNames<T> = { [K in keyof T]: T[K] extends (...args: any)
 declare type DefNonFuncPropNames<T> = Exclude<NonFuncPropNames<T>, undefined>
 
 // The definitely instance type of any object type
-declare type DefInstanceType<T extends Object> = T extends Constructor ? InstanceType<T> : T;
+declare type DefInstanceType<T extends Record<string, any>> = T extends Constructor ? InstanceType<T> : T;
 
 // require only one of the keys
 type EachOfTmp<T> = { [K in keyof T]: { _: { [X in K]: T[K] }; } };
 declare type OneOf<T> = EachOfTmp<T>[keyof T]["_"] & Partial<T>;
 
 declare type NonEmptyArray<T> = [T, ...T];
+
+declare type AnyFunction = (...args: any[]) => unknown;
 
 // Collects all properties of a class except native functions and readonly properties and wraps them in an object with their types
 declare type ConstParams<T> = Partial<
@@ -83,10 +85,10 @@ interface Window {
     localStorage: import('node-localstorage')
 }
 
-namespace NodeJS {
+namespace NodeJS { // eslint-disable-line
     interface Global {
         localStorage: import('node-localstorage').LocalStorage
     }
 }
 
-declare interface CSSStyleDeclaration extends import('csstype').Properties { }
+type CSSStyleDeclaration = import('csstype').Properties

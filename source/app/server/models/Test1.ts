@@ -6,9 +6,8 @@ import { baseConstructor } from "~bdo/utils/decorators";
 /**
  * Test
  *
- * @export
  * @class Test1
- * @extends {BDOTest1Factory()}
+ * @extends ReturnType<BDOTest1Factory<Test>>
  */
 @baseConstructor()
 export class Test1 extends BDOTest1Factory(Test) {
@@ -22,7 +21,7 @@ export class Test1 extends BDOTest1Factory(Test) {
      *
      * @memberof Test1
      */
-    public wadde() {
+    public wadde(): void {
         this.bindings.get("title");
     }
 }

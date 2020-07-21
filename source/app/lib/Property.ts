@@ -21,7 +21,6 @@ export interface IPropertyParams {
      * This is useful to relieve heavy databases.
      *
      * @default false Values will NOT be saved in cache
-     * @type {boolean}
      */
     saveInLocalStorage?: boolean;
 
@@ -30,7 +29,6 @@ export interface IPropertyParams {
      * It is also used to generate a graphQL schema when used in an attribute.
      *
      * @default false
-     * @type {boolean}
      * @memberof IPropertyParams
      */
     nullable?: boolean | NullableListOptions;
@@ -38,7 +36,6 @@ export interface IPropertyParams {
     /**
      * Disables the type guard on runtime. The TypeGuard of the API stays active!
      *
-     * @type {boolean}
      * @memberof IPropertyParams
      */
     disableTypeGuard?: boolean;
@@ -48,7 +45,6 @@ export interface IPropertyParams {
      * and before final determination. The function must return a corresponding
      * error if something went wrong.
      *
-     * @type {string}
      * @memberof IPropertyParams
      */
     onTypeCheck?: string;
@@ -57,7 +53,6 @@ export interface IPropertyParams {
      * Defines the name of the function which should be called when the type check fails.
      * By default it is onPropertyNameTypeCheckFail
      *
-     * @type {string}
      * @memberof IPropertyParams
      */
     onTypeCheckFail?: string;
@@ -66,7 +61,6 @@ export interface IPropertyParams {
      * Defines the name of the function which will be executed if all type
      * checks are succeeded.
      *
-     * @type {string}
      * @memberof IPropertyParams
      */
     onTypeCheckSuccess?: string;
@@ -76,16 +70,12 @@ export interface IPropertyParams {
 /**
  * Holds all the logic for the parameters of property() decorator and manages
  * getting/setting the right value.
- *
- * @export
- * @class Property
  */
-export class Property<T extends object = any, K extends DefNonFuncPropNames<T> = any> implements IPropertyParams {
+export class Property<T extends Record<string, any> = any, K extends DefNonFuncPropNames<T> = any> implements IPropertyParams {
 
     /**
      * A reference to the object where this property/attribute is defined on
      *
-     * @type {*}
      * @memberof Property
      */
     public object: T;
@@ -93,7 +83,6 @@ export class Property<T extends object = any, K extends DefNonFuncPropNames<T> =
     /**
      * the name of the property/attribute on the object
      *
-     * @type {string}
      * @memberof Property
      */
     public property: K;
@@ -101,7 +90,6 @@ export class Property<T extends object = any, K extends DefNonFuncPropNames<T> =
     /**
      * @inheritdoc
      *
-     * @type {boolean}
      * @memberof Property
      */
     public saveInLocalStorage?: boolean;
@@ -109,7 +97,6 @@ export class Property<T extends object = any, K extends DefNonFuncPropNames<T> =
     /**
      * @inheritdoc
      *
-     * @type {(boolean | NullableListOptions)}
      * @memberof Property
      */
     public nullable?: boolean | NullableListOptions;
@@ -117,7 +104,6 @@ export class Property<T extends object = any, K extends DefNonFuncPropNames<T> =
     /**
      * @inheritdoc
      *
-     * @type {boolean}
      * @memberof Property
      */
     public disableTypeGuard?: boolean;
@@ -125,7 +111,6 @@ export class Property<T extends object = any, K extends DefNonFuncPropNames<T> =
     /**
      * @inheritdoc
      *
-     * @type {string}
      * @memberof Property
      */
     public onTypeCheckFail: string;
@@ -133,7 +118,6 @@ export class Property<T extends object = any, K extends DefNonFuncPropNames<T> =
     /**
      * @inheritdoc
      *
-     * @type {string}
      * @memberof Property
      */
     public onTypeCheck: string;
@@ -141,7 +125,6 @@ export class Property<T extends object = any, K extends DefNonFuncPropNames<T> =
     /**
      * @inheritdoc
      *
-     * @type {string}
      * @memberof Property
      */
     public onTypeCheckSuccess: string;
@@ -149,10 +132,9 @@ export class Property<T extends object = any, K extends DefNonFuncPropNames<T> =
     /**
      * The proxy handler which should be used instead of the own handler
      *
-     * @type {Function}
      * @memberof Property
      */
-    public proxyHandlerReplacement?: Function;
+    public proxyHandlerReplacement?: this["proxyHandler"];
 
     /**
      * @see Watched.isShallow
@@ -166,7 +148,6 @@ export class Property<T extends object = any, K extends DefNonFuncPropNames<T> =
      * The value of the property / attribute this will probably manipulated by a field
      *
      * @protected
-     * @type {T[K]}
      * @memberof Property
      */
     protected value?: T[K];
@@ -176,7 +157,6 @@ export class Property<T extends object = any, K extends DefNonFuncPropNames<T> =
      * used for the decision whether to change the value or not.
      *
      * @protected
-     * @type {T[K]}
      * @memberof Property
      */
     protected ownValue?: T[K];
@@ -203,7 +183,7 @@ export class Property<T extends object = any, K extends DefNonFuncPropNames<T> =
      * Sets the value depending on the parameters which are passed into the
      * decorator and stops early if the value is not changed.
      *
-     * @param {T[K]} value
+     * @param value The value to set on the property
      * @memberof Property
      */
     public setValue(value?: T[K] | Modification<any>) {
@@ -215,7 +195,7 @@ export class Property<T extends object = any, K extends DefNonFuncPropNames<T> =
      * This method will be called by some other objects and will get a managed
      * value depending on the parameters which are passed into the decorator.
      *
-     * @returns
+     * @returns The current value of the property
      * @memberof Property
      */
     public valueOf() {
@@ -234,7 +214,8 @@ export class Property<T extends object = any, K extends DefNonFuncPropNames<T> =
      * returns true if everything is OK and false else.
      *
      * @public
-     * @param {T[K]} value
+     * @param value The value which should be checked for types
+     * @returns true if no error occurred and false else
      * @memberof Property
      */
     public typeGuard(value?: T[K] | Modification<any>) {
@@ -274,6 +255,9 @@ export class Property<T extends object = any, K extends DefNonFuncPropNames<T> =
     /**
      * Handles the behavior of the proxy if value is an Object
      *
+     * @param _path The path as a dot separated list where the proxy was triggered on
+     * @param _changedVal The Value which has been assigned or unassigned
+     * @param _prevVal The old value
      * @memberof Property
      */
     public proxyHandler(_path?: string, _changedVal?: T[K], _prevVal?: T[K]) {
@@ -285,9 +269,9 @@ export class Property<T extends object = any, K extends DefNonFuncPropNames<T> =
     /**
      * Determines wether to set the value respecting the DOM attribute, old value and type
      *
-     * @param {(T[K] | Modification<any>)} [value]
-     * @param {boolean} [skipGuard=false]
-     * @returns
+     * @param value The value to check for set or not to set
+     * @param skipGuard Wether to skip the type guard
+     * @returns true if the value of the property should be set and false else
      * @memberof Property
      */
     public shouldDoSetValue(value?: T[K] | Modification<any>, skipGuard: boolean = false) {
@@ -296,15 +280,15 @@ export class Property<T extends object = any, K extends DefNonFuncPropNames<T> =
 
     /**
      * Executes value setting depending on modifyValue parameter and initialization
-     * properties.
+     * properties. It also reflects the value to the DOM when a binding node is present.
      *
      * @protected
-     * @param {T[K]} value
-     * @param {boolean} modifyValue
-     * @returns
+     * @param value The value which should be set on the property
+     * @param modifyValue Wether to change the value of the property or not
+     * @param skipGuard Wether to skip the guard or not
      * @memberof Property
      */
-    protected doSetValue(value?: T[K] | Modification<any>, modifyValue: boolean = true, skipGuard: boolean = false) {
+    protected doSetValue(value?: T[K] | Modification<any>, modifyValue = true, skipGuard = false) {
         if (!this.shouldDoSetValue(value, skipGuard)) return;
         let valueToPass: T[K] | undefined;
         if (value instanceof Modification) {
@@ -331,11 +315,11 @@ export class Property<T extends object = any, K extends DefNonFuncPropNames<T> =
      * Proxyfies the value to detect changes in objects and execute behavior if wanted
      *
      * @protected
-     * @param {T[K]} [value]
-     * @returns
+     * @param value The value which should be converted to a proxy
+     * @returns The proxy version of the value
      * @memberof Property
      */
-    protected proxyfyValue(value?: T[K]) {
+    protected proxyfyValue(value?: any) {
         if (value instanceof Array || isObject(value) && !isBDOModel(value)) {
             value = onChange.target(value);
             return onChange(value, (path, changedVal, prevVal) => {
@@ -351,7 +335,7 @@ export class Property<T extends object = any, K extends DefNonFuncPropNames<T> =
      * Decides wether to update the namespaced storage or not
      *
      * @protected
-     * @returns {boolean}
+     * @returns true if the namespaced storage should be updated and false else
      * @memberof Property
      */
     protected shouldUpdateNsStorage() {

@@ -4,18 +4,16 @@ import template from "~bdo/views/gameLobby.njk";
 /**
  * constructs the base for the gameLobby route on server and client
  *
- * @export
  * @template TBase
- * @param {TBase} ctor
+ * @param ctor The type to extend with
+ * @returns The mixed in class BDOGameLobby
  */
 export function BDOGameLobbyFactory<TBase extends Constructor<BDORoute>>(ctor: TBase) {
 
     /**
      * Serves the game lobby to the client
      *
-     * @export
-     * @class GameLobby
-     * @extends { BDORoute }
+     * @extends TBase
      */
     abstract class BDOGameLobby extends ctor {
 
@@ -47,7 +45,7 @@ export function BDOGameLobbyFactory<TBase extends Constructor<BDORoute>>(ctor: T
          * @inheritdoc
          *
          * @protected
-         * @returns {Promise<IndexStructure>}
+         * @returns A test string in an object with the key oha
          * @memberof GameLobby
          */
         protected async templateParams(): Promise<IndexStructure> {

@@ -1,5 +1,5 @@
 import 'reflect-metadata';
-import express from 'express';
+import express, { json, urlencoded, static as expressStatic } from 'express';
 import hpp from 'hpp';
 import helmet from 'helmet';
 import compression from 'compression';
@@ -43,9 +43,7 @@ declare type states =
  * Provides the base functionality of all servers including safety, middlewares,
  * route iteration, error handling, basic startup and basic graceful shutdown.
  *
- * @export
  * @abstract
- * @class BaseServer
  */
 export abstract class BaseServer {
     /**
@@ -167,7 +165,7 @@ export abstract class BaseServer {
      * @memberof BaseServer
      */
     public async stop(): Promise<void> {
-        await this.server.close();
+        this.server.close();
         logger.info('Server stopped');
     }
 
@@ -191,8 +189,8 @@ export abstract class BaseServer {
         ]);
         // parse the body to get post data and so on
         // NOTE: This is important for some middlewares to have directly
-        this.app.use(express.json());
-        this.app.use(express.urlencoded({ extended: true }));
+        this.app.use(json());
+        this.app.use(urlencoded({ extended: true }));
 
         // Setup compression and security
         this.app.use(compression());
@@ -224,7 +222,7 @@ export abstract class BaseServer {
         this.app.use(this.sessionParser);
 
         // Setup static files directory
-        this.app.use(express.static(resolve(rootPath, paths.staticFiles)));
+        this.app.use(expressStatic(resolve(rootPath, paths.staticFiles)));
     }
 
     /**
@@ -243,21 +241,17 @@ export abstract class BaseServer {
      * Initializes a single route based on its file
      *
      * @protected
-     * @param {string} file
-     * @returns {Promise<void>}
+     * @param file The path to the file which should be imported as a route
+     * @returns A definitely resolving promise
      * @memberof BaseServer
      */
     protected async singleRouteCollection(file: string): Promise<void> {
-        try {
-            const Route = require(file).default;
-            if (!includesMemberOfList(<string[]>Route.attachToServers, [<string>process.env.name, '*'])) return;
-            const clRoute: ServerRoute = new Route(this);
-            if (!clRoute.isServerRoute) throw new Error(`${file} is not instance of ~server/lib/ServerRoute`);
-            clRoute.routerNameSpace = toURIPathPart(clRoute.routerNameSpace);
-            this.app.use(clRoute.routerNameSpace, clRoute.router);
-        } catch (error) {
-            throw error;
-        }
+        const Route = (await import(file)).default;
+        if (!includesMemberOfList(<string[]>Route.attachToServers, [<string>process.env.name, '*'])) return;
+        const clRoute: ServerRoute = new Route(this);
+        if (!clRoute.isServerRoute) throw new Error(`${file} is not instance of ~server/lib/ServerRoute`);
+        clRoute.routerNameSpace = toURIPathPart(clRoute.routerNameSpace);
+        this.app.use(clRoute.routerNameSpace, clRoute.router);
     }
 
     /**
@@ -270,12 +264,13 @@ export abstract class BaseServer {
     protected async resolverCollection(): Promise<void> {
         // Setup the API
         const pathsConfig = await configManager.get('paths');
-        const resolvers: Function[] = [];
+        // Next line has to be ignored by eslint because type-graphql expects a function array
+        const resolvers: Function[] = []; // eslint-disable-line
         const [subscriber, publisher] = await Promise.all([
             redisClientManager.createThirdPartyClient('graphQLSubscriber'),
             redisClientManager.createThirdPartyClient('graphQLPublisher'),
-            walk(pathsConfig.resolvers, (file) => {
-                resolvers.push(require(file).default);
+            walk(pathsConfig.resolvers, async (file) => {
+                resolvers.push((await import(file)).default);
             })
         ]);
 
@@ -294,8 +289,9 @@ export abstract class BaseServer {
      *
      * @protected
      * @memberof BaseServer
+     * @returns {Promise<void>} A resoling promise
      */
-    protected async gracefulShutdown() {
+    protected async gracefulShutdown(): Promise<void> {
         this.state = "stopping";
         await redisClientManager.killAllClients();
         await this.stop();

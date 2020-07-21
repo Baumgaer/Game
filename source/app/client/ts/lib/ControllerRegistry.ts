@@ -5,9 +5,6 @@ type BaseController = InstanceType<ReturnType<typeof BaseControllerFactory>>;
 /**
  * Manages controllers and their ids to be equal in whole DOM and to ensure
  * that every local storage key is unique.
- *
- * @class ControllerRegistry
- * @export
  */
 export class ControllerRegistry {
 
@@ -37,11 +34,15 @@ export class ControllerRegistry {
      */
     private controllerAsId = new Map<string, BaseController>();
 
+    private constructor() {
+        // Just to implement the singleton pattern
+    }
+
     /**
      * Creates the singleton instance of this registry
      *
      * @static
-     * @returns
+     * @returns An instance of the ControllerRegistry
      * @memberof ControllerRegistry
      */
     public static getInstance() {
@@ -49,14 +50,11 @@ export class ControllerRegistry {
         return this.instance;
     }
 
-    private constructor() { }
-
     /**
      * Adds a controller with its className to the asNames field and if an
      * id is available to the asId field.
      *
-     * @param {BaseController} controller
-     * @returns {void}
+     * @param controller The Controller to add
      * @memberof ControllerRegistry
      */
     public add(controller: BaseController) {
@@ -69,8 +67,7 @@ export class ControllerRegistry {
     /**
      * Removes a controller from the registry
      *
-     * @param {BaseController} controller
-     * @returns {void}
+     * @param controller The controller to remove
      * @memberof ControllerRegistry
      */
     public remove(controller: BaseController) {
@@ -81,8 +78,8 @@ export class ControllerRegistry {
     /**
      * Returns an array of all controllers with a specific name
      *
-     * @param {string} name
-     * @returns {baseController[]}
+     * @param name The class name of the controller to get
+     * @returns An array of all controllers with name as className
      * @memberof ControllerRegistry
      */
     public getByClassName(name: string) {
@@ -92,8 +89,8 @@ export class ControllerRegistry {
     /**
      * returns the corresponding controller if exists and undefined else
      *
-     * @param {string} id
-     * @returns {BaseController | undefined}
+     * @param id The id of the controller which was maybe auto generated
+     * @returns The controller if found
      * @memberof ControllerRegistry
      */
     public getById(id: string) {
@@ -103,8 +100,8 @@ export class ControllerRegistry {
     /**
      * Exactly the same functionality as Array.indexOf()
      *
-     * @param {BaseController} controller
-     * @returns {number}
+     * @param controller The controller to search the index of
+     * @returns The index of the controller and -1 if not found
      * @memberof ControllerRegistry
      */
     public indexOf(controller: BaseController) {
@@ -114,9 +111,8 @@ export class ControllerRegistry {
     /**
      * Adds a controller to the asId field if not already contained in there
      *
-     * @param {string} id
-     * @param {BaseController} controller
-     * @returns {void}
+     * @param id The id to set for the controller
+     * @param controller The controller to change the id of
      * @memberof ControllerRegistry
      */
     public setId(id: string, controller: BaseController) {
@@ -128,8 +124,8 @@ export class ControllerRegistry {
      * Updates the controller with the old id when the new id is not already
      * in asId field.
      *
-     * @param {string} oldId
-     * @param {string} newId
+     * @param oldId The id to update
+     * @param newId The new value of the id
      * @memberof ControllerRegistry
      */
     public updateId(oldId: string, newId: string) {

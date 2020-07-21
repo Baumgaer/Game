@@ -17,9 +17,8 @@ const databaseManager = DatabaseManager.getInstance();
  * Provides basic functionality and fields for each Model on each side
  * (server and client)
  *
- * @export
  * @abstract
- * @class BDOModel
+ * @extends BDOModel
  */
 @baseConstructor()
 export class ClientModel extends BDOModel {
@@ -51,9 +50,9 @@ export class ClientModel extends BDOModel {
      *
      * @static
      * @template T
-     * @param {Constructor<T>} this
-     * @param {T["id"]} id
-     * @returns
+     * @param this The this context which can not be overwritten
+     * @param id The id of the instance of the model to get
+     * @returns A promise which resolves the model if available
      * @memberof ClientModel
      */
     public static getInstanceByID<T extends BDOModel>(this: Constructor<T>, id: T["id"]) {
@@ -67,9 +66,9 @@ export class ClientModel extends BDOModel {
             if (dataFromLocalDB) {
                 const pendingPromises: Promise<void>[] = [];
                 for (const key in dataFromLocalDB) {
-                    if (dataFromLocalDB.hasOwnProperty(key)) {
+                    if (key in dataFromLocalDB) {
                         const modelElem = Reflect.get(model, key);
-                        let klass: typeof ClientModel;
+                        let theClass: typeof ClientModel;
                         let elem = dataFromLocalDB[key];
                         let correspondingListLikeDB = [];
 
@@ -85,8 +84,8 @@ export class ClientModel extends BDOModel {
                                 if (isReferenceString(item)) {
                                     const refParts = item.split(":")[1];
                                     const className = refParts[1];
-                                    klass = require(`./../models/${className}.ts`)[className];
-                                    pendingItems.push(klass.getInstanceByID(refParts[2]).then((result) => {
+                                    theClass = require(`./../models/${className}.ts`)[className]; // eslint-disable-line
+                                    pendingItems.push(theClass.getInstanceByID(refParts[2]).then((result) => {
                                         item = result;
                                     }));
                                 }
@@ -95,8 +94,8 @@ export class ClientModel extends BDOModel {
                         } else if (isReferenceString(elem) && elem !== model.getReferenceString()) {
                             const refParts = elem.split(":")[1];
                             const className = refParts[1];
-                            klass = require(`./../models/${className}.ts`)[className];
-                            pendingPromises.push(klass.getInstanceByID(refParts[2]).then((result) => {
+                            theClass = require(`./../models/${className}.ts`)[className]; // eslint-disable-line
+                            pendingPromises.push(theClass.getInstanceByID(refParts[2]).then((result) => {
                                 elem = result;
                             }));
                         }
@@ -116,9 +115,9 @@ export class ClientModel extends BDOModel {
      *
      * @static
      * @template T
-     * @param {Constructor<T>} this
-     * @param {ConstParams<T>} attributes
-     * @returns
+     * @param this The this context which can not be overwritten
+     * @param attributes The attributes which corresponds to the model
+     * @returns An array of models which match the given attributes
      * @memberof ClientModel
      */
     public static getInstancesByAttributes<T extends BDOModel>(this: Constructor<T>, attributes: ConstParams<T>) {
@@ -127,12 +126,11 @@ export class ClientModel extends BDOModel {
 
     /**
      * @see getNamespacedStorage
-     * @link ~client/utils/util
      *
-     * @param {string} key
-     * @param {string} [nsProp]
-     * @param {string} [forceNS]
-     * @returns
+     * @param key The key of the namespaced storage to get
+     * @param nsProp The property which should be used as a namespace suffix (The prefix is the name of the instance). Default: "id"
+     * @param forceNS This will overwrite every property value (nsProp value) and will be used as namespace suffix
+     * @returns The value of the given key respecting the namespace
      * @memberof ClientModel
      */
     public getNamespacedStorage<K extends DefNonFuncPropNames<this>, P extends DefNonFuncPropNames<this>>(key: K, nsProp?: P, forceNS?: string) {
@@ -141,35 +139,31 @@ export class ClientModel extends BDOModel {
 
     /**
      * @see setUpdateNamespacedStorage
-     * @link ~client/utils/util
      *
-     * @param {string} key
-     * @param {*} newVal
-     * @param {string} [nsProp]
-     * @returns
+     * @param key The key of the namespaced storage to set
+     * @param newVal The value which should bet set to the key
+     * @param nsProp The property which should be used as a namespace suffix (The prefix is the name of the instance). Default: "id"
      * @memberof ClientModel
      */
     public setUpdateNamespacedStorage<K extends DefNonFuncPropNames<this>, P extends DefNonFuncPropNames<this>>(key: K, newVal: this[K], nsProp?: P) {
-        return setUpdateNamespacedStorage(this, key, newVal, nsProp);
+        setUpdateNamespacedStorage(this, key, newVal, nsProp);
     }
 
     /**
      * @see deleteFromNamespacedStorage
-     * @link ~client/utils/util
      *
-     * @param {string} key
-     * @param {string} [nsProp]
-     * @returns
+     * @param key The key of the namespaced storage to delete
+     * @param nsProp The property which should be used as a namespace suffix (The prefix is the name of the instance). Default: "id"
      * @memberof ClientModel
      */
     public deleteFromNamespacedStorage<K extends DefNonFuncPropNames<this> | "*", P extends DefNonFuncPropNames<this>>(key: K, nsProp?: P) {
-        return deleteFromNamespacedStorage(this, key, nsProp);
+        deleteFromNamespacedStorage(this, key, nsProp);
     }
 
     /**
      * @inheritdoc
      *
-     * @param {string} attr
+     * @param attr An attribute to save
      * @memberof ClientModel
      */
     public async save(attr?: DefNonFuncPropNames<this>): Promise<IndexStructure> {
@@ -180,7 +174,7 @@ export class ClientModel extends BDOModel {
         const toSave: IndexStructure = {};
         const sendToServer: IndexStructure = {};
         for (const attribute of attributes) {
-            if (unsavedChanges.hasOwnProperty(attribute)) {
+            if (attribute in unsavedChanges) {
                 const strAttr = <string>attribute;
                 let proxyVal = getProxyTarget(unsavedChanges[strAttr]);
                 if (proxyVal instanceof Array) {
@@ -218,8 +212,7 @@ export class ClientModel extends BDOModel {
     /**
      * @inheritdoc
      *
-     * @param {DefNonFuncPropNames<this>} attr
-     * @returns {Promise<void>}
+     * @param _attr An attribute to discard
      * @memberof ClientModel
      */
     public discard(_attr?: DefNonFuncPropNames<this>): Promise<void> {
@@ -229,7 +222,7 @@ export class ClientModel extends BDOModel {
     /**
      * @inheritdoc
      *
-     * @returns {Promise<ConstParams<this>>}
+     * @returns The changes which are not saved yet
      * @memberof ClientModel
      */
     public async getUnsavedChanges(): Promise<IndexStructure> {
@@ -259,7 +252,7 @@ export class ClientModel extends BDOModel {
      * properties for client side.
      *
      * @protected
-     * @param {Error} error
+     * @param error The error which happened while checking the type of an attribute
      * @memberof ClientModel
      */
     protected onTypeCheckFail(error: Error) {

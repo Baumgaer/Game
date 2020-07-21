@@ -6,9 +6,8 @@ import { BDOModel } from "~bdo/lib/BDOModel";
  * Provides basic functionality and fields for each Model on each side
  * (server and client)
  *
- * @export
  * @abstract
- * @class BDOModel
+ * @extends BDOModel
  */
 @baseConstructor()
 export class ServerModel extends BDOModel {
@@ -34,8 +33,8 @@ export class ServerModel extends BDOModel {
     /**
      * @inheritdoc
      *
-     * @param {string} prop
-     * @returns {Promise<any>}
+     * @param _attr The attributes which should be saved. leave empty to save all
+     * @returns The resulting model
      * @memberof ServerModel
      */
     public async save(_attr?: DefNonFuncPropNames<this>): Promise<any> {
@@ -45,8 +44,7 @@ export class ServerModel extends BDOModel {
     /**
      * @inheritdoc
      *
-     * @param {DefNonFuncPropNames<this>} [_attr]
-     * @returns {Promise<void>}
+     * @param _attr The attributes which should be discarded
      * @memberof ServerModel
      */
     public discard(_attr?: DefNonFuncPropNames<this>): Promise<void> {
@@ -56,8 +54,8 @@ export class ServerModel extends BDOModel {
     /**
      * @inheritdoc
      *
-     * @param {DefNonFuncPropNames<this>} [_attr]
-     * @returns {Promise<boolean>}
+     * @param _attr The attributes which should be checked
+     * @throws {Error}
      * @memberof ServerModel
      */
     public isUnsaved(_attr?: DefNonFuncPropNames<this>): Promise<boolean> {
@@ -67,7 +65,6 @@ export class ServerModel extends BDOModel {
     /**
      * @inheritdoc
      *
-     * @returns {Promise<boolean>}
      * @memberof ServerModel
      */
     public hasUnsavedChanges(): Promise<boolean> {
@@ -77,7 +74,6 @@ export class ServerModel extends BDOModel {
     /**
      * @inheritdoc
      *
-     * @returns {Promise<IndexStructure>}
      * @memberof ServerModel
      */
     public getUnsavedChanges(): Promise<IndexStructure> {

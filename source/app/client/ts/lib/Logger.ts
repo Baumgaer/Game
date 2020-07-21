@@ -4,9 +4,8 @@ import { baseConstructor } from '~bdo/utils/decorators';
 /**
  * Logs colored console output
  *
- * @export
  * @class Logger
- * @extends {BDOLogger}
+ * @extends BDOLogger
  */
 @baseConstructor()
 export class Logger extends BDOLogger {
@@ -32,9 +31,9 @@ export class Logger extends BDOLogger {
      * @inheritdoc
      *
      * @protected
-     * @param {logLevels} logLevel
-     * @param {printEnvironments} [printEnv='console']
-     * @returns {(string | string[])}
+     * @param logLevel The log level which effects the colorization
+     * @param printEnv The environment where the logging happens. Default: "console"
+     * @returns The ready to use header
      * @memberof Logger
      */
     protected getHeader(logLevel: logLevels, printEnv: printEnvironments = 'console'): string | string[] {
@@ -70,8 +69,8 @@ export class Logger extends BDOLogger {
      * @inheritdoc
      *
      * @protected
-     * @param {logLevels} logLevel
-     * @param {*} message
+     * @param _logLevel The log level which effects the colorization
+     * @param _message The message to write to the log
      * @memberof Logger
      */
     protected writeToFile(_logLevel: logLevels, _message: any): void {

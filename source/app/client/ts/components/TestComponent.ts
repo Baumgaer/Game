@@ -1,15 +1,14 @@
 import { BaseComponentFactory } from '~client/lib/BaseComponent';
-import { baseConstructor } from '~bdo/utils/decorators';
-import { property } from '~bdo/utils/decorators';
+import { baseConstructor , property } from '~bdo/utils/decorators';
+
 import template from "~static/views/testComponent.njk";
 import style from "~static/less/components/TestComponent.less";
 
 /**
  * Test
  *
- * @export
  * @class TestComponent
- * @extends {BaseComponentFactory(HTMLElement)}
+ * @extends ReturnType<BaseComponentFactory<HTMLElement>>
  */
 @baseConstructor()
 export default class TestComponent extends BaseComponentFactory(HTMLElement) {

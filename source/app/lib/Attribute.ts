@@ -13,7 +13,7 @@ type prop<T> = DefNonFuncPropNames<T>;
  * A Component or other objects will not be effected.
  *
  * @interface IAttributeParams
- * @link https://typegraphql.ml/docs/introduction.html
+ * @see https://typegraphql.ml/docs/introduction.html
  */
 export interface IAttributeParams extends IPropertyParams, AdvancedOptions {
     /**
@@ -72,11 +72,9 @@ export interface IAttributeParams extends IPropertyParams, AdvancedOptions {
  * Holds all the logic for the parameters of attribute() decorator and manages
  * getting/setting the right value.
  *
- * @export
- * @class Attribute
- * @extends {Property}
+ * @extends Property
  */
-export class Attribute<T extends object = any, K extends prop<T> = any> extends Property implements IAttributeParams {
+export class Attribute<T extends Record<string, any> = any, K extends prop<T> = any> extends Property implements IAttributeParams {
 
     /**
      * @inheritdoc
@@ -121,7 +119,6 @@ export class Attribute<T extends object = any, K extends prop<T> = any> extends 
     /**
      * Marks if an attribute is initialized on a DOM element
      *
-     * @private
      * @type {boolean}
      * @memberof Attribute
      */
@@ -130,8 +127,6 @@ export class Attribute<T extends object = any, K extends prop<T> = any> extends 
     /**
      * Stores the timeout which is used to debounce the autosave of the attribute
      *
-     * @private
-     * @type {NodeJS.Timeout}
      * @memberof Attribute
      */
     private autoSaveTimeout?: NodeJS.Timeout;
@@ -139,7 +134,6 @@ export class Attribute<T extends object = any, K extends prop<T> = any> extends 
     /**
      * Determines after the first call of doAutoSave whether it is allowed to automatically save the value or not
      *
-     * @private
      * @type {boolean}
      * @memberof Attribute
      */
@@ -152,7 +146,7 @@ export class Attribute<T extends object = any, K extends prop<T> = any> extends 
     /**
      * @inheritdoc
      *
-     * @param {T[K]} value
+     * @param value The value to set to this attribute
      * @memberof Attribute
      */
     public setValue(value?: T[K] | Modification<any>) {
@@ -168,7 +162,6 @@ export class Attribute<T extends object = any, K extends prop<T> = any> extends 
     /**
      * @inheritdoc
      *
-     * @returns
      * @memberof Attribute
      */
     public proxyHandler(_path?: string, _changedVal?: T[K], _prevVal?: T[K]) {
@@ -186,14 +179,15 @@ export class Attribute<T extends object = any, K extends prop<T> = any> extends 
      *
      * @memberof Attribute
      */
-    public getUnsavedChange() { }
+    public getUnsavedChange() {
+        // Do Nothing at this time
+    }
 
     /**
      * @inheritdoc
      *
-     * @public
-     * @param {(T[K] | Modification<any>)} [value]
-     * @returns
+     * @param value The value which should maybe set
+     * @returns true if should be set and false else
      * @memberof Attribute
      */
     public shouldDoSetValue(value?: T[K] | Modification<any>, skipGuard: boolean = false) {
@@ -213,10 +207,7 @@ export class Attribute<T extends object = any, K extends prop<T> = any> extends 
      * SetValue is used by proxyHandler to avoid setting a new value is an object
      * has been changed.
      *
-     * @public
-     * @param {(T[K] | Modification<any>)} [value]
-     * @param {boolean} [setValue=true]
-     * @returns
+     * @param value The value to reflect
      * @memberof Attribute
      */
     public reflectToDOMAttribute(value?: T[K] | Modification<any>) {
@@ -235,7 +226,7 @@ export class Attribute<T extends object = any, K extends prop<T> = any> extends 
         this.inDOMInitialized = true;
 
         // Reflect property changes to attribute
-        if (setAttribute && attrValue !== pTarget && attrValue !== JSON.stringify(pTarget).replace(/\"/g, "'")) {
+        if (setAttribute && attrValue !== pTarget && attrValue !== JSON.stringify(pTarget).replace(/"/g, "'")) {
             (this.object).setAttribute(stringKey, pTarget, false);
         }
     }
@@ -244,8 +235,6 @@ export class Attribute<T extends object = any, K extends prop<T> = any> extends 
      * Saves the attribute automatically if autoSave is defined and debounces
      * it if autosave is a number.
      *
-     * @private
-     * @returns
      * @memberof Attribute
      */
     private doAutoSave() {

@@ -28,9 +28,8 @@ export interface IBaseConstructorCtor<T = any> extends IGetNamespaceStorageAddit
  * This parameters should only be used on models because on other objects they
  * will have no effects.
  *
- * @export
  * @interface IBaseConstructorOpts
- * @extends {ObjectOptions}
+ * @extends ObjectOptions
  */
 export interface IBaseConstructorOpts extends ObjectTypeOptions {
 
@@ -59,18 +58,16 @@ export interface IBaseConstructorOpts extends ObjectTypeOptions {
  * Creates a new BaseConstructor based on ctor as prototype and arguments at
  * position constParamsIndex.
  *
- * @export
- * @param {*} ctor
- * @param {number} constParamsIndex
- * @returns
+ * @param ctor The class to extend with
+ * @param constParamsIndex The position of the construction parameters
+ * @returns The mixed in class BaseConstructor
  */
 export function baseConstructorFactory<T extends Constructor<IBaseConstructorCtor>>(ctor: T, constParamsIndex: number) {
 
     /**
      * Invokes the life cycle of every component and model
      *
-     * @class BaseConstructor
-     * @extends {ctor}
+     * @extends T
      */
     class BaseConstructor extends ctor implements IBaseConstructorOpts {
 
@@ -87,7 +84,6 @@ export function baseConstructorFactory<T extends Constructor<IBaseConstructorCto
          * baseConstructor - for the GraphQL resolver
          *
          * @static
-         * @type {*}
          * @memberof BaseConstructor
          */
         public static readonly graphQLType = ctor;
@@ -96,7 +92,6 @@ export function baseConstructorFactory<T extends Constructor<IBaseConstructorCto
          * @inheritdoc
          *
          * @static
-         * @type {string}
          * @memberof BaseConstructor
          */
         public static readonly collectionName?: string = getMetadata(BaseConstructor, "collectionName");
@@ -105,7 +100,6 @@ export function baseConstructorFactory<T extends Constructor<IBaseConstructorCto
          * @inheritdoc
          *
          * @static
-         * @type {string}
          * @memberof BaseConstructor
          */
         public static readonly databaseName?: string = getMetadata(BaseConstructor, "databaseName");
@@ -115,7 +109,6 @@ export function baseConstructorFactory<T extends Constructor<IBaseConstructorCto
          * assigning const params and life cycle invocation
          *
          * @static
-         * @type {boolean}
          * @memberof BaseConstructor
          */
         public static isProceduralComponentConstruction: boolean = false;
@@ -123,7 +116,6 @@ export function baseConstructorFactory<T extends Constructor<IBaseConstructorCto
         /**
          * @see BaseConstructor.collectionName
          *
-         * @type {string}
          * @memberof BaseConstructor
          */
         public readonly collectionName?: string = BaseConstructor.collectionName;
@@ -131,7 +123,6 @@ export function baseConstructorFactory<T extends Constructor<IBaseConstructorCto
         /**
          * @see BaseConstructor.databaseName
          *
-         * @type {string}
          * @memberof BaseConstructor
          */
         public readonly databaseName?: string = BaseConstructor.databaseName;
@@ -148,7 +139,7 @@ export function baseConstructorFactory<T extends Constructor<IBaseConstructorCto
          * initialization to the current instance and initializes the life
          * cycle.
          *
-         * @param {IndexStructure} constParams
+         * @param constParams The parameters to construct the object with
          * @memberof BaseConstructor
          */
         public invokeLifeCycle(constParams: IndexStructure) {
@@ -172,9 +163,7 @@ export function baseConstructorFactory<T extends Constructor<IBaseConstructorCto
          * This is important because DOM attributes are stronger than any
          * default setting which implies that a binding should be changed, too.
          *
-         * @private
-         * @param {IndexStructure<any>} defaultSettings
-         * @returns {void}
+         * @param defaultSettings The settings which are set in the DOM of a component
          * @memberof BaseConstructor
          */
         private assignComponentDeclarativeAttributes(defaultSettings: IndexStructure<any>) {
@@ -193,17 +182,15 @@ export function baseConstructorFactory<T extends Constructor<IBaseConstructorCto
          * Assigns values from cache to setters and bindings because they are
          * the strongest settings (because they are cached).
          *
-         * @private
-         * @param {string} id
-         * @param {IndexStructure<any>} defaultSettings
-         * @returns {void}
+         * @param id The id of the object
+         * @param defaultSettings The settings which are set by default or are used for construction via assignment
          * @memberof BaseConstructor
          */
         private assignCachedSettings(id: string, defaultSettings: IndexStructure<any>) {
             if (!canGetNamespacedStorage(this)) return;
             const cachedSettings = this.getNamespacedStorage("*", "id", id) || {};
             for (const key in cachedSettings) {
-                if (cachedSettings.hasOwnProperty(key)) {
+                if (key in cachedSettings) {
                     const element = defaultSettings[key];
                     if (element instanceof Binding) {
                         element.setValue(cachedSettings[key]);

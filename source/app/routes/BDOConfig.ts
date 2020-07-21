@@ -3,19 +3,17 @@ import { BDORoute } from '~bdo/lib/BDORoute';
 /**
  * constructs the base for the config route on server and client
  *
- * @export
  * @template TBase
- * @param {TBase} ctor
+ * @param ctor The type to extend with
+ * @returns The mixed in class BDOConfig
  */
 export function BDOConfigFactory<TBase extends Constructor<BDORoute>>(ctor: TBase) {
 
     /**
      * Provides basic functionality for the special config route on server and client
      *
-     * @export
      * @abstract
-     * @class BDOConfig
-     * @extends {BDORoute}
+     * @extends TBase
      */
     abstract class BDOConfig extends ctor {
         /**

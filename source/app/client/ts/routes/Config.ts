@@ -6,8 +6,6 @@ import { BDOConfigFactory } from '~bdo/routes/BDOConfig';
  * It is not possible to get the config via graphQL api because is is too
  * dynamic so you cant write a true type for it.
  *
- * @export
- * @class GameLobby
- * @extends {BaseRouteFactory(RouteType)}
+ * @extends ReturnType<BaseRouteFactory<RouteType>>
  */
 export default class Config extends BDOConfigFactory(ClientRoute) { }

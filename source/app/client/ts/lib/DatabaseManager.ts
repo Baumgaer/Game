@@ -16,18 +16,18 @@ export class DatabaseManager<D extends string, C extends string, G extends strin
 
     private databases: Map<D, LocalForage> = new Map<D, LocalForage>();
 
+    private constructor() {
+        super();
+    }
+
     public static getInstance() {
         if (!DatabaseManager.instance) DatabaseManager.instance = new DatabaseManager();
         return DatabaseManager.instance;
     }
 
-    private constructor() {
-        super();
-    }
-
     public database(name: D) {
         this.currentDatabase = name;
-        if (!this.databases.hasOwnProperty(name)) {
+        if (!(name in this.databases)) {
             this.databases.set(name, localForage.createInstance({
                 name: name,
                 driver: [localForage.INDEXEDDB, localForage.WEBSQL]

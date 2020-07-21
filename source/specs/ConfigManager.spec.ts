@@ -30,11 +30,6 @@ describe('Tests for app/server/lib/ConfigManager', function describe() {
         });
     });
 
-    it('should throw an error', function test() {
-        const configManager = ConfigManager.getInstance();
-        expect(configManager.set.bind('test')).to.throw(Error, 'Method not implemented.');
-    });
-
     it('should load the clients spec config', function test(done) {
         const configManager = ConfigManager.getInstance();
         const clientExpectedObject = {};

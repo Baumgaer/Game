@@ -3,8 +3,7 @@ import * as nunjucks from 'nunjucks';
 /**
  * Checks if a script is running on server side or not
  *
- * @export
- * @returns {boolean}
+ * @returns true if is Node and false else
  */
 export function isNodeJS(): boolean {
     if (typeof window === 'undefined' && typeof process === 'object') {
@@ -16,8 +15,7 @@ export function isNodeJS(): boolean {
 /**
  * Checks if a script is running on client side or not
  *
- * @export
- * @returns {boolean}
+ * @returns true if is a browser and false else
  */
 export function isBrowser(): boolean {
     return !isNodeJS();
@@ -26,13 +24,14 @@ export function isBrowser(): boolean {
 /**
  * provides several filters for the template engine
  *
- * @param {nunjucks.Environment} env
+ * @param env The template environment which will be extended
  */
-export const templateFilters = (env: nunjucks.Environment) => {
+export const templateFilters = (env: nunjucks.Environment): void => {
     env.addFilter('json', (value, spaces) => {
         if (value instanceof nunjucks.runtime.SafeString) {
             value = value.toString();
         }
+        // eslint-disable-next-line
         // @ts-ignore
         return new env.filters.safe(JSON.stringify(value, null, spaces));
     });
@@ -41,6 +40,7 @@ export const templateFilters = (env: nunjucks.Environment) => {
         if (value instanceof nunjucks.runtime.SafeString) {
             value = value.toString();
         }
+        // eslint-disable-next-line
         // @ts-ignore
         return env.filters.safe(`<bind name="${bindingName}">${value}</bind>`);
     });

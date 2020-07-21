@@ -1,14 +1,11 @@
 import { BaseComponentFactory } from '~client/lib/BaseComponent';
-import { baseConstructor } from '~bdo/utils/decorators';
-import { property } from '~bdo/utils/decorators';
+import { baseConstructor, property } from '~bdo/utils/decorators';
 import * as BABYLON from 'babylonjs';
 
 /**
  * Test
  *
- * @export
- * @class GameWindow
- * @extends {BaseComponentFactory(HTMLCanvasElement)}
+ * @extends ReturnType<BaseComponentFactory<HTMLCanvasElement>>
  */
 @baseConstructor()
 export default class GameWindow extends BaseComponentFactory(HTMLCanvasElement) {
@@ -65,7 +62,7 @@ export default class GameWindow extends BaseComponentFactory(HTMLCanvasElement) 
      * Creates a BABYLON scene with basic support
      *
      * @protected
-     * @returns
+     * @returns A BabylonJS scene
      * @memberof GameWindow
      */
     protected createScene(): BABYLON.Scene {
@@ -96,5 +93,7 @@ export default class GameWindow extends BaseComponentFactory(HTMLCanvasElement) 
      * @protected
      * @memberof GameWindow
      */
-    protected createTerrain() { }
+    protected createTerrain(): void {
+        return;
+    }
 }

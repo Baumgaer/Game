@@ -12,26 +12,19 @@ const logger = new Logger({
 /**
  * Fired when a redis client does not exist
  *
- * @export
- * @class ClientNotExistError
- * @extends {Error}
+ * @extends Error
  */
 export class ClientNotExistError extends Error { }
 
 /**
  * Fired when a redis client already exists but tried to create an instance
  *
- * @export
- * @class ClientAlreadyExistsError
- * @extends {Error}
+ * @extends Error
  */
 export class ClientAlreadyExistsError extends Error { }
 
 /**
  * Manages the connections of all redis clients especially the subscription
- *
- * @export
- * @class RedisClientManager
  */
 export class RedisClientManager {
     /**
@@ -53,11 +46,15 @@ export class RedisClientManager {
      */
     private clients: Map<string, Redis> = new Map();
 
+    private constructor() {
+        // This is just to implement the singleton pattern
+    }
+
     /**
      * Creates a new instance for the singleton manager
      *
      * @static
-     * @returns {RedisClientManager}
+     * @returns An instance of RedisClientManager
      * @memberof RedisClientManager
      */
     public static getInstance(): RedisClientManager {
@@ -67,27 +64,25 @@ export class RedisClientManager {
         return RedisClientManager.instance;
     }
 
-    private constructor() { }
-
     /**
      * Creates a new Redis client if id does not already exist
      *
-     * @param {string} id Name of the client
-     * @param {RedisOptions} options
-     * @param {boolean} [subscribe] If the client serves as Pub/Sub
-     * @returns {Promise<Redis>}
+     * @param id Name of the client
+     * @param options The options of the client e.g. the port number or credentials. default: {}
+     * @param subscribe If the client serves as Pub/Sub. Default: false
+     * @returns A Redis client
      * @memberof RedisClientManager
      */
-    public createClient(id: string, options: IORedis.RedisOptions = {}, subscribe: boolean = false): Promise<Redis> {
+    public createClient(id: string, options: IORedis.RedisOptions = {}, subscribe = false): Promise<Redis> {
         return this.clientCreation(id, options, subscribe, false);
     }
 
     /**
      * Creates a very slightly manipulated client for third party libraries
      *
-     * @param {string} id
-     * @param {IORedis.RedisOptions} options
-     * @returns {Promise<IORedis.Redis>}
+     * @param id Name of the client
+     * @param options The options of the client e.g. the port number or credentials. default: {}
+     * @returns A none effected redis client for compatibility
      * @memberof RedisClientManager
      */
     public createThirdPartyClient(id: string, options: IORedis.RedisOptions = {}): Promise<IORedis.Redis> {
@@ -97,8 +92,8 @@ export class RedisClientManager {
     /**
      * Returns an existing redis client
      *
-     * @param {string} id Name of the client
-     * @returns {(Redis | undefined)}
+     * @param id Name of the client
+     * @returns A Redis client if someone was found
      * @memberof RedisClientManager
      */
     public getClient(id: string): Redis | IORedis.Redis | undefined {
@@ -108,16 +103,14 @@ export class RedisClientManager {
     /**
      * Disconnects the client from the server and deletes it from the client map
      *
-     * @param {string} id The name of the client
-     * @returns {Promise<boolean>}
+     * @param id The name of the client
+     * @returns true if the client is killed
      * @memberof RedisClientManager
      */
     public killClient(id: string): Promise<boolean> {
         return new Promise<boolean>((resolve, reject) => {
             const client = this.getClient(id);
-            if (!client) {
-                return reject(new ClientNotExistError());
-            }
+            if (!client) return reject(new ClientNotExistError());
             client.quit();
             client.on('close', () => {
                 logger.info(`Redis Client "${id}" is dead`);
@@ -130,7 +123,7 @@ export class RedisClientManager {
     /**
      * Kills all clients and removes them from the client map
      *
-     * @returns {Promise<boolean>}
+     * @returns true if all clients are killed
      * @memberof RedisClientManager
      */
     public killAllClients(): Promise<boolean> {
@@ -149,11 +142,11 @@ export class RedisClientManager {
      * Creates the real client depending on third party is true or not
      *
      * @private
-     * @param {string} id
-     * @param {IORedis.RedisOptions} options
-     * @param {boolean} subscribe
-     * @param {boolean} thirdParty
-     * @returns {(Promise<IORedis.Redis | Redis>)}
+     * @param id The name of the client
+     * @param options The options of the client e.g. the port number or credentials.
+     * @param subscribe If the client serves as Pub/Sub
+     * @param thirdParty If the client is used for a third party library
+     * @returns A Redis client
      * @memberof RedisClientManager
      */
     private async clientCreation<T extends boolean>(
@@ -202,8 +195,8 @@ export class RedisClientManager {
     /**
      * Manages the retry delay in case of connection lost
      *
-     * @param {number} times current number of retry
-     * @returns {number} The new delay
+     * @param times current number of retry
+     * @returns The new delay
      * @memberof RedisClientManager
      */
     private retryStrategy(times: number): number {
@@ -213,8 +206,8 @@ export class RedisClientManager {
     /**
      * Decides in which case the reconnect should be done
      *
-     * @param {Error} error occurred error
-     * @returns {boolean} should retry or not
+     * @param error occurred error
+     * @returns should retry or not
      * @memberof RedisClientManager
      */
     private reconnectOnError(error: Error): boolean {
@@ -228,7 +221,7 @@ export class RedisClientManager {
     /**
      * Fired when the client is connected to the server
      *
-     * @param {Redis} client
+     * @param client The Redis client which connects
      * @memberof RedisClientManager
      */
     private onClientConnect(client: Redis): void {
@@ -238,8 +231,8 @@ export class RedisClientManager {
     /**
      * Fired when the client is reconnecting
      *
-     * @param {Redis} client
-     * @param {number} times Time duration to reconnect
+     * @param client The client which reconnects
+     * @param times Time duration to reconnect
      * @memberof RedisClientManager
      */
     private onClientReconnect(client: Redis, times: number): void {
@@ -249,7 +242,7 @@ export class RedisClientManager {
     /**
      * Fired when the client is ready to use
      *
-     * @param {Redis} client
+     * @param client The client which becomes ready
      * @memberof RedisClientManager
      */
     private onClientReady(client: Redis): void {
@@ -260,14 +253,14 @@ export class RedisClientManager {
     /**
      * Fired when the client is a subscriber and receives a message
      *
-     * @param {Redis} client
-     * @param {string} topic
-     * @param {messageType} params
+     * @param client The client which received a message
+     * @param topic The topic which was received
+     * @param params The parameters which were sent with the topic
      * @memberof RedisClientManager
      */
     private onClientMessage(client: Redis, topic: string, params: messageType): void {
         if (client.topics.has(topic)) {
-            for (const callback of <Function[]>client.topics.get(topic)) {
+            for (const callback of <AnyFunction[]>client.topics.get(topic)) {
                 // Call defined Function
                 // In this case, "this" is the callers this...
                 // Which confusion...
@@ -280,9 +273,9 @@ export class RedisClientManager {
     /**
      * Fired when an error occurred on the client
      *
-     * @param {Redis} client
-     * @param {Error} error
-     * @returns {Error}
+     * @param client The client which had an error
+     * @param error The error which happened
+     * @returns The error which happened. Used for further processing
      * @memberof RedisClientManager
      */
     private onClientError(client: Redis, error: Error): Error {

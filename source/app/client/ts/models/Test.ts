@@ -5,9 +5,7 @@ import { baseConstructor } from "~bdo/utils/decorators";
 /**
  * Test
  *
- * @export
- * @class Test
- * @extends {BDOTestFactory(BDOModel)}
+ * @extends ReturnType<BDOTestFactory<BDOModel>>
  */
 @baseConstructor({ collectionName: "Test" })
 export class Test extends BDOTestFactory(ClientModel) {
@@ -22,6 +20,6 @@ export class Test extends BDOTestFactory(ClientModel) {
      * @memberof Test
      */
     public test() {
-
+        // Just do nothing
     }
 }

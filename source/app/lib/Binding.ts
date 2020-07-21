@@ -26,19 +26,17 @@ const bindName = "bindings";
  *
  * After that the component A completes the binding with itself and its property q
  *
- * @export
  * @class Binding
  */
 export class Binding<
-    T extends object = any,
+    T extends Record<string, any> = any,
     K extends DefNonFuncPropNames<T> = any,
-    U extends object = any,
+    U extends Record<string, any> = any,
     L extends DefNonFuncPropNames<U> = any> {
 
     /**
      * The object instance which contains the property which should be bound
      *
-     * @type {T}
      * @memberof Binding
      */
     public object: T;
@@ -46,7 +44,6 @@ export class Binding<
     /**
      * The property of the object instance which should be bound
      *
-     * @type {K}
      * @memberof Binding
      */
     public property: K;
@@ -54,7 +51,6 @@ export class Binding<
     /**
      * The possible property descriptor of the objects property
      *
-     * @type {PropDesc}
      * @memberof Binding
      */
     public descriptor?: PropDesc;
@@ -62,7 +58,6 @@ export class Binding<
     /**
      * The object which initiates the binding to the objects property
      *
-     * @type {*}
      * @memberof Binding
      */
     public initiator!: U;
@@ -70,7 +65,6 @@ export class Binding<
     /**
      * The property name to which the objects property is bound
      *
-     * @type {string}
      * @memberof Binding
      */
     public initiatorProperty!: L;
@@ -78,7 +72,6 @@ export class Binding<
     /**
      * The possible property descriptor of the initiators property
      *
-     * @type {PropDesc}
      * @memberof Binding
      */
     public initiatorDescriptor?: PropDesc;
@@ -89,7 +82,6 @@ export class Binding<
      * be used.
      *
      * @private
-     * @type {T[K]}
      * @memberof Binding
      */
     private value?: T[K];
@@ -98,7 +90,6 @@ export class Binding<
      * Locks reading or writing prom object property or both is allowed
      *
      * @private
-     * @type {writeRights}
      * @memberof Binding
      */
     private mode: writeRights;
@@ -111,7 +102,10 @@ export class Binding<
     }
 
     /**
-     * setValue
+     * Sets the value to the binding
+     *
+     * @param value The value to set to the binding
+     * @memberof Binding
      */
     public setValue(value: T[K]) {
         this.value = value;
@@ -120,7 +114,7 @@ export class Binding<
     /**
      * Returns the value depending of the own value or the value of the bound object
      *
-     * @returns
+     * @returns The value of the binding if given and the objects value else
      * @memberof Binding
      */
     public valueOf() {
@@ -130,8 +124,8 @@ export class Binding<
     /**
      * Installs the binding to the initiator
      *
-     * @param {object} initiator
-     * @param {(symbol | string | number)} property
+     * @param initiator The objects which initiated the binding
+     * @param property The property name on which the binding was initiated
      * @memberof Binding
      */
     public install(initiator: U, property: L) {
@@ -210,8 +204,6 @@ export class Binding<
     /**
      * Binds the current bound object property to the initializer object property
      *
-     * @param {object} object
-     * @param {(Symbol | string | number)} property
      * @memberof Binding
      */
     private replaceDescriptor() {
@@ -246,13 +238,13 @@ export class Binding<
      * value to the property.
      *
      * @private
-     * @param {IndexStructure} object
-     * @param {string} property
-     * @param {*} value
-     * @param {PropertyDescriptor} [descriptor]
+     * @param object The target or initiator object of the binding
+     * @param property The property name where the binding was initialized on
+     * @param value The value which should be assigned to the property
+     * @param descriptor The property descriptor which should be assigned
      * @memberof Binding
      */
-    private restoreDescriptor(object: IndexStructure, property: strNumSym, value: any, descriptor?: PropDesc) {
+    private restoreDescriptor(object: Record<string, any>, property: strNumSym, value: any, descriptor?: PropDesc) {
         Reflect.deleteProperty(object, property);
         if (descriptor) {
             Reflect.defineProperty(this.initiator, this.initiatorProperty, descriptor);
@@ -265,16 +257,16 @@ export class Binding<
      * bindingGet or bindingSet.
      *
      * @private
-     * @param {Object} object
-     * @param {strNumSym} key
-     * @returns
+     * @param object The target or initiator object of the binding
+     * @param key The name of the property of the object where the binding was initialized on
+     * @returns The original property descriptor if found
      * @memberof Binding
      */
-    private getOriginalPropertyDescriptor(object: Object, key: strNumSym) {
+    private getOriginalPropertyDescriptor(object: Record<string, any>, key: strNumSym) {
         let descriptor: PropertyDescriptor | undefined = Reflect.getOwnPropertyDescriptor(object, key);
         let mDataName: "bindings" | "initiatorBinding" = bindName;
         let prototype = object;
-        if (object === <Object>this.initiator) mDataName = iniBindName;
+        if (object === this.initiator) mDataName = iniBindName;
         while (!descriptor) {
             prototype = Object.getPrototypeOf(prototype);
             if (!prototype) break;

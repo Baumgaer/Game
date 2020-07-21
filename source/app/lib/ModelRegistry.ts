@@ -6,9 +6,6 @@ import { isBaseConstructor } from "~bdo/utils/framework";
  * model as value. It also provides the possibility to get a model by its ID or
  * several models by attribute names and the corresponding value.
  * This registry does not look into databases!
- *
- * @export
- * @class ModelRegistry
  */
 export class ModelRegistry {
 
@@ -31,11 +28,15 @@ export class ModelRegistry {
      */
     private models: Map<string, BDOModel> = new Map();
 
+    private constructor() {
+        // This is just to implement the singleton pattern
+    }
+
     /**
      * Provides the singleton instance
      *
      * @static
-     * @returns
+     * @returns The instance of the ModelRegistry
      * @memberof ModelRegistry
      */
     public static getInstance() {
@@ -43,12 +44,10 @@ export class ModelRegistry {
         return ModelRegistry.instance;
     }
 
-    private constructor() { }
-
     /**
      * Adds a model to the registry
      *
-     * @param {BDOModel} model
+     * @param model A model to register
      * @memberof ModelRegistry
      */
     public register(model: BDOModel) {
@@ -58,8 +57,7 @@ export class ModelRegistry {
     /**
      * Removes a model from the registry
      *
-     * @param {string} id
-     * @param {(Constructor<BDOModel> | BDOModel)} constructor
+     * @param model The model to unregister
      * @memberof ModelRegistry
      */
     public unregister(model: BDOModel) {
@@ -69,9 +67,9 @@ export class ModelRegistry {
     /**
      * Returns a model by its id and class type
      *
-     * @param {string} id
-     * @param {(Constructor<BDOModel> | BDOModel)} constructor
-     * @returns
+     * @param id The id of the model
+     * @param constructor Thy class of the model
+     * @returns An initialized model with the given id and class type
      * @memberof ModelRegistry
      */
     public getModelById<T extends BDOModel | Constructor<BDOModel>>(id: string, constructor: T) {
@@ -82,15 +80,15 @@ export class ModelRegistry {
      * Returns a list of models where all the given attributes corresponds to
      * the models attributes and values.
      *
-     * @param {IndexStructure} attributes
-     * @returns
+     * @param attributes The attributes which the model should have
+     * @returns An array of models which matched the given attributes
      * @memberof ModelRegistry
      */
     public getModelsByAttributes(attributes: IndexStructure) {
         const models: BDOModel[] = [];
         this.models.forEach((model) => {
             for (const key in attributes) {
-                if (attributes.hasOwnProperty(key)) {
+                if (key in attributes) {
                     const element = attributes[key];
                     if (!(key in model) || element !== (<IndexStructure>model)[key]) {
                         return;
@@ -107,9 +105,8 @@ export class ModelRegistry {
      * id of a model has been changed.
      *
      * @template T
-     * @param {T["id"]} oldID
-     * @param {T} constructor
-     * @returns
+     * @param oldID The old id which should be updated
+     * @param constructor The class type which should be used
      * @memberof ModelRegistry
      */
     public updateID<T extends BDOModel>(oldID: T["id"], constructor: T) {
@@ -127,9 +124,9 @@ export class ModelRegistry {
      *  - first: returns the first found model
      *  - last: returns the last found model
      *
-     * @param {(model: BDOModel) => boolean} func
-     * @param {("first" | "all" | "last")} [mode="all"]
-     * @returns
+     * @param func The condition function which decides wether a model should be respected or not
+     * @param mode The mode which decides which of the respected model should be served. Default: "all"
+     * @returns A model od an array of models depending on the mode
      * @memberof ModelRegistry
      */
     public getModelsByCondition(func: (model: BDOModel) => boolean, mode: "first" | "all" | "last" = "all") {
@@ -149,8 +146,8 @@ export class ModelRegistry {
      * Determines the class name of a model
      *
      * @private
-     * @param {(Constructor<BDOModel> | BDOModel)} constructor
-     * @returns
+     * @param constructor The constructor class of which the class name should be determined
+     * @returns The name of the constructor
      * @memberof ModelRegistry
      */
     private getClassName(constructor: Constructor<BDOModel> | BDOModel) {

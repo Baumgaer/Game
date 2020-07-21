@@ -2,18 +2,106 @@
     "root": true,
     "env": {
         "es6": true,
-        "node": true,
+        "shared-node-browser": true,
         "mocha": true
     },
+    "parser": "@typescript-eslint/parser",
     "parserOptions": {
+        "project": "./tsconfig.json",
         "ecmaVersion": 6,
-        "sourceType": "script",
+        "sourceType": "module",
         "ecmaFeatures": {
             "impliedStrict": true
         }
     },
-    "extends": "eslint:recommended",
+    "extends": [
+        "eslint:recommended",
+        "plugin:@typescript-eslint/recommended",
+        "plugin:jsdoc/recommended",
+        "plugin:import/errors",
+        "plugin:import/warnings",
+        "plugin:import/typescript"
+    ],
+    "plugins": [
+        "@typescript-eslint",
+        "jsdoc",
+        "import",
+        "ban"
+    ],
+    "settings": {
+        "jsdoc": {
+            "tagNamePreference": {
+                "extends": "extends"
+            },
+            "mode": "typescript"
+        },
+        "import/parsers": {
+            "@typescript-eslint/parser": [
+                ".ts",
+                ".tsx"
+            ]
+        },
+        "import/resolver": {
+            "typescript": {
+                "directory": [
+                    "./tsconfig.json",
+                    "./source/app/client/ts/tsconfig.json"
+                ]
+            }
+        }
+    },
     "rules": {
+        "jsdoc/require-param-type": "off",
+        "jsdoc/require-returns-type": "off",
+        "require-jsdoc": "error",
+        "@typescript-eslint/no-explicit-any": "off",
+        "@typescript-eslint/no-this-alias": "off",
+        "@typescript-eslint/no-inferrable-types": "off",
+        "@typescript-eslint/explicit-module-boundary-types": "off",
+        "@typescript-eslint/no-for-in-array": "error",
+        "@typescript-eslint/member-ordering": "error",
+        "@typescript-eslint/no-unused-vars": [
+            "warn",
+            {
+                "argsIgnorePattern": "^_"
+            }
+        ],
+        "import/no-restricted-paths": [
+            "error",
+            {
+                "zones": [
+                    {
+                        "target": "./source/app/",
+                        "from": "./source/app/client/ts/"
+                    },
+                    {
+                        "target": "./source/app/",
+                        "from": "./source/app/server/"
+                    }
+                ]
+            }
+        ],
+        "ban/ban": [
+            "error",
+            {
+                "name": [
+                    "Reflect",
+                    "getMetadata"
+                ],
+                "message": "use ~bdo/utils/metadata getMetadata instead"
+            },
+            {
+                "name": [
+                    "Reflect",
+                    "defineMetadata"
+                ],
+                "message": "use ~bdo/utils/metadata defineMetadata instead"
+            }
+        ],
+        "max-classes-per-file": [
+            "error",
+            3
+        ],
         "linebreak-style": [
             "error",
             "unix"
@@ -26,7 +114,8 @@
             "error",
             "always"
         ],
-        "no-console": "off",
+        "eqeqeq": "error",
+        "no-console": "error",
         "comma-dangle": [
             "error",
             "never"
@@ -47,19 +136,7 @@
             }
         ],
         "no-var": "error",
-        "valid-jsdoc": "error",
-        "require-jsdoc": [
-            "error",
-            {
-                "require": {
-                    "FunctionDeclaration": true,
-                    "MethodDefinition": false,
-                    "ClassDeclaration": false,
-                    "ArrowFunctionExpression": false,
-                    "FunctionExpression": false
-                }
-            }
-        ],
+        "no-async-promise-executor": "off",
         "no-use-before-define": [
             "error",
             {

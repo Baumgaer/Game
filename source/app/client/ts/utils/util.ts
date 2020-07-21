@@ -1,14 +1,15 @@
 import { getMetadata, defineMetadata } from "~bdo/utils/metadata";
+
 /**
  * Stores a value with its key in a separate namespace depending on a property
  * name of the instance (nsProp)
  *
- * @export
- * @param {*} instance
- * @param {string} key
- * @param {*} newVal
+ * @param instance The instance of the class to set the namespaced storage on
+ * @param key The key of the namespaced storage to set
+ * @param newVal The value which should bet set to the key
+ * @param nsProp The property which should be used as a namespace suffix (The prefix is the name of the instance). Default: "id"
  */
-export function setUpdateNamespacedStorage<T extends Object, K extends DefNonFuncPropNames<T>, P extends DefNonFuncPropNames<T>>(instance: T, key: K, newVal?: T[K], nsProp: P = <P>"id") {
+export function setUpdateNamespacedStorage<T extends Record<string, any>, K extends DefNonFuncPropNames<T>, P extends DefNonFuncPropNames<T>>(instance: T, key: K, newVal?: T[K], nsProp: P = <P>"id") {
     if (key === "*") throw new Error("* is a special character and does not follow the property convention");
 
     // Get basic information
@@ -56,14 +57,13 @@ export function setUpdateNamespacedStorage<T extends Object, K extends DefNonFun
  *
  * if key is a *, all keys in this namespace will be returned in an object.
  *
- * @export
- * @param {*} instance
- * @param {string} key
- * @param {string} [nsProp="id"]
- * @param {string} [forceNS]
- * @returns
+ * @param instance The instance of the class to get the namespaced storage from
+ * @param key The key of the namespaced storage to get
+ * @param nsProp The property which should be used as a namespace suffix (The prefix is the name of the instance). Default: "id"
+ * @param forceNS This will overwrite every property value (nsProp value) and will be used as namespace suffix
+ * @returns The value of the given key respecting the namespace
  */
-export function getNamespacedStorage<T extends Object, K extends DefNonFuncPropNames<T> | "*", P extends DefNonFuncPropNames<T>>(instance: T, key: K, nsProp: P = <P>"id", forceNS?: string) {
+export function getNamespacedStorage<T extends Record<string, any>, K extends DefNonFuncPropNames<T> | "*", P extends DefNonFuncPropNames<T>>(instance: T, key: K, nsProp: P = <P>"id", forceNS?: string) {
     const nsPrefix = Object.getPrototypeOf(instance.constructor).name;
     let nsSuffix = getMetadata(instance, "oldStorageNsSuffix") as T[P] | string | undefined;
     if (nsSuffix !== instance[nsProp]) nsSuffix = instance[nsProp];
@@ -81,16 +81,15 @@ export function getNamespacedStorage<T extends Object, K extends DefNonFuncPropN
  * Deletes a key from namespaced storage depending on a property
  * name of the instance. If key is "*" the namespaced storage will be cleared.
  *
- * @export
- * @param {*} instance
- * @param {string} key
- * @param {string} [nsProp="id"]
+ * @param instance The instance of the class to delete the namespaced storage from
+ * @param key The key of the namespaced storage to delete
+ * @param nsProp The property which should be used as a namespace suffix (The prefix is the name of the instance). Default: "id"
  */
-export function deleteFromNamespacedStorage<T extends Object, K extends DefNonFuncPropNames<T> | "*", P extends DefNonFuncPropNames<T>>(instance: T, key: K, nsProp: P = <P>"id") {
+export function deleteFromNamespacedStorage<T extends Record<string, any>, K extends DefNonFuncPropNames<T> | "*", P extends DefNonFuncPropNames<T>>(instance: T, key: K, nsProp: P = <P>"id") {
     if (key === "*") {
         const storage = getNamespacedStorage(instance, key, nsProp);
         for (const prop in storage) {
-            if (storage.hasOwnProperty(prop)) setUpdateNamespacedStorage(instance, prop as DefNonFuncPropNames<T>, undefined, nsProp);
+            if (prop in storage) setUpdateNamespacedStorage(instance, prop as DefNonFuncPropNames<T>, undefined, nsProp);
         }
     } else setUpdateNamespacedStorage(instance, key as DefNonFuncPropNames<T>, undefined, nsProp);
 }

@@ -21,9 +21,8 @@ export {
 /**
  * Capitalizes only the first letter of a string
  *
- * @export
  * @param {string} str string to capitalize the first letter
- * @returns {string}
+ * @returns The capitalized string
  */
 export function ucFirst(str: string): string {
     return str.charAt(0).toUpperCase() + str.slice(1);
@@ -32,9 +31,8 @@ export function ucFirst(str: string): string {
 /**
  * Converts a camelCase string to kebab-case
  *
- * @export
  * @param {string} str String to convert
- * @returns {string}
+ * @returns The kebab case string
  */
 export function camelCase2kebabCase(str: string): string {
     str = str.charAt(0).toLowerCase() + str.slice(1);
@@ -44,9 +42,8 @@ export function camelCase2kebabCase(str: string): string {
 /**
  * Converts a PascalCase string to kebab-case
  *
- * @export
  * @param {string} str String to convert
- * @returns {string}
+ * @returns The kebab case string
  */
 export function pascalCase2kebabCase(str: string): string {
     str = ucFirst(str);
@@ -56,11 +53,10 @@ export function pascalCase2kebabCase(str: string): string {
 /**
  * Removes element from array
  *
- * @export
- * @param {any[]} array Array to remove element from
- * @param {*} element any element includes in array
+ * @param array Array to remove element from
+ * @param element any element includes in array
  */
-export function removeElementFromArray(array: any[], element: any): void {
+export function removeElementFromArray(array: any[], element: unknown): void {
     const index = array.indexOf(element);
     if (index >= 0) array.splice(index, 1);
 }
@@ -68,29 +64,47 @@ export function removeElementFromArray(array: any[], element: any): void {
 /**
  * Iterates an object's prototypes recursive and collects the names
  *
- * @export
- * @param {*} object
- * @returns {Array<string>}
+ * @param object The object where the prototype names should get from recursively
+ * @returns The prototype names
  */
-export function getPrototypeNamesRecursive(object: any, prototypes: string[] = []): string[] {
-    const prototype = Object.getPrototypeOf(object);
-    if (prototype) {
-        prototypes.push(prototype.constructor.name);
-        getPrototypeNamesRecursive(prototype, prototypes);
+export function getPrototypeNamesRecursive(object: Record<string, any>): string[] {
+
+    const prototypes: string[] = [];
+
+    /**
+     * Does the recursion
+     *
+     * @param theObject The recursive needed object
+     */
+    function getThem(theObject: typeof object): void {
+        const prototype = Object.getPrototypeOf(theObject);
+        if (prototype) {
+            prototypes.push(prototype.constructor.name);
+            getThem(prototype);
+        }
     }
+
+    getThem(object);
     return prototypes;
 }
 
 /**
- * Checks if a member of list is includes in search string respecting the
+ * Checks if a member of list is included in search string/array respecting the
  * extension of the list member.
  *
- * @export
- * @param {string} search
- * @param {Array<any>} list
- * @returns {boolean}
+ * @example
+ *
+ * ```javascript
+ * includesMemberOfList(["foo", "bar", "baz"], ["foo", "baz"])
+ * // This checks if foo or baz is included in `["foo", "bar", "baz"]`
+ * ```
+ *
+ * @param search The string in which should be searched for
+ * @param list The strings which are maybe in the search
+ * @param extension extends every member of the list
+ * @returns true is a member is included and false else
  */
-export function includesMemberOfList(search: string | string[], list: string[], extension: string = ''): boolean {
+export function includesMemberOfList(search: string | string[], list: string[], extension = ''): boolean {
     for (const member of list) {
         if (search.includes(`${member}${extension}`)) {
             return true;
@@ -103,15 +117,14 @@ export function includesMemberOfList(search: string | string[], list: string[], 
  * Constructs the type of an attribute of a HTMLElement depending on an EXISTING
  * attribute and a given Type in the component.
  *
- * @export
- * @param {HTMLElement} object
- * @param {string} key
- * @returns
+ * @param element The element to get the attribute key from
+ * @param key The key which should be reconstructed to its real type
+ * @returns The value in its real type
  */
-export function constructTypeOfHTMLAttribute(object: HTMLElement, key: string) {
+export function constructTypeOfHTMLAttribute(element: HTMLElement, key: string): any {
     if (!isBrowser()) return;
-    const type = getDesignType(object, key);
-    const attrValue = object.getAttribute(key);
+    const type = getDesignType(element, key);
+    const attrValue = element.getAttribute(key);
 
     let valueToSet: any = attrValue;
     if (attrValue && type && type.name !== undefined) {
@@ -132,22 +145,20 @@ export function constructTypeOfHTMLAttribute(object: HTMLElement, key: string) {
 /**
  * Checks if a value is a primitive type or not
  *
- * @export
- * @param {*} value
- * @returns
+ * @param value The value to check for primitive type appearance
+ * @returns true if is a primitive and false else
  */
-export function isPrimitive(value: any): value is string | number | boolean | Symbol | null | undefined {
+export function isPrimitive(value: unknown): value is string | number | boolean | symbol | null | undefined {
     return (value !== Object(value));
 }
 
 /**
  * Determines whether a value is a Proxy or not
  *
- * @export
- * @param {*} value
- * @returns
+ * @param value The thing to check if it is a proxy or not
+ * @returns true if it is a Proxy and false else
  */
-export function isProxy(value: any): value is ProxyConstructor {
+export function isProxy(value?: Record<string, any>): value is ProxyConstructor {
     if (value === undefined || value === null) return false;
     if (onChange.target(value) === value) return false;
     return true;
@@ -157,11 +168,10 @@ export function isProxy(value: any): value is ProxyConstructor {
  * Checks if it is possible to get a target of a proxy and returns it.
  * If it is not possible it returns just the value.
  *
- * @export
- * @param {*} value
- * @returns
+ * @param value A maybe proxyfied value
+ * @returns The unproxyfie value of the may be proxyfied value
  */
-export function getProxyTarget(value: any) {
+export function getProxyTarget(value?: Record<string, any>): any {
     if (isProxy(value)) return onChange.target(value);
     return value;
 }
@@ -170,11 +180,10 @@ export function getProxyTarget(value: any) {
  * Removes multiple slashes from a path part and converts the result to a
  * correct part starting with a "/" and ending with not a "/".
  *
- * @export
- * @param {string} value
- * @returns
+ * @param value The "path" of an URL
+ * @returns The corrected path of an "URL"
  */
-export function toURIPathPart(value: string) {
+export function toURIPathPart(value: string): string {
     value = value.replace(/\/+/g, "/");
     if (!value.startsWith("/")) value = `/${value}`;
     if (value.endsWith("/") && value.length > 1) {
@@ -186,10 +195,9 @@ export function toURIPathPart(value: string) {
 /**
  * Checks if an array has at least one entry
  *
- * @export
  * @template T
- * @param {T[]} arr
- * @returns {arr is NonEmptyArray<T>}
+ * @param arr The array to check if it is not empty
+ * @returns true if it is not empty and false else
  */
 export function isNonEmptyArray<T>(arr: T[]): arr is NonEmptyArray<T> {
     return arr.length > 0;

@@ -1,5 +1,5 @@
 import { BaseServer } from '~server/lib/BaseServer';
-import ws from 'ws';
+import ws, { Server as WSServer } from 'ws';
 import os from "os";
 import { IncomingMessage } from 'http';
 import { Request, Response } from 'express';
@@ -20,9 +20,6 @@ let sub: Redis;
 
 /**
  * The structure of how a message to the WebSocketServer should look like
- *
- * @export
- * @interface IWSCall
  */
 export interface IWSCall {
     /**
@@ -45,10 +42,8 @@ export interface IWSCall {
  * Implements the standard websocket behavior, manages broadcasting to other
  * server instances and a framework to use network functionality.
  *
- * @export
  * @abstract
- * @class WebSocketServer
- * @extends {BaseServer}
+ * @augments {BaseServer}
  */
 export abstract class WebSocketServer extends BaseServer {
     /**
@@ -58,7 +53,7 @@ export abstract class WebSocketServer extends BaseServer {
      * @type {ws.Server}
      * @memberof WebSocketServer
      */
-    protected readonly webSocketServer: ws.Server = new ws.Server({
+    protected readonly webSocketServer: ws.Server = new WSServer({
         server: this.server,
         verifyClient: this.verifyClient.bind(this),
         clientTracking: true
@@ -98,8 +93,8 @@ export abstract class WebSocketServer extends BaseServer {
      * Determines wether a client has rights to access the websocket server
      *
      * @protected
-     * @param {Request} _request
-     * @returns {Promise<boolean>}
+     * @param _request The request object given by http server
+     * @returns true if the user is allowed to use this server and false else
      * @memberof WebSocketServer
      */
     protected async verifyWebSocketClient(_request: Request): Promise<boolean> {
@@ -111,8 +106,8 @@ export abstract class WebSocketServer extends BaseServer {
      * given it could only be a server instance where the client is not registered.
      *
      * @protected
-     * @param {string} message
-     * @param {ws} [socket]
+     * @param message The message which should be sent
+     * @param socket the socket of the current user
      * @memberof WebSocketServer
      */
     protected broadcast(message: string, socket?: ws): void {
@@ -129,8 +124,8 @@ export abstract class WebSocketServer extends BaseServer {
      * Calls the graphQL api and sends the result to the asking client
      *
      * @protected
-     * @param {string} query
-     * @param {ws} socket
+     * @param query The graphql query which should be processed
+     * @param socket The socket of the current user
      * @memberof WebSocketServer
      */
     protected async fetchAPI(query: string, socket: ws): Promise<void> {
@@ -142,8 +137,8 @@ export abstract class WebSocketServer extends BaseServer {
      * Sends an error to the given socket client
      *
      * @protected
-     * @param {Error} error
-     * @param {ws} socket
+     * @param error The error which should be sent
+     * @param socket The socket of the current user
      * @memberof WebSocketServer
      */
     protected sendError(error: Error, socket: ws): void {
@@ -163,9 +158,8 @@ export abstract class WebSocketServer extends BaseServer {
      * Fired when a client established a new connection to this server
      *
      * @protected
-     * @param {ws} socket
-     * @param {IncomingMessage} request
-     * @returns {Promise<void>}
+     * @param _socket The socket of the current user
+     * @param request the request given by the http server
      * @memberof WebSocketServer
      */
     protected async onWebSocketConnection(_socket: ws, request: IncomingMessage): Promise<void> {
@@ -176,19 +170,20 @@ export abstract class WebSocketServer extends BaseServer {
      * Fired when an error occurs on server side in conjunction with an existing client
      *
      * @protected
-     * @param {ws} socket
-     * @param {Error} error
+     * @param _socket The socket of the current user
+     * @param _error The error which was thrown
      * @memberof WebSocketServer
      */
-    protected async onWebSocketError(_socket: ws, _error: Error): Promise<void> { }
+    protected async onWebSocketError(_socket: ws, _error: Error): Promise<void> {
+        return;
+    }
 
     /**
      * Fired when an existing connection was closed.
      *
      * @protected
-     * @param {number} code
-     * @param {string} reason
-     * @returns {Promise<void>}
+     * @param _code The code of the closing reason
+     * @param _reason The reason in words
      * @memberof WebSocketServer
      */
     protected async onWebSocketClose(_code: number, _reason: string): Promise<void> {
@@ -199,27 +194,29 @@ export abstract class WebSocketServer extends BaseServer {
      * Fired when a ping from client was received
      *
      * @protected
-     * @param {Buffer} data
-     * @returns {Promise<void>}
+     * @param _data The data received with a ping packet
      * @memberof WebSocketServer
      */
-    protected async onWebSocketPing(_data: Buffer): Promise<void> { }
+    protected async onWebSocketPing(_data: Buffer): Promise<void> {
+        return;
+    }
 
     /**
      * Fired when the received ping was successful and answered
      *
      * @protected
-     * @param {Buffer} data
-     * @returns {Promise<void>}
+     * @param _data Data which should be sent as an answer to a ping
      * @memberof WebSocketServer
      */
-    protected async onWebSocketPong(_data: Buffer): Promise<void> { }
+    protected async onWebSocketPong(_data: Buffer): Promise<void> {
+        return;
+    }
 
     /**
      * Fired when a client send a message to the server
      *
-     * @param {string} message
-     * @param {ws} socket
+     * @param message The received message of the user
+     * @param socket The socket of the current user
      * @memberof WebSocketServer
      */
     private async onIncomingWebSocketMessage(message: string, socket: ws): Promise<void> {
@@ -227,32 +224,36 @@ export abstract class WebSocketServer extends BaseServer {
         try {
             data = JSON.parse(message);
         } catch (error) {
-            return this.sendError(error, socket);
+            this.sendError(error, socket);
+            return;
         }
         if (!('type' in data) || !('data' in data)) {
             const wrongFormatError = new Error(`Message was not an instance of IwsCall`);
-            return this.sendError(wrongFormatError, socket);
+            this.sendError(wrongFormatError, socket);
+            return;
         }
-        switch ((<string>data.type).toLowerCase()) {
+
+        const capitalized = ucFirst(data.type);
+        const funcName = `on${capitalized}`;
+
+        switch (data.type.toLowerCase()) {
             case 'broadcast':
                 pub.publish('WebsocketServer:broadcast', [data.data, os.hostname()]);
                 this.broadcast(data.data, socket);
                 break;
             case 'api':
-                if (!data.hasOwnProperty('data') || !data.data) {
-                    return this.sendError(new Error(`No field "query" provided but called api`), socket);
+                if (!("data" in data) || !data.data) {
+                    this.sendError(new Error(`No field "query" provided but called api`), socket);
+                    return;
                 }
                 this.fetchAPI(data.data, socket);
                 break;
             case 'config':
-                const config = await configManager.getForClient(data.data);
                 socket.send(JSON.stringify({
-                    data: config
+                    data: await configManager.getForClient(data.data)
                 }));
                 break;
             default:
-                const capitalized = ucFirst(data.type);
-                const funcName = `on${capitalized}`;
                 if (typeof (<IndexStructure>this)[funcName] === 'function') {
                     try {
                         (<IndexStructure>this)[funcName](JSON.parse(data.data), socket);
@@ -268,8 +269,8 @@ export abstract class WebSocketServer extends BaseServer {
      * to control the access of a user to the connection.
      *
      * @protected
-     * @param {wsVerifyClientInfo} info
-     * @param {wsVerifyClientDone} done
+     * @param info The information given to a client of the websocket
+     * @param done A callback which will be executed when the user is verified
      * @returns {Promise<void>}
      * @memberof WebSocketServer
      */

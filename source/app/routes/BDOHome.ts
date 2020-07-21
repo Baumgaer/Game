@@ -4,18 +4,16 @@ import template from "~bdo/views/home.njk";
 /**
  * constructs the base for the home route on server and client
  *
- * @export
  * @template TBase
- * @param {TBase} ctor
+ * @param ctor The type to extend with
+ * @returns The mixed in class BDOTest
  */
 export function BDOHomeFactory<TBase extends Constructor<BDORoute>>(ctor: TBase) {
 
     /**
      * Provides basic functionality for the "home page" of the website
      *
-     * @export
-     * @class GameLobby
-     * @extends {BaseRoute}
+     * @extends TBase
      */
     abstract class BDOHome extends ctor {
 
@@ -47,7 +45,7 @@ export function BDOHomeFactory<TBase extends Constructor<BDORoute>>(ctor: TBase)
          * @inheritdoc
          *
          * @protected
-         * @returns {Promise<IndexStructure>}
+         * @returns Additional template params for server and client
          * @memberof BDOHome
          */
         protected async templateParams(): Promise<IndexStructure> {

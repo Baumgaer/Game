@@ -13,18 +13,15 @@ export type messageType = (
  * Extends the IORedis class by saving all subscribed topics to execute them
  * later by receiving a message.
  *
- * @export
- * @class Redis
- * @extends {IORedis}
+ * @extends IORedis
  */
 export class Redis extends IORedis {
     /**
      * This will be used in the RedisClientManager
      *
-     * @type {string}
      * @memberof Redis
      */
-    public id: string = '';
+    public id = '';
 
     /**
      * Contains all subscribed topics with corresponding callback
@@ -32,20 +29,18 @@ export class Redis extends IORedis {
      * @type {Map<string, Function[]>}
      * @memberof Redis
      */
-    public topics: Map<string, Function[]> = new Map();
+    public topics: Map<string, AnyFunction[]> = new Map();
 
     /**
      * @inheritdoc
      *
-     * Subscribes to a topic with callback which should be executed
-     * on receiving a message
-     *
-     * @param {(string[] | string)} topics
-     * @param {Function} callback
+     * @param topics The topics which should use the callback when received
+     * @param callback The function which will be executed when a given topic is received
      * @memberof Redis
      */
+    // eslint-disable-next-line
     // @ts-ignore
-    public subscribe(topics: string | string[], callback: Function) {
+    public subscribe(topics: string | string[], callback: AnyFunction): void {
         if (!Array.isArray(topics)) topics = [topics];
         if (callback) {
             for (const topic of topics) {
@@ -57,13 +52,11 @@ export class Redis extends IORedis {
 
     /**
      * @inheritdoc
-     *
-     * A comfortable version of the normal publish method
-     *
-     * @param {string} topic
-     * @param {messageType} params NOTE: Functions are NOT allowed!
+     * @param topic The topic which should be published to the world
+     * @param params The parameters of the subscriber function which will receive this topic. NOTE: Functions are NOT allowed!
      * @memberof Redis
      */
+    // eslint-disable-next-line
     // @ts-ignore
     public publish(topic: string, params: messageType): void {
         super.publish(topic, JSON.stringify(params));
@@ -72,11 +65,11 @@ export class Redis extends IORedis {
     /**
      * @inheritdoc
      *
-     * @param {IORedis.KeyType} key
-     * @param {((err: Error, res: string | null) => void)} [callback] This callback is for third party compatibility
-     * @returns {(Promise<IndexStructure | null>)}
+     * @param key The key to load from the redis storeThis callback is for third party compatibility
+     * @returns The Value in the redis store if available and null else
      * @memberof Redis
      */
+    // eslint-disable-next-line
     // @ts-ignore
     public get(key: IORedis.KeyType): Promise<IndexStructure | null> {
         return new Promise<IndexStructure | null>((resolve, reject) => {
@@ -91,14 +84,12 @@ export class Redis extends IORedis {
     /**
      * @inheritdoc
      *
-     * @param {IORedis.KeyType} key
-     * @param {*} value
-     * @param {(string | any[])} [expiryMode]
-     * @param {(string | number)} [time]
-     * @param {(string | number)} [setMode]
-     * @returns {Promise<string>}
+     * @param key The key to set in the redis store
+     * @param value The value of the key which should be set
+     * @returns An "OK" if everything was successful
      * @memberof Redis
      */
+    // eslint-disable-next-line
     // @ts-ignore
     public set(key: IORedis.KeyType, value: IndexStructure | IORedis.ValueType): Promise<string | null> {
         return new Promise(async (resolve) => {
@@ -112,28 +103,26 @@ export class Redis extends IORedis {
      * Updates a stored value with given value. Deletes the property when in
      * value a property is set to undefined explicity.
      *
-     * @param {IORedis.KeyType} key
-     * @param {IndexStructure} value
-     * @returns {Promise<string>}
+     * @param key The key in the redis store
+     * @param value The new value of the key
+     * @returns An "OK" if everything was successful
      * @memberof Redis
      */
-    public update(key: IORedis.KeyType, value: IndexStructure): Promise<string | null> {
-        return new Promise(async (resolve) => {
-            const propsToRemove = pickBy(value, isUndefined);
-            value = omit(merge(await this.get(key), value), Object.keys(propsToRemove));
-            resolve(await this.set(key, value));
-        });
+    public async update(key: IORedis.KeyType, value: IndexStructure): Promise<string | null> {
+        const propsToRemove = pickBy(value, isUndefined);
+        value = omit(merge(await this.get(key), value), Object.keys(propsToRemove));
+        return await this.set(key, value);
     }
 
     /**
      * Stores the subscribed topics to execute callbacks on message receive
      *
      * @private
-     * @param {string} topic
-     * @param {Function} callback
+     * @param topic The topic which should be stored
+     * @param callback The corresponding callback of the topic
      * @memberof Redis
      */
-    private insertIntoTopics(topic: string, callback: Function) {
+    private insertIntoTopics(topic: string, callback: AnyFunction) {
         let savedTopic = this.topics.get(topic);
         if (!savedTopic) savedTopic = [];
         savedTopic.push(callback);
