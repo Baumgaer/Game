@@ -9,12 +9,11 @@ import { getMetadata, defineMetadata, getWildcardMetadata, defineWildcardMetadat
 import { baseConstructorFactory } from "~bdo/lib/BaseConstructor";
 import { BDOModel } from "~bdo/lib/BDOModel";
 
-// Types should be allowed
-import type { ClientModel } from "~client/lib/ClientModel"; // eslint-disable-line
-import type { ServerModel } from "~server/lib/ServerModel"; // eslint-disable-line
-import type { BaseComponentFactory } from "~client/lib/BaseComponent"; // eslint-disable-line
-import type { BaseControllerFactory } from "~client/lib/BaseController"; // eslint-disable-line
-import type { getNamespacedStorage } from "~client/utils/util"; // eslint-disable-line
+import type { ClientModel } from "~client/lib/ClientModel";
+import type { ServerModel } from "~server/lib/ServerModel";
+import type { BaseComponentFactory } from "~client/lib/BaseComponent";
+import type { BaseControllerFactory } from "~client/lib/BaseController";
+import type { getNamespacedStorage } from "~client/utils/util";
 
 import type { ReturnTypeFunc } from "type-graphql/dist/decorators/types";
 

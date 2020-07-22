@@ -1,0 +1,10 @@
+{
+    "name": "eslint-plugin-own",
+    "version": "1.0.0",
+    "main": "./index.js",
+    "dependencies": {
+        "eslint-plugin-import": "^2.22.0",
+        "contains-path": "^1.0.0",
+        "eslint-module-utils": "2.6.0"
+    }
+}

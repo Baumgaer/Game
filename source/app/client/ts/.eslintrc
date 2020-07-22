@@ -10,7 +10,7 @@
         "project": "./source/app/client/ts/tsconfig.json"
     },
     "rules": {
-        "import/no-restricted-paths": [
+        "own/no-restricted-paths": [
             "error",
             {
                 "zones": [

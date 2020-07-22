@@ -26,7 +26,8 @@
         "@typescript-eslint",
         "jsdoc",
         "import",
-        "ban"
+        "ban",
+        "own"
     ],
     "settings": {
         "jsdoc": {
@@ -66,7 +67,7 @@
                 "argsIgnorePattern": "^_"
             }
         ],
-        "import/no-restricted-paths": [
+        "own/no-restricted-paths": [
             "error",
             {
                 "zones": [
