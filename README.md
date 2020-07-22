@@ -145,8 +145,7 @@ To get the best development experience you should install available plugins for 
 
     - [EditorConfig](https://editorconfig.org/): Everyone should use the same Configuration for the editor
     - Prettier ([Atom](https://atom.io/packages/prettier-atom) | [VSCode](https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode)): Beautyfies your code on save if configured
-    - TSLint ([Atom](https://atom.io/packages/linter-tslint) | [VSCode](https://marketplace.visualstudio.com/items?itemName=ms-vscode.vscode-typescript-tslint-plugin)): Write well formatted code in TypeScript
-    - ESLint ([Atom](https://atom.io/packages/linter-eslint) | [VSCode](https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint)): Write well formatted code in JavaScript
+    - ESLint ([Atom](https://atom.io/packages/linter-eslint) | [VSCode](https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint)): Write well formatted code in JavaScript and TypeScript. Please configure your ESLint to support TypeScript in your IDE
     - typescript ([Atom](https://atom.io/packages/atom-typescript)): Better intellisense while writing Typescript and AssemblyScript
     - Mocha ([Atom](https://atom.io/packages/mocha-ui) | [VSCode](https://marketplace.visualstudio.com/items?itemName=maty.vscode-mocha-sidebar)): There are some perfect sidebars available for VSCode
     - Grunt ([Atom](https://atom.io/packages/grunt-runner)): Start a Grunt task in an easy and fast way
