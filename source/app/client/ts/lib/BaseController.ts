@@ -1,7 +1,7 @@
 
 import { getNamespacedStorage, setUpdateNamespacedStorage, deleteFromNamespacedStorage } from "~client/utils/util";
 import { getMetadata, getWildcardMetadata } from "~bdo/utils/metadata";
-import { removeElementFromArray } from "~bdo/utils/util";
+import { removeElementFromArray, getPrototypeNamesRecursive } from "~bdo/utils/util";
 import { attribute, property, watched } from "~bdo/utils/decorators";
 import { ControllerRegistry } from "~client/lib/ControllerRegistry";
 import { Binding } from "~bdo/lib/Binding";
@@ -22,7 +22,7 @@ type eventListenerFunc<K extends eventMapKey> = (this: ReturnType<typeof BaseCon
 interface OwnerType extends InstanceType<ReturnType<typeof BaseComponentFactory>> { } // eslint-disable-line
 
 i18next.use(LanguageDetector).init({
-    resources: languageResources,
+    resources: {},
     cleanCode: true,
     lowerCaseLng: true,
     initImmediate: true,
@@ -191,30 +191,54 @@ export function BaseControllerFactory<TBase extends Constructor<any>>(extension:
          *
          * @param namespaceOrTranslationKey A namespace which should be used or the key to translate
          * @param translationKey The key to translate
+         * @param literals The literals in the string
          * @returns The translation of the key
          * @memberof BaseController
          */
-        translation(namespaceOrTranslationKey: string, translationKey?: string): string {
+        translation<L extends IndexStructure<any>>(namespace: string, translationKey?: string, literals?: L): string;
+        translation<L extends IndexStructure<any>>(translationKey: string, literals?: L): string;
+        translation(translationKey: string): string;
+        translation<L extends IndexStructure<any>>(namespaceOrTranslationKey: string, translationKeyOrLiterals?: string | L, literals?: L): string {
             let namespace = namespaceOrTranslationKey;
-            let key = translationKey;
+            let key = translationKeyOrLiterals;
+            let vars: L | undefined = literals;
 
             // Because translations on client side are on
             let classToTakeCareOf = this as unknown as BaseComponentInstance;
             if (!isComponent<BaseComponentInstance>(this)) classToTakeCareOf = this.owner;
 
-            if (!key) {
+            if (!key && !vars) {
+                key = namespace;
                 namespace = classToTakeCareOf.className;
-                key = namespaceOrTranslationKey;
+            } else if (key && key instanceof Object && !vars) {
+                vars = key as unknown as L;
+                key = namespace;
+                namespace = classToTakeCareOf.className;
             }
 
-            let translation = i18next.getResource(i18next.language, namespace, key);
-            let prototype = Object.getPrototypeOf(classToTakeCareOf.constructor);
-            while (!translation && isComponent(prototype) && !(namespaceOrTranslationKey && translationKey)) {
-                prototype = Object.getPrototypeOf(prototype);
-                translation = i18next.getResource(i18next.language, prototype.name, key);
+            if (!i18next.hasResourceBundle(i18next.language, namespace)) {
+                const prototypes = getPrototypeNamesRecursive(this);
+                for (const prototype of prototypes) {
+                    const ressourceBundle = languageResources[i18next.language][prototype];
+                    if (languageResources[i18next.language][prototype]) {
+                        i18next.addResourceBundle(i18next.language, namespace, ressourceBundle, true, true);
+                    }
+                    if (prototype === "BaseController") break;
+                }
             }
 
-            return translation || `${namespace}:${key}`;
+            // i18next.addResourceBundle(i18next.language, namespace, resources, true, true);
+            // i18next.getResourceBundle(i18next.language, namespace);
+
+            // let translation = i18next.getResource(i18next.language, namespace, key);
+            // let prototype = Object.getPrototypeOf(classToTakeCareOf.constructor);
+            // while (!translation && isComponent(prototype) && !(namespaceOrTranslationKey && translationKey)) {
+            //     prototype = Object.getPrototypeOf(prototype);
+            //     translation = i18next.getResource(i18next.language, prototype.name, key);
+            // }
+
+            // return translation || `${namespace}:${key}`;
+            return i18next.t(`${namespace}:${key}`, vars);
         }
 
         /**

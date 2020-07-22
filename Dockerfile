@@ -5,7 +5,7 @@ WORKDIR /app
 COPY LICENSE.md ./
 COPY package-lock.json package.json ./
 
-RUN npm ci
+RUN npm install
 
 COPY tsconfig.json baseTSConfig.json global.d.ts webpack.config.js tslint.json nodemon.json ./
 COPY out ./out
