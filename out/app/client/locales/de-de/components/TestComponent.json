@@ -1,3 +1,4 @@
 {
-    "what": "Was"
+    "what": "Was",
+    "hello": "hallölle {{ world }}"
 }

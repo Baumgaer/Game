@@ -203,10 +203,11 @@ export function BaseControllerFactory<TBase extends Constructor<any>>(extension:
             let key = translationKeyOrLiterals;
             let vars: L | undefined = literals;
 
-            // Because translations on client side are on
+            // Determine the relevant class
             let classToTakeCareOf = this as unknown as BaseComponentInstance;
             if (!isComponent<BaseComponentInstance>(this)) classToTakeCareOf = this.owner;
 
+            // Sort parameters
             if (!key && !vars) {
                 key = namespace;
                 namespace = classToTakeCareOf.className;
@@ -216,28 +217,27 @@ export function BaseControllerFactory<TBase extends Constructor<any>>(extension:
                 namespace = classToTakeCareOf.className;
             }
 
+            // If resource bundle is not set yet, build it
             if (!i18next.hasResourceBundle(i18next.language, namespace)) {
-                const prototypes = getPrototypeNamesRecursive(this);
+                // Get prototypes and reverse to simulate inheritance
+                let prototypes = getPrototypeNamesRecursive(this).reverse();
+
+                const nameSpaceIndex = prototypes.indexOf(namespace);
+                const baseIndex = prototypes.indexOf("BaseController");
+                let startIndex = 0;
+                let endIndex: number | undefined;
+
+                // Determine start and end index for cutting out to avoid overriding
+                if (baseIndex >= 0) startIndex = baseIndex;
+                if (namespace !== classToTakeCareOf.className && nameSpaceIndex >= 0) endIndex = nameSpaceIndex + 1;
+                prototypes = prototypes.slice(startIndex, endIndex);
+
                 for (const prototype of prototypes) {
                     const ressourceBundle = languageResources[i18next.language][prototype];
-                    if (languageResources[i18next.language][prototype]) {
-                        i18next.addResourceBundle(i18next.language, namespace, ressourceBundle, true, true);
-                    }
-                    if (prototype === "BaseController") break;
+                    if (ressourceBundle) i18next.addResourceBundle(i18next.language, namespace, ressourceBundle, true, true);
                 }
             }
 
-            // i18next.addResourceBundle(i18next.language, namespace, resources, true, true);
-            // i18next.getResourceBundle(i18next.language, namespace);
-
-            // let translation = i18next.getResource(i18next.language, namespace, key);
-            // let prototype = Object.getPrototypeOf(classToTakeCareOf.constructor);
-            // while (!translation && isComponent(prototype) && !(namespaceOrTranslationKey && translationKey)) {
-            //     prototype = Object.getPrototypeOf(prototype);
-            //     translation = i18next.getResource(i18next.language, prototype.name, key);
-            // }
-
-            // return translation || `${namespace}:${key}`;
             return i18next.t(`${namespace}:${key}`, vars);
         }
 
