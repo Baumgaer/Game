@@ -88,7 +88,7 @@
         "eslint-plugin-import": "^2.22.0",
         "eslint-plugin-jsdoc": "^30.0.3",
         "eslint-plugin-mysticatea": "^4.2.4",
-        "eslint-plugin-own": "file:eslint",
+        "eslint-plugin-own": "file:./eslint",
         "event-hooks-webpack-plugin": "^2.1.7",
         "fork-ts-checker-webpack-plugin": "^5.0.9",
         "grunt-contrib-watch-chokidar": "^1.0.0",

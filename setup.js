@@ -1,3 +1,4 @@
+/* eslint-disable */
 const childProcess = require("child_process");
 
 /**
@@ -26,6 +27,7 @@ try {
 const checkDependencies = require("check-dependencies");
 const checkResult = checkDependencies.sync();
 if (!(checkResult instanceof Promise) && checkResult.error.length) {
+    console.log(checkResult.error);
     console.warn("Not all dependencies are installed! Installing missing dependencies");
     childProcess.execSync('npm install && npm prune', { stdio: 'inherit' });
     restartProcess();
@@ -49,9 +51,9 @@ let settings = {
 /**
  * Iterates recursively through a folder tree
  *
- * @param {String} dir The folder which should be walked recursively
- * @param {String[]} [dirList] Already existing folder list
- * @returns {String[]} Listing of all folders
+ * @param {string} dir The folder which should be walked recursively
+ * @param {string[]} [dirList] Already existing folder list
+ * @returns {string[]} Listing of all folders
  */
 function walkDir(dir, dirList) {
     let dirs = fs.readdirSync(dir);
