@@ -224,7 +224,7 @@ export class Property<T extends Record<string, any> = any, K extends DefNonFuncP
 
         const designType = getDesignType(this.object, this.property.toString());
         const typeError = new TypeError(`${valueToPass} is not type of ${designType.className || designType.name}`);
-        const idxStructObj: IndexStructure = this.object;
+        const idxStructObj = this.object;
 
         let error;
 
@@ -306,8 +306,8 @@ export class Property<T extends Record<string, any> = any, K extends DefNonFuncP
                 if (bindingNode) bindingNode.innerHTML = String(this.value);
             }
         }
-        if (this.shouldUpdateNsStorage() && isFunction((<IndexStructure>this.object).setUpdateNamespacedStorage)) {
-            (<IndexStructure>this.object).setUpdateNamespacedStorage(this.property.toString(), valueToPass);
+        if (this.shouldUpdateNsStorage() && isFunction(this.object.setUpdateNamespacedStorage)) {
+            this.object.setUpdateNamespacedStorage(this.property.toString(), valueToPass);
         }
     }
 
@@ -343,8 +343,8 @@ export class Property<T extends Record<string, any> = any, K extends DefNonFuncP
         const stringKey = this.property.toString();
         const keyShouldBeUpdated = getMetadata(this.object, "keyShouldBeUpdated") || {};
         if (keyShouldBeUpdated[stringKey]) return true;
-        if (isFunction((<IndexStructure>this.object).getNamespacedStorage) &&
-            (<IndexStructure>this.object).getNamespacedStorage(stringKey) === undefined) {
+        if (isFunction(this.object.getNamespacedStorage) &&
+            this.object.getNamespacedStorage(stringKey) === undefined) {
             defineMetadata(this.object, "keyShouldBeUpdated", Object.assign(keyShouldBeUpdated, { [stringKey]: true }));
             return true;
         }

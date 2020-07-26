@@ -76,7 +76,7 @@ export abstract class BDOLogger {
             } else newArgs.push(header);
             newArgs.push(message);
             newArgs = newArgs.concat(args);
-            (<IndexStructure>console)[loglevel].apply(this, newArgs);
+            console[loglevel](...newArgs); // eslint-disable-line
         }
         const parsedString = JSON.stringify(args);
         if (!this.preventFilePrint || loglevel === 'error') {

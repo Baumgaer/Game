@@ -260,7 +260,7 @@ export class Watched<T extends Record<string, any> = any, K extends DefNonFuncPr
             this.ownValue = getProxyTarget(valueToPass);
         }
 
-        const idxStructObj = <IndexStructure>this.object;
+        const idxStructObj = this.object;
         // React on variable changes
         if (isFunction(idxStructObj[this.onChange]) && this.isInitialized) idxStructObj[this.onChange](oldVal);
         // React on initialization
@@ -332,7 +332,7 @@ export class Watched<T extends Record<string, any> = any, K extends DefNonFuncPr
         });
         // Case: deep change
         if (newLen === oldLen && this.onChange in this && this.isInitialized) {
-            (<IndexStructure>this.object)[this.onChange](changedVal, path);
+            this.object[this.onChange](changedVal, path);
         }
     }
 
