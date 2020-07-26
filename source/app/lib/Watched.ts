@@ -1,7 +1,8 @@
 import { Property } from "~bdo/lib/Property";
 import { Attribute } from '~bdo/lib/Attribute';
 import { Modification } from '~bdo/lib/Modification';
-import { ucFirst, getProxyTarget, isFunction, isObject } from "~bdo/utils/util";
+import { ucFirst, getProxyTarget, isFunction, isObject, isArray } from "~bdo/utils/util";
+import { isBDOModel } from "~bdo/utils/framework";
 import onChange from "on-change";
 import cloneDeep from "clone-deep";
 
@@ -21,8 +22,8 @@ export interface IWatchedParams {
     onInit?: string;
 
     /**
-     * The name of the function which should be called when the value will be changed
-     * Gets a parameter with new value and if it is an object or array it gets
+     * The name of the function which should be called when the value will be changed.
+     * Gets a parameter with old value and if it is an object or array it gets
      * additionally a parameter with the path which was changed.
      *
      * @memberof IWatchParams
@@ -53,59 +54,6 @@ export interface IWatchedParams {
      * @memberof IWatchParams
      */
     isShallow?: boolean;
-}
-
-interface ICaseDetectParams {
-
-    /**
-     * length of keys1
-     *
-     * @memberof ICaseDetectParams
-     */
-    len1: number;
-    /**
-     * length of keys2
-     *
-     * @memberof ICaseDetectParams
-     */
-    len2: number;
-
-    /**
-     * Name of function to execute
-     *
-     * @memberof ICaseDetectParams
-     */
-    func: string;
-
-    /**
-     * First keys to detect the case
-     *
-     * @memberof ICaseDetectParams
-     */
-    keys1: string[];
-
-    /**
-     * Second keys to detect the case
-     *
-     * @memberof ICaseDetectParams
-     */
-    keys2: string[];
-
-    /**
-     * The changed value (the value not the name of the value) of an object or
-     * array which is observed.
-     *
-     * @memberof ICaseDetectParams
-     */
-    changedVal: any;
-
-    /**
-     * The path of the changed value inside an object
-     * (THIS is is name of the value with path).
-     *
-     * @memberof ICaseDetectParams
-     */
-    path: string;
 }
 
 /**
@@ -304,36 +252,15 @@ export class Watched<T extends Record<string, any> = any, K extends DefNonFuncPr
      * @memberof Watched
      */
     public proxyHandler(path: string, changedVal: T[K], prevVal: T[K]) {
+        if (isArray(this.ownValue) && path === "length") return;
         if (this.subObject) this.subObject.proxyHandler(path, changedVal, prevVal);
-        const newKeys = changedVal ? Object.keys(changedVal) : [];
-        const oldKeys = prevVal ? Object.keys(prevVal) : [];
-        const newLen = newKeys.length;
-        const oldLen = oldKeys.length;
 
         // Case: added
-        this.caseDetectExec({
-            len1: newLen,
-            len2: oldLen,
-            func: this.onAdd,
-            keys1: newKeys,
-            keys2: oldKeys,
-            changedVal,
-            path
-        });
+        if (prevVal === undefined && changedVal !== undefined && isFunction(this.object[this.onAdd])) this.object[this.onAdd](changedVal, path);
         // Case: removed
-        this.caseDetectExec({
-            len1: oldLen,
-            len2: newLen,
-            func: this.onRemove,
-            keys1: oldKeys,
-            keys2: newKeys,
-            changedVal,
-            path
-        });
-        // Case: deep change
-        if (newLen === oldLen && this.onChange in this && this.isInitialized) {
-            this.object[this.onChange](changedVal, path);
-        }
+        if (prevVal !== undefined && changedVal === undefined && isFunction(this.object[this.onRemove])) this.object[this.onRemove](prevVal, path);
+        // Case: replace
+        if (prevVal !== undefined && changedVal !== undefined && isFunction(this.object[this.onChange])) this.object[this.onChange](prevVal, path);
     }
 
     /**
@@ -361,30 +288,12 @@ export class Watched<T extends Record<string, any> = any, K extends DefNonFuncPr
      * @memberof Watched
      */
     private proxyfyValue(value?: any) {
-        if (value instanceof Array || isObject(value) && !(<any>value).isBDOModel) {
-            value = onChange.target(value);
+        if (isArray(value) || isObject(value) && !isBDOModel(value)) {
+            value = getProxyTarget(value);
             return onChange(value, (path, changedValue, previousValue) => {
                 this.proxyHandler(path, <T[K]>changedValue, <T[K]>previousValue);
-            }, { isShallow: this.isShallow });
+            }, { isShallow: this.isShallow, ignoreSymbols: true });
         }
         return value;
-    }
-
-    /**
-     * Detects case of change and executes corresponding function
-     *
-     * @private
-     * @param cdParams The parameters to detect the case of add, remove or change
-     * @memberof Watched
-     */
-    private caseDetectExec(cdParams: ICaseDetectParams) {
-        if (cdParams.len1 > cdParams.len2 && cdParams.func in this.object) {
-            for (const modified of cdParams.keys1) {
-                if (!cdParams.keys2.includes(modified)) {
-                    (<any>this.object)[cdParams.func]((cdParams.changedVal)[<any>modified], cdParams.path);
-                    break;
-                }
-            }
-        }
     }
 }

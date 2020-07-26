@@ -164,10 +164,10 @@ export class Attribute<T extends Record<string, any> = any, K extends prop<T> = 
      *
      * @memberof Attribute
      */
-    public proxyHandler(_path?: string, _changedVal?: T[K], _prevVal?: T[K]) {
+    public proxyHandler(path?: string, changedVal?: T[K], prevVal?: T[K]) {
         const value = this.value;
         if (value === undefined || value === null) return;
-        this.doSetValue(getProxyTarget(value), true, true);
+        super.proxyHandler(path, changedVal, prevVal);
         this.reflectToDOMAttribute(value);
         this.doAutoSave();
     }
@@ -198,7 +198,7 @@ export class Attribute<T extends Record<string, any> = any, K extends prop<T> = 
                 return false;
             }
         }
-        return !(value === this.ownValue || !skipGuard && !this.disableTypeGuard && !this.typeGuard(value));
+        return super.shouldDoSetValue(value, skipGuard);
     }
 
     /**

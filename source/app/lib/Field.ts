@@ -1,7 +1,8 @@
 import { Attribute } from "~bdo/lib/Attribute";
 import { Property } from "~bdo/lib/Property";
 import { Watched } from "~bdo/lib/Watched";
-import { removeElementFromArray, getProxyTarget, isObject } from "~bdo/utils/util";
+import { removeElementFromArray, getProxyTarget, isObject, isArray } from "~bdo/utils/util";
+import { isBDOModel } from "~bdo/utils/framework";
 import { defineWildcardMetadata } from "~bdo/utils/metadata";
 import onChange from "on-change";
 import { Modification } from '~bdo/lib/Modification';
@@ -65,7 +66,7 @@ export class Field<T extends Record<string, any> = any, K extends DefNonFuncProp
     public addField(field: watchedAttrProp<T, K>) {
         if (this.fields.includes(field)) return;
         // Take value of the model
-        if (field.object && field.object.isBDOModel) this.value = this.proxyfyValue(field.valueOf());
+        if (isBDOModel(field.object)) this.value = this.proxyfyValue(field.valueOf());
         if (field instanceof Watched && field.subObject) this.redefineValue(field.subObject);
         this.redefineValue(field);
         this.fields.push(field);
@@ -154,7 +155,7 @@ export class Field<T extends Record<string, any> = any, K extends DefNonFuncProp
      * @memberof Field
      */
     private proxyfyValue(value?: any) {
-        if (value instanceof Array || isObject(value) && !(<any>value).isBDOModel) {
+        if (isArray(value) || isObject(value) && !isBDOModel(value)) {
             let isShallow = true;
             for (const field of this.fields) {
                 if (!field.isShallow) {
@@ -162,7 +163,7 @@ export class Field<T extends Record<string, any> = any, K extends DefNonFuncProp
                     break;
                 }
             }
-            value = onChange.target(value);
+            value = getProxyTarget(value);
             return onChange(value, (path, changedValue, previousValue) => {
                 const pathSize = path.split(".").length;
                 for (const field of this.fields) {
