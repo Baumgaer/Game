@@ -35,6 +35,9 @@
     "license": "ISC",
     "devDependencies": {
         "@alienfast/i18next-loader": "^1.1.4",
+        "@babel/core": "^7.10.5",
+        "@babel/plugin-proposal-nullish-coalescing-operator": "^7.10.4",
+        "@babel/plugin-proposal-optional-chaining": "^7.10.4",
         "@types/app-root-path": "^1.2.4",
         "@types/chai": "^4.2.11",
         "@types/clone-deep": "^4.0.1",
@@ -73,6 +76,7 @@
         "@typescript-eslint/eslint-plugin": "^3.7.0",
         "@typescript-eslint/parser": "^3.7.0",
         "@webcomponents/webcomponentsjs": "^2.4.4",
+        "babel-loader": "^8.1.0",
         "babylonjs-inspector": "^4.1.0",
         "cache-loader": "^4.1.0",
         "chai": "^4.2.0",

@@ -1,3 +1,4 @@
+/* eslint-disable */
 const arp = require('app-root-path');
 const path = require('path');
 const os = require('os');
@@ -157,6 +158,15 @@ module.exports = (_env, options) => {
             rules: [{
                 test: /\.tsx?$/,
                 use: [cacheLoaderSettings("typescript"), threadLoaderSettings(), {
+                    loader: 'babel-loader',
+                    options: {
+                        plugins: [
+                            "@babel/plugin-proposal-nullish-coalescing-operator",
+                            "@babel/plugin-proposal-optional-chaining"
+                        ],
+                        sourceMap: 'inline'
+                    }
+                }, {
                     loader: 'ts-loader',
                     options: {
                         happyPackMode: true, // IMPORTANT! use happyPackMode mode to speed-up compilation and reduce errors reported to webpack
