@@ -191,12 +191,18 @@ module.exports = (_env, options) => {
                 }]
             }, {
                 test: /\.less$/,
-                use: [cacheLoaderSettings("styles"), threadLoaderSettings(), {
+                use: [cacheLoaderSettings("styles"), threadLoaderSettings(),
+                {
                     loader: 'to-string-loader'
-                }, {
+                },
+                {
                     loader: 'css-loader',
-                    options: { url: false }
-                }, {
+                    options: {
+                        url: false,
+                        esModule: false
+                    }
+                },
+                {
                     loader: 'less-loader',
                     options: { lessOptions: { url: false, plugins: [new lessPluginCleanCSS({ advanced: true })] } }
                 }]

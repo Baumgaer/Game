@@ -63,7 +63,7 @@ export class DatabaseManager<D extends string, C extends string, G extends strin
         return this;
     }
 
-    public get(id: string): Promise<IndexStructure> {
+    public get(id: string): Promise<IndexStructure | null> {
         return this.getDatabase().getItem(id);
     }
 
