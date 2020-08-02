@@ -194,7 +194,15 @@ export abstract class BaseServer {
 
         // Setup compression and security
         this.app.use(compression());
-        this.app.use(helmet());
+        this.app.use(helmet({
+            contentSecurityPolicy: {
+                directives: {
+                    defaultSrc: ["'self'"],
+                    scriptSrc: ["'self'", "'unsafe-inline'"].concat(process.env.NODE_ENV === 'development' ? ["'unsafe-eval'"] : []),
+                    styleSrc: ["'self'", "'unsafe-inline'"]
+                }
+            }
+        }));
         this.app.use(hpp());
         const RedisStore = connectRedis(expressSession);
         const sessionConfig = Object.assign(
