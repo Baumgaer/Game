@@ -6,6 +6,7 @@ import compression from 'compression';
 import expressSession from 'express-session';
 import connectRedis from 'connect-redis';
 import ms from "ms";
+import { v4 as uuidV4 } from "uuid";
 import { graphqlHTTP } from 'express-graphql';
 import { buildSchema } from 'type-graphql';
 import { resolve } from 'path';
@@ -188,21 +189,28 @@ export abstract class BaseServer {
             })
         ]);
         // parse the body to get post data and so on
-        // NOTE: This is important for some middlewares to have directly
+        // NOTE: This is important for some middlewares to have directly.
+        //       So this has to be the first middleware
         this.app.use(json());
         this.app.use(urlencoded({ extended: true }));
 
         // Setup compression and security
         this.app.use(compression());
-        this.app.use(helmet({
-            contentSecurityPolicy: {
-                directives: {
-                    defaultSrc: ["'self'"],
-                    scriptSrc: ["'self'", "'unsafe-inline'"].concat(process.env.NODE_ENV === 'development' ? ["'unsafe-eval'"] : []),
-                    styleSrc: ["'self'", "'unsafe-inline'"]
+
+        this.app.use((request, response, next) => {
+            const contentSecurityNonce = uuidV4();
+            response.locals.cspScriptNonce = contentSecurityNonce;
+            const helmetMiddleWare = helmet({
+                contentSecurityPolicy: {
+                    directives: {
+                        defaultSrc: ["'self'"],
+                        scriptSrc: ["'self'", `'nonce-${contentSecurityNonce}'`].concat(process.env.NODE_ENV === 'development' ? ["'unsafe-eval'"] : []),
+                        styleSrc: ["'self'", `'nonce-${contentSecurityNonce}'`, "'sha256-rJJyMDPmHMZS0mPmL877gjjApxGMVa4522UDb4ctw7I='"]
+                    }
                 }
-            }
-        }));
+            });
+            helmetMiddleWare(request, response, next);
+        });
         this.app.use(hpp());
         const RedisStore = connectRedis(expressSession);
         const sessionConfig = Object.assign(

@@ -80,9 +80,9 @@ namespace Express {
 }
 
 interface Window {
-    virtualRoutes: string[];
     router: import('navigo');
-    localStorage: import('node-localstorage')
+    localStorage: import('node-localstorage'),
+    cspScriptNonce: string
 }
 
 namespace NodeJS { // eslint-disable-line

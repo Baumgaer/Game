@@ -6,8 +6,9 @@
 </head>
 
 <body>
-    <script>
+    <script nonce="{{ responseLocals.cspScriptNonce }}">
         window.process = {{ process | json }};
+        window.cspScriptNonce = "{{ responseLocals.cspScriptNonce }}";
     </script>
     <view-router>{% block body %}{% endblock %}</view-router>
     {% if process.env.NODE_ENV !== 'development' %}

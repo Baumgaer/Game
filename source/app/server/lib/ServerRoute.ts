@@ -82,7 +82,7 @@ export class ServerRoute extends BDORoute {
 
         try {
             templateParams = await this.templateParams(request);
-            merge(templateParams, globalTemplateVars);
+            merge(templateParams, globalTemplateVars, { responseLocals: response.locals });
         } catch (error) {
             return next(error);
         }

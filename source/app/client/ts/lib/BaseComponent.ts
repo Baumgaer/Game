@@ -477,7 +477,7 @@ export function BaseComponentFactory<TBase extends Constructor<HTMLElement>>(HTM
             if (isObject(this.templateString)) stringToParse = (<Template>this.templateString).render(fields);
             if (stringToParse) {
                 const shadowRoot = this.attachShadow({ mode: 'open' });
-                const doc = new DOMParser().parseFromString(`<style>${this.styleString}</style>${stringToParse}`, 'text/html');
+                const doc = new DOMParser().parseFromString(`<style nonce="${window.cspScriptNonce}">${this.styleString}</style>${stringToParse}`, 'text/html');
                 shadowRoot.appendChild(<HTMLElement>doc.head.firstChild);
                 shadowRoot.appendChild(<HTMLElement>doc.body.firstChild);
             }
