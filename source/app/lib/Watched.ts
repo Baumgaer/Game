@@ -249,18 +249,84 @@ export class Watched<T extends Record<string, any> = any, K extends DefNonFuncPr
      * @param path The path where thy proxy action was triggered on
      * @param changedVal The value which was assigned or unassigned
      * @param prevVal The old value
+     * @param name The name of the operation which triggered the handler and undefined if it was an assignment
      * @memberof Watched
      */
-    public proxyHandler(path: string, changedVal: T[K], prevVal: T[K]) {
-        if (isArray(this.ownValue) && path === "length") return;
+    public proxyHandler(path: string, changedVal: T[K], prevVal: T[K], name?: string) {
         if (this.subObject) this.subObject.proxyHandler(path, changedVal, prevVal);
 
-        // Case: added
-        if (prevVal === undefined && changedVal !== undefined && isFunction(this.object[this.onAdd])) this.object[this.onAdd](changedVal, path);
-        // Case: removed
-        if (prevVal !== undefined && changedVal === undefined && isFunction(this.object[this.onRemove])) this.object[this.onRemove](prevVal, path);
-        // Case: replace
-        if (prevVal !== undefined && changedVal !== undefined && isFunction(this.object[this.onChange])) this.object[this.onChange](prevVal, path);
+        const addedElements: Record<string, any> = {};
+        const removedElements: Record<string, any> = {};
+
+        // Case added
+        if (name === "push") Object.assign(addedElements, new Array(prevVal.length).concat(changedVal.slice(prevVal.length, changedVal.length)));
+        if (name === "unshift") Object.assign(addedElements, changedVal.slice(0, changedVal.length - prevVal.length));
+
+        // case removed
+        if (name === "pop") Object.assign(removedElements, { [prevVal.length - 1]: prevVal[prevVal.length - 1] });
+        if (name === "shift") Object.assign(removedElements, { 0: prevVal[0] });
+
+        // case mixed
+        if (name === "splice") {
+            const calcPrevVal = [];
+            const calcChangedVal = [];
+
+            let startIndex = 0;
+            let endIndex = 0;
+
+            let startFound = false;
+            let endFound = false;
+
+            for (let index = 0; index < Math.max(changedVal.length, prevVal.length); index++) {
+                const indexToUseFromBehind = prevVal.length >= changedVal.length ? prevVal.length - (1 + index) : changedVal.length - (1 + index);
+                const lastPrevVal = prevVal.length - (1 + index) >= 0 ? prevVal[prevVal.length - (1 + index)] : undefined;
+                const lastChangedVal = changedVal.length - (1 + index) >= 0 ? changedVal[changedVal.length - (1 + index)] : undefined;
+
+                if (!endFound) {
+                    if (lastChangedVal !== lastPrevVal) {
+                        endIndex = indexToUseFromBehind;
+                        endFound = true;
+                    } else {
+                        calcChangedVal[indexToUseFromBehind] = lastChangedVal;
+                        calcPrevVal[indexToUseFromBehind] = lastPrevVal;
+                    }
+                }
+
+                if (!startFound) {
+                    if (prevVal[index] !== changedVal[index]) {
+                        startIndex = index;
+                        startFound = true;
+                    } else {
+                        calcChangedVal[index] = changedVal[index];
+                        calcPrevVal[index] = prevVal[index];
+                    }
+                }
+
+                if (startFound && endFound) {
+                    for (let index = startIndex; index <= endIndex + (changedVal.length - prevVal.length); index++) {
+                        calcChangedVal[index] = changedVal[index];
+                    }
+                    for (let index = startIndex; index <= endIndex + (prevVal.length - changedVal.length) + (prevVal.length >= changedVal.length ? 1 : 0); index++) {
+                        calcPrevVal[index] = prevVal[index];
+                    }
+                    for (let index = startIndex; index < endIndex + 1; index++) {
+                        const prevElement = calcPrevVal[index];
+                        const changedElement = calcChangedVal[index];
+                        if (prevElement) {
+                            Object.assign(removedElements, { [index]: prevElement });
+                            if (changedElement) Object.assign(addedElements, { [index]: changedElement });
+                        } else Object.assign(addedElements, { [index]: changedElement });
+                    }
+                    break;
+                }
+            }
+        }
+
+        const keys = Array.from(new Set(Object.keys(addedElements).concat(Object.keys(removedElements))));
+        for (const key of keys) {
+            if (key in removedElements && isFunction(this.object[this.onRemove])) this.object[this.onRemove](removedElements[key], key.toString());
+            if (key in addedElements && isFunction(this.object[this.onAdd])) this.object[this.onAdd](addedElements[key], key.toString());
+        }
     }
 
     /**

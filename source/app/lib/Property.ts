@@ -289,9 +289,10 @@ export class Property<T extends Record<string, any> = any, K extends DefNonFuncP
      * @param path The path as a dot separated list where the proxy was triggered on
      * @param changedVal The Value which has been assigned or unassigned
      * @param prevVal The old value
+     * @param _name The name of the operation which triggered the handler and undefined if it was an assignment
      * @memberof Property
      */
-    public proxyHandler(path?: string, changedVal?: T[K], prevVal?: T[K]) {
+    public proxyHandler(path?: string, changedVal?: T[K], prevVal?: T[K], _name?: string) {
         const value = this.value;
         if (value === undefined || value === null) return;
         this.doSetValue(getProxyTarget(value), false);

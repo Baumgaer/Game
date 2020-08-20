@@ -16,8 +16,8 @@ type watchedAttrProp<T extends Record<string, any>, K extends DefNonFuncPropName
  * This is used to bundle the values which are bound and to handle all
  * mechanisms of watched, property and attribute in an organized way.
  *
- * @template T The type of the field
- * @template K The name of the field
+ * @template T
+ * @template K
  */
 export class Field<T extends Record<string, any> = any, K extends DefNonFuncPropNames<T> = any> {
 
@@ -164,11 +164,11 @@ export class Field<T extends Record<string, any> = any, K extends DefNonFuncProp
                 }
             }
             value = getProxyTarget(value);
-            return onChange(value, (path, changedValue, previousValue) => {
+            return onChange(value, (path, changedValue, previousValue, name) => {
                 const pathSize = path.split(".").length;
                 for (const field of this.fields) {
                     if (!field.isShallow || field.isShallow && pathSize <= 1) {
-                        field.proxyHandler(path, <T[K]>changedValue, <T[K]>previousValue);
+                        field.proxyHandler(path, <T[K]>changedValue, <T[K]>previousValue, name);
                     }
                 }
             }, { isShallow });

@@ -209,6 +209,7 @@ export abstract class BaseServer {
                     }
                 }
             });
+            if (process.env.NODE_ENV === 'development' && request.path === "/api") return next();
             helmetMiddleWare(request, response, next);
         });
         this.app.use(hpp());

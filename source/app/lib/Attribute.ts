@@ -164,10 +164,10 @@ export class Attribute<T extends Record<string, any> = any, K extends prop<T> = 
      *
      * @memberof Attribute
      */
-    public proxyHandler(path?: string, changedVal?: T[K], prevVal?: T[K]) {
+    public proxyHandler(path?: string, changedVal?: T[K], prevVal?: T[K], name?: string) {
         const value = this.value;
         if (value === undefined || value === null) return;
-        super.proxyHandler(path, changedVal, prevVal);
+        super.proxyHandler(path, changedVal, prevVal, name);
         this.reflectToDOMAttribute(value);
         this.doAutoSave();
     }
