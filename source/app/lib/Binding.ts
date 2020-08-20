@@ -268,7 +268,7 @@ export class Binding<
      * @memberof Binding
      */
     private getOriginalPropertyDescriptor(object: Record<string, any>, key: strNumSym) {
-        let descriptor: PropertyDescriptor | undefined = Reflect.getOwnPropertyDescriptor(object, key);
+        let descriptor = Reflect.getOwnPropertyDescriptor(object, key);
         let mDataName: "bindings" | "initiatorBinding" = bindName;
         let prototype = object;
         if (object === this.initiator) mDataName = iniBindName;
