@@ -8,13 +8,6 @@ import { TypeError } from "~bdo/lib/Errors";
 import { typeCheck } from "type-check";
 import onChange from "on-change";
 
-
-interface IHistory<T extends Record<string, any> = any, K extends DefNonFuncPropNames<T> = any> {
-    action: "set" | "insert" | "delete" | "increment" | "decrement",
-    value?: T[K],
-    key: null | string | number
-}
-
 /**
  * This parameters should only be used in models and components other objects
  * should not be effected with this behavior.
@@ -172,8 +165,6 @@ export class Property<T extends Record<string, any> = any, K extends DefNonFuncP
      */
     protected ownValue?: T[K];
 
-    protected history: IHistory[] = [];
-
     constructor(object: T, property: K, params?: IWatchAttrPropSettings<IPropertyParams>) {
         this.object = object;
         this.property = property;
@@ -279,21 +270,16 @@ export class Property<T extends Record<string, any> = any, K extends DefNonFuncP
     /**
      * Handles the behavior of the proxy if value is an Object
      *
-     * @param path The path as a dot separated list where the proxy was triggered on
-     * @param changedVal The Value which has been assigned or unassigned
-     * @param prevVal The old value
+     * @param _path The path as a dot separated list where the proxy was triggered on
+     * @param _changedVal The Value which has been assigned or unassigned
+     * @param _prevVal The old value
      * @param _name The name of the operation which triggered the handler and undefined if it was an assignment
      * @memberof Property
      */
-    public proxyHandler(path?: string, changedVal?: T[K], prevVal?: T[K], _name?: string) {
+    public proxyHandler(_path?: string, _changedVal?: T[K], _prevVal?: T[K], _name?: string) {
         const value = this.value;
         if (value === undefined || value === null) return;
         this.doSetValue(getProxyTarget(value), false);
-        if (path) {
-            if (prevVal === undefined && changedVal !== undefined) this.history.push({ action: "insert", key: path, value: changedVal });
-            if (prevVal !== undefined && changedVal === undefined) this.history.push(({ action: "delete", key: path }));
-            if (prevVal !== undefined && changedVal !== undefined) this.history.push({ action: "set", key: path, value: changedVal });
-        }
     }
 
     /**
@@ -333,7 +319,6 @@ export class Property<T extends Record<string, any> = any, K extends DefNonFuncP
             const proxy = this.proxyfyValue(valueToPass);
             this.value = proxy;
             this.ownValue = getProxyTarget(valueToPass);
-            if (!isProxy(valueToPass)) this.history.push({ action: "set", key: null, value: valueToPass });
         }
         if (isBrowser() && this.object instanceof HTMLElement && this.object.shadowRoot) {
             const contentNode = this.object.shadowRoot.lastElementChild;
