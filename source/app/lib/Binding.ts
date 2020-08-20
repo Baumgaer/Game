@@ -227,6 +227,11 @@ export class Binding<
             configurable: true,
             enumerable: true
         });
+
+        // NOTE: It is necessary to take the REAL property descriptor of the
+        // object because the simple assignment of the handler would create a
+        // NEW property descriptor for the initiator which is not intended.
+        // We want to use ne EXACT SAME descriptor
         const bindingDesc = Reflect.getOwnPropertyDescriptor(this.object, this.property) as PropertyDescriptor;
         Reflect.deleteProperty(this.initiator, this.initiatorProperty);
         Reflect.defineProperty(this.initiator, this.initiatorProperty, bindingDesc);
