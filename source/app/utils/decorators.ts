@@ -37,7 +37,7 @@ type optsIdx = IBaseConstructorOpts | number;
  * @returns A property descriptor to watch the property
  */
 export function watched(params: IWatchedParams = {}): PropertyDecorator {
-    return (target: any, key: string | symbol) => {
+    return (target: Record<string, any>, key: string | symbol) => {
         const stringKey = key.toString();
         const decoratorSettings = beforeDescriptor(target, stringKey, "definedWatchers", { params });
         createDecoratorDescriptor(target, stringKey, "Watched", decoratorSettings);
@@ -58,7 +58,7 @@ export function watched(params: IWatchedParams = {}): PropertyDecorator {
  * @returns A property descriptor to mark a field as a property and give more functionality
  */
 export function property(typeFunc?: FuncOrPropParams, params?: IPropertyParams): PropertyDecorator {
-    return (target: any, key: string | symbol) => {
+    return (target: Record<string, any>, key: string | symbol) => {
         const stringKey = key.toString();
 
         // sort parameters
@@ -92,7 +92,7 @@ export function property(typeFunc?: FuncOrPropParams, params?: IPropertyParams):
  *          functionality to components and models
  */
 export function attribute(typeFunc?: FuncOrAttrParams, params?: IAttributeParams): PropertyDecorator {
-    return (target: any, key: string | symbol) => {
+    return (target: Record<string, any>, key: string | symbol) => {
         const stringKey = key.toString();
 
         // sort parameters

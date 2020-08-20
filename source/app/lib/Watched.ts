@@ -5,6 +5,7 @@ import { ucFirst, getProxyTarget, isFunction, isObject, isArray } from "~bdo/uti
 import { isBDOModel } from "~bdo/utils/framework";
 import onChange from "on-change";
 import cloneDeep from "clone-deep";
+import getValue from "get-value";
 
 /**
  * This parameters are in fact for all objects with or without baseConstructor
@@ -267,7 +268,7 @@ export class Watched<T extends Record<string, any> = any, K extends DefNonFuncPr
         if (name === "shift") Object.assign(removedElements, { 0: prevVal[0] });
 
         // case mixed
-        if (name === "splice") {
+        if (name && ["splice", "fill", "copyWithin"].includes(name)) {
             const calcPrevVal = [];
             const calcChangedVal = [];
 
@@ -320,6 +321,15 @@ export class Watched<T extends Record<string, any> = any, K extends DefNonFuncPr
                     break;
                 }
             }
+        }
+
+        if (!name) {
+            const prevElement = getValue(prevVal, path);
+            const changedElement = getValue(changedVal, path);
+            if (prevElement) {
+                Object.assign(removedElements, { [path]: prevElement });
+                if (changedElement) Object.assign(addedElements, { [path]: changedElement });
+            } else Object.assign(addedElements, { [path]: changedElement });
         }
 
         const keys = Array.from(new Set(Object.keys(addedElements).concat(Object.keys(removedElements))));
