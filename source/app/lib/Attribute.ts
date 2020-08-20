@@ -21,7 +21,6 @@ export interface IAttributeParams extends IPropertyParams, AdvancedOptions {
      * or save() will be called. Only effects the behavior of a model.
      *
      * @default false
-     * @type {boolean}
      * @memberof IAttributeParams
      */
     noServerInteraction?: boolean;
@@ -31,7 +30,6 @@ export interface IAttributeParams extends IPropertyParams, AdvancedOptions {
      * or save() will be called. Only effects the behavior of a model.
      *
      * @default false
-     * @type {boolean}
      * @memberof IAttributeParams
      */
     noClientInteraction?: boolean;
@@ -41,7 +39,6 @@ export interface IAttributeParams extends IPropertyParams, AdvancedOptions {
      * value is set or save() will be called. Only effects the behavior of a model.
      *
      * @default false
-     * @type {boolean}
      * @memberof IAttributeParams
      */
     noP2PInteraction?: boolean;
@@ -53,7 +50,6 @@ export interface IAttributeParams extends IPropertyParams, AdvancedOptions {
      * save timeout. Only effects the behavior of a model.
      *
      * @default false
-     * @type {(boolean | number)}
      * @memberof IAttributeParams
      */
     autoSave?: boolean | number;
@@ -62,7 +58,6 @@ export interface IAttributeParams extends IPropertyParams, AdvancedOptions {
      * Defines wether to persist data in a Database like ArangoDB or IndexedDB.
      * Only effects the behavior of a model.
      *
-     * @type {boolean}
      * @memberof IAttributeParams
      */
     doNotPersist?: boolean;
@@ -79,7 +74,6 @@ export class Attribute<T extends Record<string, any> = any, K extends prop<T> = 
     /**
      * @inheritdoc
      *
-     * @type {boolean}
      * @memberof Attribute
      */
     public noServerInteraction?: boolean;
@@ -87,7 +81,6 @@ export class Attribute<T extends Record<string, any> = any, K extends prop<T> = 
     /**
      * @inheritdoc
      *
-     * @type {boolean}
      * @memberof Attribute
      */
     public noClientInteraction?: boolean;
@@ -95,7 +88,6 @@ export class Attribute<T extends Record<string, any> = any, K extends prop<T> = 
     /**
      * @inheritdoc
      *
-     * @type {boolean}
      * @memberof Attribute
      */
     public noP2PInteraction?: boolean;
@@ -103,7 +95,6 @@ export class Attribute<T extends Record<string, any> = any, K extends prop<T> = 
     /**
      * @inheritdoc
      *
-     * @type {(boolean | number)}
      * @memberof Attribute
      */
     public autoSave?: boolean | number;
@@ -111,7 +102,6 @@ export class Attribute<T extends Record<string, any> = any, K extends prop<T> = 
     /**
      * @inheritdoc
      *
-     * @type {boolean}
      * @memberof Attribute
      */
     public doNotPersist?: boolean;
@@ -119,7 +109,6 @@ export class Attribute<T extends Record<string, any> = any, K extends prop<T> = 
     /**
      * Marks if an attribute is initialized on a DOM element
      *
-     * @type {boolean}
      * @memberof Attribute
      */
     private inDOMInitialized: boolean = false;
@@ -134,7 +123,6 @@ export class Attribute<T extends Record<string, any> = any, K extends prop<T> = 
     /**
      * Determines after the first call of doAutoSave whether it is allowed to automatically save the value or not
      *
-     * @type {boolean}
      * @memberof Attribute
      */
     private autoSaveAllowed: boolean = false;

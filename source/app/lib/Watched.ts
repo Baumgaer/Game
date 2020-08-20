@@ -271,12 +271,9 @@ export class Watched<T extends Record<string, any> = any, K extends DefNonFuncPr
      * @memberof Watched
      */
     private proxyfyValue(value?: any) {
-        if (isArray(value) || isObject(value) && !isBDOModel(value)) {
-            value = getProxyTarget(value);
-            return onChange(value, (path, changedValue, previousValue) => {
-                this.proxyHandler(path, <T[K]>changedValue, <T[K]>previousValue);
-            }, { isShallow: true, ignoreSymbols: true });
-        }
-        return value;
+        if (!isArray(value) && !isObject(value) || isBDOModel(value)) return value;
+        return onChange(getProxyTarget(value), (path, changedValue, previousValue, name) => {
+            this.proxyHandler(path, <T[K]>changedValue, <T[K]>previousValue, name);
+        }, { isShallow: true, ignoreSymbols: true });
     }
 }

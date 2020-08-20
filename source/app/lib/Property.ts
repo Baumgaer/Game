@@ -22,6 +22,7 @@ export interface IPropertyParams {
      * This is useful to relieve heavy databases.
      *
      * @default false Values will NOT be saved in cache
+     * @memberof IPropertyParams
      */
     saveInLocalStorage?: boolean;
 
@@ -341,15 +342,11 @@ export class Property<T extends Record<string, any> = any, K extends DefNonFuncP
      * @memberof Property
      */
     protected proxyfyValue(value?: any) {
-        if (isArray(value) || isObject(value) && !isBDOModel(value)) {
-            value = getProxyTarget(value);
-            return onChange(value, (path, changedVal, prevVal) => {
-                if (this.proxyHandlerReplacement) {
-                    this.proxyHandlerReplacement(path, <T[K]>changedVal, <T[K]>prevVal);
-                } else this.proxyHandler(path, <T[K]>changedVal, <T[K]>prevVal);
-            }, { isShallow: true, ignoreSymbols: true });
-        }
-        return value;
+        if (!isArray(value) && !isObject(value) || isBDOModel(value)) return value;
+        return onChange(getProxyTarget(value), (path, changedVal, prevVal, name) => {
+            const proxyHandler = this.proxyHandlerReplacement || this.proxyHandler;
+            proxyHandler(path, <T[K]>changedVal, <T[K]>prevVal, name);
+        }, { isShallow: true, ignoreSymbols: true });
     }
 
     /**

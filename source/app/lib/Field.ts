@@ -156,8 +156,7 @@ export class Field<T extends Record<string, any> = any, K extends DefNonFuncProp
      */
     private proxyfyValue(value?: any) {
         if (!isArray(value) && !isObject(value) || isBDOModel(value)) return value;
-        value = getProxyTarget(value);
-        return onChange(value, (path, changedValue, previousValue, name) => {
+        return onChange(getProxyTarget(value), (path, changedValue, previousValue, name) => {
             for (const field of this.fields) {
                 field.proxyHandler(path, <T[K]>changedValue, <T[K]>previousValue, name);
             }
