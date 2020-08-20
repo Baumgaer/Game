@@ -330,8 +330,8 @@ export class Property<T extends Record<string, any> = any, K extends DefNonFuncP
             valueToPass = value.valueOf();
         } else valueToPass = value;
         if (modifyValue) {
-            const proxyfied = this.proxyfyValue(valueToPass);
-            this.value = proxyfied;
+            const proxy = this.proxyfyValue(valueToPass);
+            this.value = proxy;
             this.ownValue = getProxyTarget(valueToPass);
             if (!isProxy(valueToPass)) this.history.push({ action: "set", key: null, value: valueToPass });
         }
