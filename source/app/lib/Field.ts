@@ -156,22 +156,12 @@ export class Field<T extends Record<string, any> = any, K extends DefNonFuncProp
      */
     private proxyfyValue(value?: any) {
         if (isArray(value) || isObject(value) && !isBDOModel(value)) {
-            let isShallow = true;
-            for (const field of this.fields) {
-                if (!field.isShallow) {
-                    isShallow = false;
-                    break;
-                }
-            }
             value = getProxyTarget(value);
             return onChange(value, (path, changedValue, previousValue, name) => {
-                const pathSize = path.split(".").length;
                 for (const field of this.fields) {
-                    if (!field.isShallow || field.isShallow && pathSize <= 1) {
-                        field.proxyHandler(path, <T[K]>changedValue, <T[K]>previousValue, name);
-                    }
+                    field.proxyHandler(path, <T[K]>changedValue, <T[K]>previousValue, name);
                 }
-            }, { isShallow });
+            }, { isShallow: true, ignoreSymbols: true });
         }
         return value;
     }

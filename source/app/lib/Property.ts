@@ -145,13 +145,6 @@ export class Property<T extends Record<string, any> = any, K extends DefNonFuncP
     public proxyHandlerReplacement?: this["proxyHandler"];
 
     /**
-     * @see Watched.isShallow
-     *
-     * @memberof Property
-     */
-    public isShallow: boolean = true;
-
-    /**
      * A function which returns a more specific type than the design:type from
      * typescript.
      * With this you can define tuples or infer types inside an array or objects
@@ -369,7 +362,7 @@ export class Property<T extends Record<string, any> = any, K extends DefNonFuncP
                 if (this.proxyHandlerReplacement) {
                     this.proxyHandlerReplacement(path, <T[K]>changedVal, <T[K]>prevVal);
                 } else this.proxyHandler(path, <T[K]>changedVal, <T[K]>prevVal);
-            }, { isShallow: this.isShallow, ignoreSymbols: true });
+            }, { isShallow: true, ignoreSymbols: true });
         }
         return value;
     }

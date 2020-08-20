@@ -32,29 +32,20 @@ export interface IWatchedParams {
     onChange?: string;
 
     /**
-     * The name of the function which should be called when a value will be added to the array.
-     * Gets a parameter with the added value and the path.
+     * The name of the function which should be called when a value will be added to an array or object.
+     * Gets a parameter with the added value and the path where it was added.
      *
      * @memberof IWatchParams
      */
     onAdd?: string;
 
     /**
-     * The name of the function which should be called when a value will be removed from the array.
-     * Gets a parameter with the removed value and the path.
+     * The name of the function which should be called when a value will be removed from an array or object.
+     * Gets a parameter with the removed value and the path where it was removed.
      *
      * @memberof IWatchParams
      */
     onRemove?: string;
-
-    /**
-     * If true arrays and object will recursively observed for
-     * changes, removes and additions.
-     *
-     * @default true No recursive observation
-     * @memberof IWatchParams
-     */
-    isShallow?: boolean;
 }
 
 /**
@@ -118,14 +109,6 @@ export class Watched<T extends Record<string, any> = any, K extends DefNonFuncPr
     public onRemove: string;
 
     /**
-     * @inheritdoc
-     *
-     * @public
-     * @memberof Watched
-     */
-    public isShallow: boolean = true;
-
-    /**
      * The value of the watcher if there is no sub object.
      * This will probably manipulated by a field.
      *
@@ -169,7 +152,7 @@ export class Watched<T extends Record<string, any> = any, K extends DefNonFuncPr
         this.onAdd = params ? params.onAdd || onAddFunc : onAddFunc;
         this.onRemove = params ? params.onRemove || onRemoveFunc : onRemoveFunc;
 
-        this.isShallow = params && typeof params.isShallow === "boolean" ? params.isShallow : this.isShallow;
+        if (!isFunction(this.object[this.onInit])) this.onInit = this.onChange;
     }
 
     /**
@@ -240,7 +223,6 @@ export class Watched<T extends Record<string, any> = any, K extends DefNonFuncPr
      */
     public setSubObject(subObject: Property<T, K> | Attribute<T, K>) {
         subObject.proxyHandlerReplacement = this.proxyHandler.bind(this);
-        subObject.isShallow = this.isShallow;
         this.subObject = subObject;
     }
 
@@ -368,7 +350,7 @@ export class Watched<T extends Record<string, any> = any, K extends DefNonFuncPr
             value = getProxyTarget(value);
             return onChange(value, (path, changedValue, previousValue) => {
                 this.proxyHandler(path, <T[K]>changedValue, <T[K]>previousValue);
-            }, { isShallow: this.isShallow, ignoreSymbols: true });
+            }, { isShallow: true, ignoreSymbols: true });
         }
         return value;
     }
