@@ -8,6 +8,7 @@ import { isBrowser } from "~bdo/utils/environment";
 import { getMetadata, defineMetadata, getWildcardMetadata, defineWildcardMetadata } from "~bdo/utils/metadata";
 import { baseConstructorFactory } from "~bdo/lib/BaseConstructor";
 import { BDOModel } from "~bdo/lib/BDOModel";
+import getValue from "get-value";
 
 import type { ClientModel } from "~client/lib/ClientModel";
 import type { ServerModel } from "~server/lib/ServerModel";
@@ -298,4 +299,95 @@ export function isReferenceString(value: unknown): value is string {
 export function canGetNamespacedStorage<T extends Record<string, any>>(value: Record<string, any>): value is T & IGetNamespaceStorageAddition<T> {
     if ("getNamespacedStorage" in value && isFunction(value.getNamespacedStorage)) return true;
     return false;
+}
+
+/**
+ * Diffs an object or array depending on the previous value and new value with
+ * respect to the used method and the path if given. if method and path are not
+ * given, a generic version will be used.
+ *
+ * @param previousValue the unmodified object or a reference object
+ * @param newValue the result of a modification or an object which should be compared with the reference object
+ * @param path The path to the property which is modified
+ * @param usedMethod The name of the method which was used to modify the object e.g. splice
+ * @returns An array with added and removed elements of the object
+ */
+export function diffChangedObject(previousValue: Record<string, any>, newValue: Record<string, any>, path: string = "", usedMethod: string = ""): [Record<string, any>, Record<string, any>] {
+    const addedElements: Record<string, any> = {};
+    const removedElements: Record<string, any> = {};
+
+    // Case added
+    if (usedMethod === "push") Object.assign(addedElements, new Array(previousValue.length).concat(newValue.slice(previousValue.length, newValue.length)));
+    if (usedMethod === "unshift") Object.assign(addedElements, newValue.slice(0, newValue.length - previousValue.length));
+
+    // case removed
+    if (usedMethod === "pop") Object.assign(removedElements, { [previousValue.length - 1]: previousValue[previousValue.length - 1] });
+    if (usedMethod === "shift") Object.assign(removedElements, { 0: previousValue[0] });
+
+    // case mixed
+    if (usedMethod && ["splice", "fill", "copyWithin"].includes(usedMethod)) {
+        const calcPrevVal = [];
+        const calcChangedVal = [];
+
+        let startIndex = 0;
+        let endIndex = 0;
+
+        let startFound = false;
+        let endFound = false;
+
+        for (let index = 0; index < Math.max(newValue.length, previousValue.length); index++) {
+            const indexToUseFromBehind = previousValue.length >= newValue.length ? previousValue.length - (1 + index) : newValue.length - (1 + index);
+            const lastPrevVal = previousValue.length - (1 + index) >= 0 ? previousValue[previousValue.length - (1 + index)] : undefined;
+            const lastChangedVal = newValue.length - (1 + index) >= 0 ? newValue[newValue.length - (1 + index)] : undefined;
+
+            if (!endFound) {
+                if (lastChangedVal !== lastPrevVal) {
+                    endIndex = indexToUseFromBehind;
+                    endFound = true;
+                } else {
+                    calcChangedVal[indexToUseFromBehind] = lastChangedVal;
+                    calcPrevVal[indexToUseFromBehind] = lastPrevVal;
+                }
+            }
+
+            if (!startFound) {
+                if (previousValue[index] !== newValue[index]) {
+                    startIndex = index;
+                    startFound = true;
+                } else {
+                    calcChangedVal[index] = newValue[index];
+                    calcPrevVal[index] = previousValue[index];
+                }
+            }
+
+            if (startFound && endFound) {
+                for (let index = startIndex; index <= endIndex + (newValue.length - previousValue.length); index++) {
+                    calcChangedVal[index] = newValue[index];
+                }
+                for (let index = startIndex; index <= endIndex + (previousValue.length - newValue.length) + (previousValue.length >= newValue.length ? 1 : 0); index++) {
+                    calcPrevVal[index] = previousValue[index];
+                }
+                for (let index = startIndex; index < endIndex + 1; index++) {
+                    const prevElement = calcPrevVal[index];
+                    const changedElement = calcChangedVal[index];
+                    if (prevElement) {
+                        Object.assign(removedElements, { [index]: prevElement });
+                        if (changedElement) Object.assign(addedElements, { [index]: changedElement });
+                    } else Object.assign(addedElements, { [index]: changedElement });
+                }
+                break;
+            }
+        }
+    }
+
+    if (!usedMethod) {
+        const prevElement = getValue(previousValue, path);
+        const changedElement = getValue(newValue, path);
+        if (prevElement) {
+            Object.assign(removedElements, { [path]: prevElement });
+            if (changedElement) Object.assign(addedElements, { [path]: changedElement });
+        } else Object.assign(addedElements, { [path]: changedElement });
+    }
+
+    return [addedElements, removedElements];
 }
