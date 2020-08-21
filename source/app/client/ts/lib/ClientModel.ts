@@ -166,16 +166,16 @@ export class ClientModel extends BDOModel {
      * @param attr An attribute to save
      * @memberof ClientModel
      */
-    public async save(attr?: DefNonFuncPropNames<this>): Promise<IndexStructure> {
+    public async save(attr?: DefNonFuncPropNames<this>): Promise<Record<string, any>> {
         const definedAttributes = getMetadata(this, "definedAttributes");
         if (!definedAttributes || attr && !definedAttributes.has(attr)) throw new Error("invalid defined attributes");
-        const attributes = attr ? [attr] : definedAttributes.keys();
-        const unsavedChanges: IndexStructure = await this.getUnsavedChanges();
+        const attributes = attr ? [attr] : Array.from(definedAttributes.keys());
+        const unsavedChanges = await this.getUnsavedChanges();
         const toSave: IndexStructure = {};
         const sendToServer: IndexStructure = {};
         for (const attribute of attributes) {
-            if (attribute in unsavedChanges) {
-                const strAttr = <string>attribute;
+            const strAttr = <string>attribute;
+            if (strAttr in unsavedChanges) {
                 let proxyVal = getProxyTarget(unsavedChanges[strAttr]);
                 if (proxyVal instanceof Array) {
                     proxyVal = proxyVal.map((item) => {
@@ -225,7 +225,7 @@ export class ClientModel extends BDOModel {
      * @returns The changes which are not saved yet
      * @memberof ClientModel
      */
-    public async getUnsavedChanges(): Promise<IndexStructure> {
+    public async getUnsavedChanges(): Promise<Record<string, any>> {
         if (!this.collectionName) return Promise.reject("No collectionName provided");
         const unsavedChanges: ConstParams<this> = {};
         let dbCollection = await databaseManager.database("default").collection(this.collectionName).get(this.id);

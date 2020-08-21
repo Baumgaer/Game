@@ -191,7 +191,7 @@ export abstract class BDOModel implements IBaseConstructorOpts {
     public async isUnsaved(attr: DefNonFuncPropNames<this>): Promise<boolean> {
         const unsavedChanges = await this.getUnsavedChanges();
         let unsaved = false;
-        if (unsavedChanges && attr in unsavedChanges) unsaved = true;
+        if (unsavedChanges && <string>attr in unsavedChanges) unsaved = true;
         return Promise.resolve(unsaved);
     }
 
@@ -232,6 +232,6 @@ export abstract class BDOModel implements IBaseConstructorOpts {
      * @returns An object with all attributes which are not persisted yet
      * @memberof BDOModel
      */
-    public abstract async getUnsavedChanges(): Promise<IndexStructure>;
+    public abstract async getUnsavedChanges(): Promise<Record<string, any>>;
 
 }

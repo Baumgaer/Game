@@ -21,7 +21,7 @@ declare type DefInstanceType<T extends Record<string, any>> = T extends Construc
 type EachOfTmp<T> = { [K in keyof T]: { _: { [X in K]: T[K] }; } };
 declare type OneOf<T> = EachOfTmp<T>[keyof T]["_"] & Partial<T>;
 
-declare type NonEmptyArray<T> = [T, ...T];
+declare type NonEmptyArray<T> = [T, ...T[]];
 
 declare type AnyFunction = (...args: any[]) => unknown;
 
