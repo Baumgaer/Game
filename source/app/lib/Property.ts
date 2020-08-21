@@ -344,8 +344,7 @@ export class Property<T extends Record<string, any> = any, K extends DefNonFuncP
     protected proxyfyValue(value?: any) {
         if (!isArray(value) && !isObject(value) || isBDOModel(value)) return value;
         return onChange(getProxyTarget(value), (path, changedVal, prevVal, name) => {
-            const proxyHandler = this.proxyHandlerReplacement || this.proxyHandler;
-            proxyHandler(path, <T[K]>changedVal, <T[K]>prevVal, name);
+            (this.proxyHandlerReplacement || this.proxyHandler).bind(this, path, <T[K]>changedVal, <T[K]>prevVal, name);
         }, { isShallow: true, ignoreSymbols: true });
     }
 

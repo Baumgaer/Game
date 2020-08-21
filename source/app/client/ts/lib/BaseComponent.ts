@@ -2,7 +2,7 @@ import 'reflect-metadata';
 import { Template, renderString } from 'nunjucks';
 import { Properties } from "csstype";
 import { property } from '~bdo/utils/decorators';
-import { constructTypeOfHTMLAttribute, isPrimitive, isString, isObject, pascalCase2kebabCase } from '~bdo/utils/util';
+import { constructTypeOfHTMLAttribute, isPrimitive, isString, isObject, pascalCase2kebabCase, getProxyTarget } from '~bdo/utils/util';
 import { isComponent } from "~bdo/utils/framework";
 import { BaseControllerFactory } from "~client/lib/BaseController";
 
@@ -12,7 +12,7 @@ export type Position = "after" | "before" | "replace" | "first" | "last" | numbe
  * Creates a new BaseComponent based on the HTMLTypeElement.
  * NOTE: Every component is also a controller.
  *
- * @template TBase An interface which is derived from HTMLElement
+ * @template TBase
  * @param HTMLTypeElement Derived class from HTMLElement
  * @returns The BaseComponent
  */
@@ -474,7 +474,7 @@ export function BaseComponentFactory<TBase extends Constructor<HTMLElement>>(HTM
                 fields[key] = value.valueOf();
             }
             if (isString(this.templateString)) stringToParse = renderString(this.templateString, fields);
-            if (isObject(this.templateString)) stringToParse = (<Template>this.templateString).render(fields);
+            if (isObject(this.templateString)) stringToParse = (<Template>getProxyTarget(this.templateString)).render(fields);
             if (stringToParse) {
                 const shadowRoot = this.attachShadow({ mode: 'open' });
                 const doc = new DOMParser().parseFromString(`<style nonce="${window.cspScriptNonce}">${this.styleString}</style>${stringToParse}`, 'text/html');
