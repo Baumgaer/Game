@@ -2,7 +2,7 @@ import { Property } from "~bdo/lib/Property";
 import { Attribute } from '~bdo/lib/Attribute';
 import { Modification } from '~bdo/lib/Modification';
 import { Field } from "~bdo/lib/Field";
-import { ucFirst, getProxyTarget, isFunction } from "~bdo/utils/util";
+import { ucFirst, getProxyTarget, isFunction, isArray, isObject } from "~bdo/utils/util";
 import { diffChangedObject } from "~bdo/utils/framework";
 import cloneDeep from "clone-deep";
 
@@ -213,8 +213,22 @@ export class Watched<T extends Record<string, any> = any, K extends DefNonFuncPr
     public proxyHandler(path: string, changedVal: T[K], prevVal: T[K], name?: string, addedElements?: Record<string, any>, removedElements?: Record<string, any>) {
         if (this.subObject) this.subObject.proxyHandler(path, changedVal, prevVal);
 
+        const pTargetValue = getProxyTarget(this.value);
+
         if (!addedElements || !removedElements) {
-            [addedElements, removedElements] = diffChangedObject(prevVal, changedVal, path, name);
+            // Reconstruct objects in case of an assignment
+            let oldValue = prevVal;
+            if (path && !name) {
+                if (isArray(this.value)) {
+                    oldValue = pTargetValue.slice();
+                    oldValue[parseInt(path, 10)] = prevVal;
+                }
+                if (isObject(this.value)) {
+                    oldValue = Object.assign({}, pTargetValue);
+                    oldValue[path] = prevVal;
+                }
+            }
+            [addedElements, removedElements] = diffChangedObject(oldValue, pTargetValue, path, name);
         }
 
         const keys = Array.from(new Set(Object.keys(addedElements).concat(Object.keys(removedElements))));
