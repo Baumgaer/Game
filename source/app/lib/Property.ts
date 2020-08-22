@@ -2,7 +2,7 @@ import { Modification } from "~bdo/lib/Modification";
 import { Field, IFieldParams } from "~bdo/lib/Field";
 import { getMetadata, defineMetadata } from "~bdo/utils/metadata";
 import { isBrowser } from "~bdo/utils/environment";
-import { ucFirst, isProxy, isFunction, getProxyTarget } from "~bdo/utils/util";
+import { ucFirst, isProxy, isFunction, getProxyTarget, isArray, isObject } from "~bdo/utils/util";
 import { IWatchAttrPropSettings, canGetNamespacedStorage } from "~bdo/utils/framework";
 
 /**
@@ -183,7 +183,9 @@ export class Property<T extends Record<string, any> = any, K extends DefNonFuncP
                 idxStructObj[this.onTypeCheckFail](error);
             } else if (isFunction(idxStructObj.onTypeCheckFail)) {
                 idxStructObj.onTypeCheckFail(error);
-            } else throw error;
+            } else if (!isArray(this.value) && !isObject(this.value)) {
+                throw error;
+            } else console.error(error); // eslint-disable-line
         } else if (isFunction(idxStructObj[this.onTypeCheckSuccess])) idxStructObj[this.onTypeCheckSuccess]();
         return error;
     }

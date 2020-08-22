@@ -188,7 +188,7 @@ export abstract class Field<T extends Record<string, any> = any, K extends DefNo
     protected proxyfyValue(value?: any) {
         if (!isArray(value) && !isObject(value) || isBDOModel(value)) return value;
         return onChange(getProxyTarget(value), (path, changedValue, previousValue, name) => {
-            (this.proxyHandlerReplacement || this.proxyHandler).bind(this, path, <T[K]>changedValue, <T[K]>previousValue, name);
+            (this.proxyHandlerReplacement ?? this.proxyHandler).call(this, path, <T[K]>changedValue, <T[K]>previousValue, name);
         }, { isShallow: true, ignoreSymbols: true });
     }
 }

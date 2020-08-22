@@ -3,8 +3,8 @@ import { Watched } from "~bdo/lib/Watched";
 import { Attribute } from "~bdo/lib/Attribute";
 import { Property } from "~bdo/lib/Property";
 import { Modification } from '~bdo/lib/Modification';
-import { removeElementFromArray, getProxyTarget } from "~bdo/utils/util";
-import { isBDOModel } from "~bdo/utils/framework";
+import { removeElementFromArray, getProxyTarget, isArray, isObject } from "~bdo/utils/util";
+import { isBDOModel, diffChangedObject } from "~bdo/utils/framework";
 import { defineWildcardMetadata, getMetadata } from "~bdo/utils/metadata";
 
 type watchedAttrProp<T extends Record<string, any>, K extends DefNonFuncPropNames<T>> =
@@ -104,8 +104,63 @@ export class Distributor<T extends Record<string, any> = any, K extends DefNonFu
      * @memberof Distributor
      */
     public proxyHandler(path: string, changedValue: T[K], previousValue: T[K], name?: string) {
+        const value = this.value;
+        if (value === undefined || value === null) return;
+        const pTargetValue = getProxyTarget(this.value);
+
+        // Reconstruct objects in case of an assignment
+        let oldValue = previousValue;
+        if (path && !name) {
+            if (isArray(this.value)) {
+                oldValue = pTargetValue.slice();
+                oldValue[parseInt(path, 10)] = previousValue;
+            }
+            if (isObject(this.value)) {
+                oldValue = Object.assign({}, pTargetValue);
+                oldValue[path] = previousValue;
+            }
+        }
+
+        const error = this.typeGuard(this.value);
+
+        let otherError;
+        let addedElements;
+        let removedElements;
+
         for (const field of this.fields) {
-            field.proxyHandler(path, <T[K]>changedValue, <T[K]>previousValue, name);
+            otherError = field.typeGuard(this.value, error);
+            if (otherError) continue;
+            if (field instanceof Watched) {
+                // Determine changes once!
+                if (!addedElements || !removedElements) [addedElements, removedElements] = diffChangedObject(oldValue, pTargetValue, path, name);
+                field.proxyHandler(path, <T[K]>changedValue, <T[K]>previousValue, name, addedElements, removedElements);
+            } else field.proxyHandler(path, <T[K]>changedValue, <T[K]>previousValue, name);
+        }
+
+        if (otherError) {
+            if (!addedElements || !removedElements) [addedElements, removedElements] = diffChangedObject(oldValue, pTargetValue, path, name);
+            let deleteCount = 0;
+            // Remove added elements
+            for (const key in addedElements) {
+                if (Object.prototype.hasOwnProperty.call(addedElements, key)) {
+                    if (isArray(pTargetValue)) {
+                        pTargetValue.splice(parseInt(key, 10) - deleteCount, 1);
+                        deleteCount++;
+                    } else delete pTargetValue[key];
+                }
+            }
+
+            let addCount = 0;
+            // Add removed elements
+            for (const key in removedElements) {
+                if (Object.prototype.hasOwnProperty.call(removedElements, key)) {
+                    const element = removedElements[key];
+                    if (isArray(pTargetValue)) {
+                        pTargetValue.splice(parseInt(key, 10) + addCount, 0, element);
+                        addCount++;
+                    } else pTargetValue[key] = element;
+                }
+            }
         }
     }
 
