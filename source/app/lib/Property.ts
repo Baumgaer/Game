@@ -85,13 +85,6 @@ export class Property<T extends Record<string, any> = any, K extends DefNonFuncP
     public onTypeCheckSuccess: string;
 
     /**
-     * The proxy handler which should be used instead of the own handler
-     *
-     * @memberof Property
-     */
-    public proxyHandlerReplacement?: this["proxyHandler"];
-
-    /**
      * The value of the property / attribute this will probably manipulated by a field
      *
      * @protected
@@ -204,19 +197,15 @@ export class Property<T extends Record<string, any> = any, K extends DefNonFuncP
     }
 
     /**
-     * Handles the behavior of the proxy if value is an Object
+     * @inheritdoc
      *
-     * @param path The path as a dot separated list where the proxy was triggered on
-     * @param changedVal The Value which has been assigned or unassigned
-     * @param prevVal The old value
-     * @param name The name of the operation which triggered the handler and undefined if it was an assignment
+     * @param _path The path as a dot separated list where the proxy was triggered on
+     * @param _changedVal The Value which has been assigned or unassigned
+     * @param _prevVal The old value
+     * @param _name The name of the operation which triggered the handler and undefined if it was an assignment
      * @memberof Property
      */
-    public proxyHandler(path?: string, changedVal?: T[K], prevVal?: T[K], name?: string) {
-        if (this.proxyHandlerReplacement) {
-            this.proxyHandlerReplacement(path, changedVal, prevVal, name);
-            return;
-        }
+    public proxyHandler(_path?: string, _changedVal?: T[K], _prevVal?: T[K], _name?: string) {
         const value = this.value;
         if (value === undefined || value === null) return;
         this.doSetValue(getProxyTarget(value), false);

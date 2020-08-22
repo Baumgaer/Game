@@ -194,6 +194,7 @@ export class Watched<T extends Record<string, any> = any, K extends DefNonFuncPr
      * @memberof Watched
      */
     public setSubObject(subObject: Property<T, K> | Attribute<T, K>) {
+        if (this.subObject) this.subObject.proxyHandlerReplacement = undefined;
         subObject.proxyHandlerReplacement = this.proxyHandler.bind(this);
         this.subObject = subObject;
     }

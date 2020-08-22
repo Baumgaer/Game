@@ -80,6 +80,13 @@ export abstract class Field<T extends Record<string, any> = any, K extends DefNo
     public typeFunc?: ReturnTypeFunc;
 
     /**
+     * The proxy handler which should be used instead of the own handler
+     *
+     * @memberof Property
+     */
+    public proxyHandlerReplacement?: this["proxyHandler"];
+
+    /**
      * The value of the property / attribute.
      * If "this" is a property / attribute, this will probably manipulated by a field.
      * If "this" is an original field, this will be the global value of this.object[this.property].
@@ -181,7 +188,7 @@ export abstract class Field<T extends Record<string, any> = any, K extends DefNo
     protected proxyfyValue(value?: any) {
         if (!isArray(value) && !isObject(value) || isBDOModel(value)) return value;
         return onChange(getProxyTarget(value), (path, changedValue, previousValue, name) => {
-            this.proxyHandler(path, <T[K]>changedValue, <T[K]>previousValue, name);
+            (this.proxyHandlerReplacement || this.proxyHandler).bind(this, path, <T[K]>changedValue, <T[K]>previousValue, name);
         }, { isShallow: true, ignoreSymbols: true });
     }
 }
