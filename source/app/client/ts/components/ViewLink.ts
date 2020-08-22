@@ -50,7 +50,7 @@ export default class ViewLink extends BaseComponentFactory(HTMLAnchorElement) {
      *
      * @memberof ViewLink
      */
-    @property() public testen = {};
+    @watched() @property(() => [String]) public testen: string[] = [];
 
     constructor(_params?: ConstParams<ViewLink>) {
         super();

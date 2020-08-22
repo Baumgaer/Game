@@ -1,7 +1,7 @@
 import { Property, IPropertyParams } from "~bdo/lib/Property";
 import { AdvancedOptions } from "type-graphql/dist/decorators/types";
 import { Modification } from "~bdo/lib/Modification";
-import { constructTypeOfHTMLAttribute, getProxyTarget, isFunction } from '~bdo/utils/util';
+import { constructTypeOfHTMLAttribute, getProxyTarget, isFunction, isObject, isArray } from '~bdo/utils/util';
 import { IWatchAttrPropSettings, isComponent, BaseComponentInstance, isBDOModel } from "~bdo/utils/framework";
 import { ConfigurationError } from "~bdo/lib/Errors";
 import { ModelRegistry } from "~bdo/lib/ModelRegistry";
@@ -150,12 +150,36 @@ export class Attribute<T extends Record<string, any> = any, K extends prop<T> = 
     /**
      * @inheritdoc
      *
-     * @memberof Attribute
+     * @param path The path as a dot separated list where the proxy was triggered on
+     * @param _changedVal The Value which has been assigned or unassigned
+     * @param previousValue The old value
+     * @param name The name of the operation which triggered the handler and undefined if it was an assignment
+     * @memberof Property
      */
-    public proxyHandler(path?: string, changedVal?: T[K], prevVal?: T[K], name?: string) {
+    public proxyHandler(path: string, _changedVal?: T[K], previousValue?: T[K], name?: string) {
         const value = this.value;
         if (value === undefined || value === null) return;
-        super.proxyHandler(path, changedVal, prevVal, name);
+        if (!this.disableTypeGuard) {
+            const error = this.typeGuard(value);
+            if (error) {
+                // Reconstruct objects in case of an assignment
+                let oldValue: Record<string, any> = isObject(previousValue) ? previousValue : {};
+                const pTargetValue = getProxyTarget(this.value);
+                if (path && !name) {
+                    if (isArray(this.value)) {
+                        oldValue = pTargetValue.slice();
+                        oldValue[parseInt(path, 10)] = previousValue;
+                    }
+                    if (isObject(this.value)) {
+                        oldValue = Object.assign({}, pTargetValue);
+                        oldValue[path] = previousValue;
+                    }
+                }
+                this.revertProxyChanges(oldValue, pTargetValue, path);
+                return;
+            }
+        }
+        this.doSetValue(value, false, true);
         this.reflectToDOMAttribute(value);
         this.doAutoSave();
     }

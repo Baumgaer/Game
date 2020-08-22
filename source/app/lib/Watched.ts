@@ -3,6 +3,7 @@ import { Attribute } from '~bdo/lib/Attribute';
 import { Modification } from '~bdo/lib/Modification';
 import { Field } from "~bdo/lib/Field";
 import { ucFirst, getProxyTarget, isFunction, isArray, isObject } from "~bdo/utils/util";
+import { getMetadata } from "~bdo/utils/metadata";
 import { diffChangedObject } from "~bdo/utils/framework";
 import cloneDeep from "clone-deep";
 
@@ -194,7 +195,31 @@ export class Watched<T extends Record<string, any> = any, K extends DefNonFuncPr
      * @memberof Watched
      */
     public setSubObject(subObject: Property<T, K> | Attribute<T, K>) {
-        if (this.subObject) this.subObject.proxyHandlerReplacement = undefined;
+        if (this.subObject) {
+            this.subObject.proxyHandlerReplacement = undefined;
+            if (this.subObject instanceof Attribute) {
+                this.subObject.disableTypeGuard = getMetadata(this.subObject.object, "definedAttributes")?.get(this.subObject.property)?.params?.disableTypeGuard;
+            } else if (this.subObject instanceof Property) {
+                this.subObject.disableTypeGuard = getMetadata(this.subObject.object, "definedProperties")?.get(this.subObject.property)?.params?.disableTypeGuard;
+            }
+        }
+
+        let takeoverTypeGuard = false;
+        if (subObject instanceof Attribute) {
+            takeoverTypeGuard = !getMetadata(subObject.object, "definedAttributes")?.get(subObject.property)?.params?.disableTypeGuard;
+        } else if (subObject instanceof Property) {
+            takeoverTypeGuard = !getMetadata(subObject.object, "definedProperties")?.get(subObject.property)?.params?.disableTypeGuard;
+        }
+
+        if (takeoverTypeGuard) {
+            subObject.disableTypeGuard = true;
+            this.disableTypeGuard = false;
+            this.typeFunc = subObject.typeFunc?.bind(this);
+        } else {
+            this.disableTypeGuard = true;
+            this.typeFunc = undefined;
+        }
+
         subObject.proxyHandlerReplacement = this.proxyHandler.bind(this);
         this.subObject = subObject;
     }
@@ -210,25 +235,35 @@ export class Watched<T extends Record<string, any> = any, K extends DefNonFuncPr
      * @param removedElements The elements which are removed from the object passed by a general field
      * @memberof Watched
      */
-    public proxyHandler(path: string, changedVal: T[K], prevVal: T[K], name?: string, addedElements?: Record<string, any>, removedElements?: Record<string, any>) {
-        if (this.subObject) this.subObject.proxyHandler(path, changedVal, prevVal);
+    public proxyHandler(path: string, changedVal?: T[K], prevVal?: T[K], name?: string, addedElements?: Record<string, any>, removedElements?: Record<string, any>) {
+        const value = this.valueOf();
+        const pTargetValue = getProxyTarget(value);
 
-        const pTargetValue = getProxyTarget(this.value);
-
+        let oldValue: Record<string, any> = isObject(prevVal) ? prevVal : {};
         if (!addedElements || !removedElements) {
             // Reconstruct objects in case of an assignment
-            let oldValue = prevVal;
             if (path && !name) {
-                if (isArray(this.value)) {
+                if (isArray(value)) {
                     oldValue = pTargetValue.slice();
                     oldValue[parseInt(path, 10)] = prevVal;
                 }
-                if (isObject(this.value)) {
+                if (isObject(value)) {
                     oldValue = Object.assign({}, pTargetValue);
                     oldValue[path] = prevVal;
                 }
             }
             [addedElements, removedElements] = diffChangedObject(oldValue, pTargetValue, path, name);
+        }
+
+        if (this.subObject) {
+            if (!this.disableTypeGuard) {
+                const error = super.typeGuard(value);
+                const otherError = this.subObject.typeGuard(value, error);
+                if (otherError) {
+                    return this.revertProxyChanges(oldValue, pTargetValue, path, name, addedElements, removedElements);
+                }
+            }
+            this.subObject.proxyHandler(path, changedVal, prevVal);
         }
 
         const keys = Array.from(new Set(Object.keys(addedElements).concat(Object.keys(removedElements))));

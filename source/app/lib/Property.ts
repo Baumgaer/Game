@@ -193,16 +193,37 @@ export class Property<T extends Record<string, any> = any, K extends DefNonFuncP
     /**
      * @inheritdoc
      *
-     * @param _path The path as a dot separated list where the proxy was triggered on
+     * @param path The path as a dot separated list where the proxy was triggered on
      * @param _changedVal The Value which has been assigned or unassigned
-     * @param _prevVal The old value
-     * @param _name The name of the operation which triggered the handler and undefined if it was an assignment
+     * @param previousValue The old value
+     * @param name The name of the operation which triggered the handler and undefined if it was an assignment
      * @memberof Property
      */
-    public proxyHandler(_path?: string, _changedVal?: T[K], _prevVal?: T[K], _name?: string) {
+    public proxyHandler(path: string, _changedVal?: T[K], previousValue?: T[K], name?: string) {
         const value = this.value;
         if (value === undefined || value === null) return;
-        this.doSetValue(getProxyTarget(value), false);
+
+        if (!this.disableTypeGuard) {
+            const error = this.typeGuard(value);
+            if (error) {
+                // Reconstruct objects in case of an assignment
+                let oldValue: Record<string, any> = isObject(previousValue) ? previousValue : {};
+                const pTargetValue = getProxyTarget(this.value);
+                if (path && !name) {
+                    if (isArray(this.value)) {
+                        oldValue = pTargetValue.slice();
+                        oldValue[parseInt(path, 10)] = previousValue;
+                    }
+                    if (isObject(this.value)) {
+                        oldValue = Object.assign({}, pTargetValue);
+                        oldValue[path] = previousValue;
+                    }
+                }
+                this.revertProxyChanges(oldValue, pTargetValue, path);
+                return;
+            }
+        }
+        this.doSetValue(getProxyTarget(value), false, true);
     }
 
     /**

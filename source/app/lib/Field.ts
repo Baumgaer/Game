@@ -1,7 +1,7 @@
 import { NullableListOptions, ReturnTypeFunc } from "type-graphql/dist/decorators/types";
 import { getDesignType } from "~bdo/utils/metadata";
 import { isArray, isPrimitive, isObject, getProxyTarget } from "~bdo/utils/util";
-import { isBDOModel } from "~bdo/utils/framework";
+import { isBDOModel, diffChangedObject } from "~bdo/utils/framework";
 import { TypeError } from "~bdo/lib/Errors";
 import { Modification } from '~bdo/lib/Modification';
 import { typeCheck } from "type-check";
@@ -190,5 +190,32 @@ export abstract class Field<T extends Record<string, any> = any, K extends DefNo
         return onChange(getProxyTarget(value), (path, changedValue, previousValue, name) => {
             (this.proxyHandlerReplacement ?? this.proxyHandler).call(this, path, <T[K]>changedValue, <T[K]>previousValue, name);
         }, { isShallow: true, ignoreSymbols: true });
+    }
+
+    protected revertProxyChanges(oldValue: Record<string, any>, newValue: Record<string, any>, path: string, name?: string, addedElements?: Record<string, any>, removedElements?: Record<string, any>) {
+        const pTargetValue = getProxyTarget(newValue);
+        if (!addedElements || !removedElements) [addedElements, removedElements] = diffChangedObject(oldValue, pTargetValue, path, name);
+        let deleteCount = 0;
+        // Remove added elements
+        for (const key in addedElements) {
+            if (Object.prototype.hasOwnProperty.call(addedElements, key)) {
+                if (isArray(pTargetValue)) {
+                    pTargetValue.splice(parseInt(key, 10) - deleteCount, 1);
+                    deleteCount++;
+                } else delete pTargetValue[key];
+            }
+        }
+
+        let addCount = 0;
+        // Add removed elements
+        for (const key in removedElements) {
+            if (Object.prototype.hasOwnProperty.call(removedElements, key)) {
+                const element = removedElements[key];
+                if (isArray(pTargetValue)) {
+                    pTargetValue.splice(parseInt(key, 10) + addCount, 0, element);
+                    addCount++;
+                } else pTargetValue[key] = element;
+            }
+        }
     }
 }

@@ -38,21 +38,13 @@ export class Distributor<T extends Record<string, any> = any, K extends DefNonFu
     public addField(field: watchedAttrProp<T, K>) {
         if (this.fields.includes(field)) return;
         // Take value of the model
-        if (isBDOModel(field.object)) this.value = this.proxyfyValue(field.valueOf());
-        if (field instanceof Watched) {
-            if (field.subObject) {
-                this.redefineValue(field.subObject);
-                if (isBDOModel(field.subObject.object)) {
-                    this.disableTypeGuard = field.subObject.disableTypeGuard;
-                    this.typeFunc = field.subObject.typeFunc;
-                    field.subObject.disableTypeGuard = true;
-                }
-            } else this.disableTypeGuard = true;
-        } else if (isBDOModel(field.object)) {
+        if (isBDOModel(field.object)) {
+            this.value = this.proxyfyValue(field.valueOf());
             this.disableTypeGuard = field.disableTypeGuard;
             this.typeFunc = field.typeFunc;
             field.disableTypeGuard = true;
         }
+        if (field instanceof Watched && field.subObject) this.redefineValue(field.subObject);
         this.redefineValue(field);
         this.fields.push(field);
     }
@@ -103,13 +95,13 @@ export class Distributor<T extends Record<string, any> = any, K extends DefNonFu
      * @param name The name of the operation which triggered the handler and undefined if it was an assignment
      * @memberof Distributor
      */
-    public proxyHandler(path: string, changedValue: T[K], previousValue: T[K], name?: string) {
+    public proxyHandler(path: string, changedValue?: T[K], previousValue?: T[K], name?: string) {
         const value = this.value;
         if (value === undefined || value === null) return;
         const pTargetValue = getProxyTarget(this.value);
 
         // Reconstruct objects in case of an assignment
-        let oldValue = previousValue;
+        let oldValue: Record<string, any> = isObject(previousValue) ? previousValue : {};
         if (path && !name) {
             if (isArray(this.value)) {
                 oldValue = pTargetValue.slice();
@@ -137,31 +129,7 @@ export class Distributor<T extends Record<string, any> = any, K extends DefNonFu
             } else field.proxyHandler(path, <T[K]>changedValue, <T[K]>previousValue, name);
         }
 
-        if (otherError) {
-            if (!addedElements || !removedElements) [addedElements, removedElements] = diffChangedObject(oldValue, pTargetValue, path, name);
-            let deleteCount = 0;
-            // Remove added elements
-            for (const key in addedElements) {
-                if (Object.prototype.hasOwnProperty.call(addedElements, key)) {
-                    if (isArray(pTargetValue)) {
-                        pTargetValue.splice(parseInt(key, 10) - deleteCount, 1);
-                        deleteCount++;
-                    } else delete pTargetValue[key];
-                }
-            }
-
-            let addCount = 0;
-            // Add removed elements
-            for (const key in removedElements) {
-                if (Object.prototype.hasOwnProperty.call(removedElements, key)) {
-                    const element = removedElements[key];
-                    if (isArray(pTargetValue)) {
-                        pTargetValue.splice(parseInt(key, 10) + addCount, 0, element);
-                        addCount++;
-                    } else pTargetValue[key] = element;
-                }
-            }
-        }
+        if (otherError) this.revertProxyChanges(oldValue, pTargetValue, path, name, addedElements, removedElements);
     }
 
     /**
