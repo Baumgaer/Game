@@ -13,8 +13,8 @@ type watchedAttrProp<T extends Record<string, any>, K extends DefNonFuncPropName
     Watched<T, K>;
 
 /**
- * This is used to bundle the values which are bound and to handle all
- * mechanisms of watched, property and attribute in an organized way.
+ * This is used to bundle the values which are bound to handle all
+ * mechanisms of the decorators watched, property and attribute in an organized way.
  *
  * @template T
  * @template K

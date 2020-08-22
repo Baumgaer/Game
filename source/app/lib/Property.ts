@@ -85,14 +85,6 @@ export class Property<T extends Record<string, any> = any, K extends DefNonFuncP
     public onTypeCheckSuccess: string;
 
     /**
-     * The value of the property / attribute this will probably manipulated by a field
-     *
-     * @protected
-     * @memberof Property
-     */
-    protected value?: T[K];
-
-    /**
      * This is the not manipulated value of this property / attribute and is
      * used for the decision whether to change the value or not.
      *

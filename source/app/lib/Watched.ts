@@ -206,12 +206,16 @@ export class Watched<T extends Record<string, any> = any, K extends DefNonFuncPr
      * @param changedVal The value which was assigned or unassigned
      * @param prevVal The old value
      * @param name The name of the operation which triggered the handler and undefined if it was an assignment
+     * @param addedElements The elements which are added to the object passed by a general field
+     * @param removedElements The elements which are removed from the object passed by a general field
      * @memberof Watched
      */
-    public proxyHandler(path: string, changedVal: T[K], prevVal: T[K], name?: string) {
+    public proxyHandler(path: string, changedVal: T[K], prevVal: T[K], name?: string, addedElements?: Record<string, any>, removedElements?: Record<string, any>) {
         if (this.subObject) this.subObject.proxyHandler(path, changedVal, prevVal);
 
-        const [addedElements, removedElements] = diffChangedObject(prevVal, changedVal, path, name);
+        if (!addedElements || !removedElements) {
+            [addedElements, removedElements] = diffChangedObject(prevVal, changedVal, path, name);
+        }
 
         const keys = Array.from(new Set(Object.keys(addedElements).concat(Object.keys(removedElements))));
         for (const key of keys) {
