@@ -1,6 +1,6 @@
 import { removeElementFromArray } from "~bdo/utils/util";
 import { Modification } from "~bdo/lib/Modification";
-import { Field } from "~bdo/lib/Field";
+import { Distributor } from "~bdo/lib/Distributor";
 import { getter, setter } from "~bdo/utils/framework";
 import { defineMetadata, getMetadata, getWildcardMetadata, defineWildcardMetadata } from "~bdo/utils/metadata";
 
@@ -149,16 +149,16 @@ export class Binding<
         initiatorMData.set(this.initiatorProperty, this);
 
         // Prepare global field
-        const fieldMDataName = `field:${this.property}`;
+        const fieldMDataName = `distributor:${this.property}`;
         const objectField = getWildcardMetadata(this.object, this.property);
         const initiatorField = getWildcardMetadata(this.initiator, this.initiatorProperty);
-        let field: Field<T, K> = getWildcardMetadata(this.object, fieldMDataName);
-        if (!field) defineWildcardMetadata(this.object, fieldMDataName, new Field(this.object, this.property));
+        let distributor: Distributor<T, K> = getWildcardMetadata(this.object, fieldMDataName);
+        if (!distributor) defineWildcardMetadata(this.object, fieldMDataName, new Distributor(this.object, this.property));
 
         // Add local fields to global field
-        field = getWildcardMetadata(this.object, fieldMDataName) as Field<T, K>;
-        field.addField(objectField);
-        field.addField(initiatorField);
+        distributor = getWildcardMetadata(this.object, fieldMDataName) as Distributor<T, K>;
+        distributor.addField(objectField);
+        distributor.addField(initiatorField);
 
         // Replace property descriptor
         this.replaceDescriptor();
@@ -181,18 +181,18 @@ export class Binding<
         const initiatorMData = getMetadata(this.initiator, iniBindName);
         const initiatorBinding = initiatorMData ? initiatorMData.get(this.initiatorProperty.toString()) : undefined;
 
-        const fieldMDataName = `field:${this.property}`;
-        const field: Field<T, K> = getWildcardMetadata(this.object, fieldMDataName);
+        const fieldMDataName = `distributor:${this.property}`;
+        const distributor: Distributor<T, K> = getWildcardMetadata(this.object, fieldMDataName);
 
         if (initiatorBinding) {
             if (initiatorMData) initiatorMData.delete(this.initiatorProperty.toString());
             this.restoreDescriptor(this.initiator, this.initiatorProperty, initiatorValue, this.initiatorDescriptor);
-            field.removeField(getWildcardMetadata(this.initiator, this.initiatorProperty));
+            distributor.removeField(getWildcardMetadata(this.initiator, this.initiatorProperty));
         }
 
         if (objectBindings) {
             removeElementFromArray(objectBindings, this);
-            field.removeField(getWildcardMetadata(this.object, this.property));
+            distributor.removeField(getWildcardMetadata(this.object, this.property));
             if (!objectBindings.length) {
                 if (objectMData) objectMData.delete(this.property);
                 this.restoreDescriptor(this.object, this.property, objectValue, this.descriptor);
@@ -212,7 +212,7 @@ export class Binding<
         Reflect.defineProperty(this.object, this.property, {
             get: function bindingGet() {
                 if (that.mode === "WriteOnly" && this === that.initiator) return undefined;
-                return getter(that.object, that.property, "field");
+                return getter(that.object, that.property, "distributor");
             },
             set: function bindingSet(newVal?: T[K] | Binding<T, K> | Modification<any>) {
                 if (that.mode === "ReadOnly" && this === that.initiator) return;
@@ -222,7 +222,7 @@ export class Binding<
                 //       gives the binding!
                 if (newVal instanceof Binding) {
                     setter(that.initiator, that.initiatorProperty, <Binding>newVal);
-                } else setter(that.object, that.property, newVal, "field");
+                } else setter(that.object, that.property, newVal, "distributor");
             },
             configurable: true,
             enumerable: true

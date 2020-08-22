@@ -161,17 +161,6 @@ export class Attribute<T extends Record<string, any> = any, K extends prop<T> = 
     }
 
     /**
-     * Compares the value of this attribute with the value in the IndexedDB and
-     * returns this value if it is different from the value in the store. If the
-     * value is an Array or an Object, only keys with changes will be returned.
-     *
-     * @memberof Attribute
-     */
-    public getUnsavedChange() {
-        // Do Nothing at this time
-    }
-
-    /**
      * @inheritdoc
      *
      * @param value The value which should maybe set

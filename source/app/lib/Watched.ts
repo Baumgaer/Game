@@ -1,9 +1,9 @@
 import { Property } from "~bdo/lib/Property";
 import { Attribute } from '~bdo/lib/Attribute';
 import { Modification } from '~bdo/lib/Modification';
-import { ucFirst, getProxyTarget, isFunction, isObject, isArray } from "~bdo/utils/util";
-import { isBDOModel, diffChangedObject } from "~bdo/utils/framework";
-import onChange from "on-change";
+import { Field } from "~bdo/lib/Field";
+import { ucFirst, getProxyTarget, isFunction } from "~bdo/utils/util";
+import { diffChangedObject } from "~bdo/utils/framework";
 import cloneDeep from "clone-deep";
 
 /**
@@ -52,21 +52,7 @@ export interface IWatchedParams {
  * property or attribute, the corresponding decorator logic musst be passed into
  * this logic with setSubObject.
  */
-export class Watched<T extends Record<string, any> = any, K extends DefNonFuncPropNames<T> = any> implements IWatchedParams {
-
-    /**
-     * A reference to the object where this property/attribute is defined on
-     *
-     * @memberof Property
-     */
-    public object: T;
-
-    /**
-     * the name of the property/attribute on the object
-     *
-     * @memberof Property
-     */
-    public property: K;
+export class Watched<T extends Record<string, any> = any, K extends DefNonFuncPropNames<T> = any> extends Field<T, K> implements IWatchedParams {
 
     /**
      * This is the real object which executes getter and setter if provided
@@ -108,15 +94,6 @@ export class Watched<T extends Record<string, any> = any, K extends DefNonFuncPr
     public onRemove: string;
 
     /**
-     * The value of the watcher if there is no sub object.
-     * This will probably manipulated by a field.
-     *
-     * @private
-     * @memberof Property
-     */
-    private value?: T[K];
-
-    /**
      * This is the not manipulated value of this property / attribute and is
      * used for the decision whether to change the value or not.
      *
@@ -136,8 +113,7 @@ export class Watched<T extends Record<string, any> = any, K extends DefNonFuncPr
     private isInitialized: boolean = false;
 
     constructor(object: T, property: K, params?: IWatchedParams) {
-        this.object = object;
-        this.property = property;
+        super(object, property);
 
         const capitalizedProp = ucFirst(property as string);
 
@@ -155,8 +131,7 @@ export class Watched<T extends Record<string, any> = any, K extends DefNonFuncPr
     }
 
     /**
-     * Sets the value depending on the parameters which are passed into the
-     * decorator and stops early if the value is not changed.
+     * @inheritdoc
      *
      * @param value The vale which should be set on the watcher
      * @memberof Watched
@@ -200,9 +175,7 @@ export class Watched<T extends Record<string, any> = any, K extends DefNonFuncPr
     }
 
     /**
-     * Follows the convention of the valueOf() method of most native objects.
-     * This method will be called by some other objects and will get a managed
-     * value depending on the parameters which are passed into the decorator.
+     * @inheritdoc
      *
      * @returns The current value of the watcher
      * @memberof Watched
@@ -226,7 +199,7 @@ export class Watched<T extends Record<string, any> = any, K extends DefNonFuncPr
     }
 
     /**
-     * Handles the behavior of the proxy if value is an Object
+     * @inheritdoc
      *
      * @param path The path where thy proxy action was triggered on
      * @param changedVal The value which was assigned or unassigned
@@ -247,9 +220,23 @@ export class Watched<T extends Record<string, any> = any, K extends DefNonFuncPr
     }
 
     /**
+     * @inheritdoc
+     *
+     * @deprecated This should not type guard the property.
+     *             This is just added to enable the distributor to hook the type check on sub objects
+     * @param value The value which should be checked for types
+     * @param previousError An error which occurred before. This will skip the super.typeGuard()
+     * @returns Error if an error occurred and undefined else
+     * @memberof Property
+     */
+    public typeGuard(value?: T[K] | Modification<any>, previousError?: Error) {
+        if (this.subObject) return this.subObject.typeGuard(value, previousError);
+        return previousError;
+    }
+
+    /**
      * Determines wether to set the value respecting the DOM attribute, old value and type
      *
-     * @private
      * @param value The value to check for permission to assign
      * @param skipGuard Wether to skip the type guard or not. Default: false
      * @returns true if the value should be set and false else
@@ -261,19 +248,4 @@ export class Watched<T extends Record<string, any> = any, K extends DefNonFuncPr
         } else return (value !== this.ownValue);
     }
 
-    /**
-     * Constructs a proxy object around arrays and objects to get information
-     * about changes inside of the watched objects.
-     *
-     * @private
-     * @param value The value which should be converted into a proxy
-     * @returns The proxy version of the value
-     * @memberof Watched
-     */
-    private proxyfyValue(value?: any) {
-        if (!isArray(value) && !isObject(value) || isBDOModel(value)) return value;
-        return onChange(getProxyTarget(value), (path, changedValue, previousValue, name) => {
-            this.proxyHandler(path, <T[K]>changedValue, <T[K]>previousValue, name);
-        }, { isShallow: true, ignoreSymbols: true });
-    }
 }

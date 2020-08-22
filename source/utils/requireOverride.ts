@@ -8,7 +8,11 @@ const originalRequire = Module.prototype.require;
 /**
  * Overwrites the original require function process wide to use typescripts path
  * mapping.
+ *
+ * @param path the path to the requested module
+ * @returns The requested module
  */
+// eslint-disable-next-line
 // @ts-ignore
 Module.prototype.require = function (path: string): NodeRequire | string {
     if (path.startsWith('~')) {
@@ -21,9 +25,8 @@ Module.prototype.require = function (path: string): NodeRequire | string {
         );
         path = resolve(rootPath, path);
     }
-    if (path.endsWith(".njk")) {
-        return readFileSync(path).toString();
-    }
+    if (path.endsWith(".njk")) return readFileSync(path).toString();
+    // eslint-disable-next-line
     // @ts-ignore
     return originalRequire.apply(this, [path]);
 };

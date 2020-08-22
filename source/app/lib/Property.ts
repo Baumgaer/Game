@@ -1,12 +1,9 @@
-import { NullableListOptions, ReturnTypeFunc } from "type-graphql/dist/decorators/types";
 import { Modification } from "~bdo/lib/Modification";
-import { getMetadata, defineMetadata, getDesignType } from "~bdo/utils/metadata";
+import { Field, IFieldParams } from "~bdo/lib/Field";
+import { getMetadata, defineMetadata } from "~bdo/utils/metadata";
 import { isBrowser } from "~bdo/utils/environment";
-import { isPrimitive, ucFirst, isProxy, isFunction, isObject, isArray, getProxyTarget } from "~bdo/utils/util";
-import { IWatchAttrPropSettings, isBDOModel, canGetNamespacedStorage } from "~bdo/utils/framework";
-import { TypeError } from "~bdo/lib/Errors";
-import { typeCheck } from "type-check";
-import onChange from "on-change";
+import { ucFirst, isProxy, isFunction, getProxyTarget } from "~bdo/utils/util";
+import { IWatchAttrPropSettings, canGetNamespacedStorage } from "~bdo/utils/framework";
 
 /**
  * This parameters should only be used in models and components other objects
@@ -14,7 +11,7 @@ import onChange from "on-change";
  *
  * @interface IPropertyParams
  */
-export interface IPropertyParams {
+export interface IPropertyParams extends IFieldParams {
 
     /**
      * If true the value will be saved in localStorage until its deletion
@@ -25,22 +22,6 @@ export interface IPropertyParams {
      * @memberof IPropertyParams
      */
     saveInLocalStorage?: boolean;
-
-    /**
-     * Decides wether to be able to set values null or undefined on a property.
-     * It is also used to generate a graphQL schema when used in an attribute.
-     *
-     * @default false
-     * @memberof IPropertyParams
-     */
-    nullable?: boolean | NullableListOptions;
-
-    /**
-     * Disables the type guard on runtime. The TypeGuard of the API stays active!
-     *
-     * @memberof IPropertyParams
-     */
-    disableTypeGuard?: boolean;
 
     /**
      * The name of the function which will be executed after basic type checking
@@ -73,21 +54,7 @@ export interface IPropertyParams {
  * Holds all the logic for the parameters of property() decorator and manages
  * getting/setting the right value.
  */
-export class Property<T extends Record<string, any> = any, K extends DefNonFuncPropNames<T> = any> implements IPropertyParams {
-
-    /**
-     * A reference to the object where this property/attribute is defined on
-     *
-     * @memberof Property
-     */
-    public object: T;
-
-    /**
-     * the name of the property/attribute on the object
-     *
-     * @memberof Property
-     */
-    public property: K;
+export class Property<T extends Record<string, any> = any, K extends DefNonFuncPropNames<T> = any> extends Field<T, K> implements IPropertyParams {
 
     /**
      * @inheritdoc
@@ -95,20 +62,6 @@ export class Property<T extends Record<string, any> = any, K extends DefNonFuncP
      * @memberof Property
      */
     public saveInLocalStorage?: boolean;
-
-    /**
-     * @inheritdoc
-     *
-     * @memberof Property
-     */
-    public nullable?: boolean | NullableListOptions;
-
-    /**
-     * @inheritdoc
-     *
-     * @memberof Property
-     */
-    public disableTypeGuard?: boolean;
 
     /**
      * @inheritdoc
@@ -139,17 +92,6 @@ export class Property<T extends Record<string, any> = any, K extends DefNonFuncP
     public proxyHandlerReplacement?: this["proxyHandler"];
 
     /**
-     * A function which returns a more specific type than the design:type from
-     * typescript.
-     * With this you can define tuples or infer types inside an array or objects
-     * which are not a model.
-     *
-     * @protected
-     * @memberof Property
-     */
-    protected typeFunc?: ReturnTypeFunc;
-
-    /**
      * The value of the property / attribute this will probably manipulated by a field
      *
      * @protected
@@ -167,8 +109,7 @@ export class Property<T extends Record<string, any> = any, K extends DefNonFuncP
     protected ownValue?: T[K];
 
     constructor(object: T, property: K, params?: IWatchAttrPropSettings<IPropertyParams>) {
-        this.object = object;
-        this.property = property;
+        super(object, property);
         let parameters: IPropertyParams = {};
 
         if (params && params.params) parameters = params.params;
@@ -186,8 +127,27 @@ export class Property<T extends Record<string, any> = any, K extends DefNonFuncP
     }
 
     /**
-     * Sets the value depending on the parameters which are passed into the
-     * decorator and stops early if the value is not changed.
+     * @inheritdoc
+     *
+     * @deprecated This method in not supported on specific fields
+     * @memberof Property
+     */
+    public addField() {
+        throw new Error("This method in not supported on specific fields");
+    }
+
+    /**
+     * @inheritdoc
+     *
+     * @deprecated This method in not supported on specific fields
+     * @memberof Property
+     */
+    public removeField() {
+        throw new Error("This method in not supported on specific fields");
+    }
+
+    /**
+     * @inheritdoc
      *
      * @param value The value to set on the property
      * @memberof Property
@@ -197,9 +157,7 @@ export class Property<T extends Record<string, any> = any, K extends DefNonFuncP
     }
 
     /**
-     * Follows the convention of the valueOf() method of most native objects.
-     * This method will be called by some other objects and will get a managed
-     * value depending on the parameters which are passed into the decorator.
+     * @inheritdoc
      *
      * @returns The current value of the property
      * @memberof Property
@@ -216,43 +174,20 @@ export class Property<T extends Record<string, any> = any, K extends DefNonFuncP
     }
 
     /**
-     * Checks if the given type is the required type and throws an error if not.
-     * returns true if everything is OK and false else.
+     * @inheritdoc
      *
-     * @public
      * @param value The value which should be checked for types
-     * @returns true if no error occurred and false else
+     * @param previousError An error which occurred before. This will skip the super.typeGuard()
+     * @returns Error if an error occurred and undefined else
      * @memberof Property
      */
-    public typeGuard(value?: T[K] | Modification<any>) {
+    public typeGuard(value?: T[K] | Modification<any>, previousError?: Error) {
         let valueToPass = value;
         if (value instanceof Modification) valueToPass = value.valueOf();
 
-        const typeFuncResult = this.typeFunc && this.typeFunc();
-        const designType = getDesignType(this.object, this.property.toString());
-        const typeError = new TypeError(`${valueToPass} is not type of ${designType.className || designType.name}`);
         const idxStructObj = this.object;
 
-        let error;
-
-        if (!this.nullable && (valueToPass === undefined || valueToPass === null)) error = typeError;
-
-        if (!error) {
-            if (isPrimitive(valueToPass)) {
-                if (typeof valueToPass !== designType.name.toLowerCase()) {
-                    if (!this.nullable || !(valueToPass === undefined || valueToPass === null)) error = typeError;
-                }
-            } else if (!(valueToPass instanceof designType)) {
-                error = typeError;
-            } else {
-                if (isArray(typeFuncResult)) {
-                    let checkString = `[${(<IndexStructure>typeFuncResult[0]).name} | Undefined]`;
-                    if (typeFuncResult.length === 1 && !typeCheck(checkString, valueToPass)) error = new TypeError(`${valueToPass} is not assignable to type ${checkString}`);
-                    checkString = `(${typeFuncResult.map((type) => (<IndexStructure>type).name).join(",")})`;
-                    if (typeFuncResult.length > 1 && !typeCheck(checkString, valueToPass)) error = new TypeError(`${valueToPass} is not assignable to type ${checkString}`);
-                }
-            }
-        }
+        let error = previousError || super.typeGuard(value);
 
         // Do custom type checking
         if (!error && isFunction(idxStructObj[this.onTypeCheck])) error = idxStructObj[this.onTypeCheck](valueToPass);
@@ -265,19 +200,23 @@ export class Property<T extends Record<string, any> = any, K extends DefNonFuncP
                 idxStructObj.onTypeCheckFail(error);
             } else throw error;
         } else if (isFunction(idxStructObj[this.onTypeCheckSuccess])) idxStructObj[this.onTypeCheckSuccess]();
-        return !error;
+        return error;
     }
 
     /**
      * Handles the behavior of the proxy if value is an Object
      *
-     * @param _path The path as a dot separated list where the proxy was triggered on
-     * @param _changedVal The Value which has been assigned or unassigned
-     * @param _prevVal The old value
-     * @param _name The name of the operation which triggered the handler and undefined if it was an assignment
+     * @param path The path as a dot separated list where the proxy was triggered on
+     * @param changedVal The Value which has been assigned or unassigned
+     * @param prevVal The old value
+     * @param name The name of the operation which triggered the handler and undefined if it was an assignment
      * @memberof Property
      */
-    public proxyHandler(_path?: string, _changedVal?: T[K], _prevVal?: T[K], _name?: string) {
+    public proxyHandler(path?: string, changedVal?: T[K], prevVal?: T[K], name?: string) {
+        if (this.proxyHandlerReplacement) {
+            this.proxyHandlerReplacement(path, changedVal, prevVal, name);
+            return;
+        }
         const value = this.value;
         if (value === undefined || value === null) return;
         this.doSetValue(getProxyTarget(value), false);
@@ -293,10 +232,8 @@ export class Property<T extends Record<string, any> = any, K extends DefNonFuncP
      */
     public shouldDoSetValue(value?: T[K] | Modification<any>, skipGuard: boolean = false) {
         let typeGuardPassed = true;
-        if (!skipGuard && !this.disableTypeGuard) typeGuardPassed = this.typeGuard(value);
-        if (typeGuardPassed && value !== this.ownValue) {
-            return true;
-        }
+        if (!skipGuard && !this.disableTypeGuard) typeGuardPassed = !this.typeGuard(value);
+        if (typeGuardPassed && value !== this.ownValue) return true;
         return false;
     }
 
@@ -304,7 +241,6 @@ export class Property<T extends Record<string, any> = any, K extends DefNonFuncP
      * Executes value setting depending on modifyValue parameter and initialization
      * properties. It also reflects the value to the DOM when a binding node is present.
      *
-     * @protected
      * @param value The value which should be set on the property
      * @param modifyValue Wether to change the value of the property or not
      * @param skipGuard Wether to skip the guard or not
@@ -334,24 +270,8 @@ export class Property<T extends Record<string, any> = any, K extends DefNonFuncP
     }
 
     /**
-     * Proxyfies the value to detect changes in objects and execute behavior if wanted
-     *
-     * @protected
-     * @param value The value which should be converted to a proxy
-     * @returns The proxy version of the value
-     * @memberof Property
-     */
-    protected proxyfyValue(value?: any) {
-        if (!isArray(value) && !isObject(value) || isBDOModel(value)) return value;
-        return onChange(getProxyTarget(value), (path, changedVal, prevVal, name) => {
-            (this.proxyHandlerReplacement || this.proxyHandler).bind(this, path, <T[K]>changedVal, <T[K]>prevVal, name);
-        }, { isShallow: true, ignoreSymbols: true });
-    }
-
-    /**
      * Decides wether to update the namespaced storage or not
      *
-     * @protected
      * @returns true if the namespaced storage should be updated and false else
      * @memberof Property
      */
