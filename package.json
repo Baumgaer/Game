@@ -154,6 +154,7 @@
         "i18next-browser-languagedetector": "^6.0.1",
         "ini": "^1.3.5",
         "ioredis": "^4.17.3",
+        "local-packages": "file:localPackages",
         "localforage": "^1.9.0",
         "lodash": "^4.17.20",
         "mixin-deep": "^2.0.1",

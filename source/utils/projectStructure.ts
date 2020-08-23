@@ -1,7 +1,7 @@
 import { resolve, isAbsolute, sep } from 'path';
 import { path as rootPath } from 'app-root-path';
 import { walk as wWalk } from 'walk';
-import { readdirSync, statSync, rmdirSync } from 'graceful-fs';
+import { readdirSync, statSync, rmdirSync, existsSync } from 'graceful-fs';
 
 /**
  * Returns the corresponding path of the other target
@@ -44,7 +44,7 @@ export function getCorrespondingFile(filePath: string): string {
  * Checks if a file path is source or not
  *
  * @param {string} filePath Path of the file which should be checked
- * @returns {boolean}
+ * @returns true if the file is a source file and false else
  */
 export function isSourceFile(filePath: string): boolean {
     if (!isAbsolute(filePath)) filePath = resolve(rootPath, filePath);
@@ -57,8 +57,8 @@ export function isSourceFile(filePath: string): boolean {
 /**
  * Determines wether the file is on client side or not
  *
- * @param {string} filePath The file which has to be checked for client side
- * @returns {boolean}
+ * @param filePath The file which has to be checked for client side
+ * @returns true if file is a client side file and false else
  */
 export function isOnClientSide(filePath: string): boolean {
     if (!isAbsolute(filePath)) filePath = resolve(rootPath, filePath);
@@ -75,23 +75,13 @@ export function isOnClientSide(filePath: string): boolean {
 
 /**
  * Iterates over the structure of a given directory recursive and executes the
- * onFileFound function on every found file.
- *
- * @export
- * @param {string} dir absolute or relative by project root path to dir
- * @param {(path: string, stats: Stats) => void} onFileFound
- * @returns
- */
-/**
- * Iterates over the structure of a given directory recursive and executes the
  * onFile function on every found file and onDir on every found directory.
  * resolves to a List of found files.
  *
- * @export
- * @param {string} dir absolute or relative by project root path to dir
- * @param {walkEventFunc} [onFile]
- * @param {walkEventFunc} [onDir]
- * @returns {Promise<string[]>}
+ * @param dir absolute or relative by project root path to dir
+ * @param onFile The callback which will be called, when a file was found
+ * @param onDir The callback which will be called, when a folder was found
+ * @returns A ready state indicating promise which returns a list of all found paths
  */
 export function walk(dir: string, onFile?: walkEventFunc, onDir?: walkEventFunc): Promise<string[]> {
     if (!isAbsolute(dir)) dir = resolve(rootPath, dir);
@@ -119,12 +109,11 @@ export function walk(dir: string, onFile?: walkEventFunc, onDir?: walkEventFunc)
  * Removes all empty folders started with given folder recursively and executes
  * onRemove if an empty folder was found.
  *
- * @export
- * @param {string} folder
- * @param {(folder: string) => void} [onRemove]
- * @returns
+ * @param folder the folder to cleanup
+ * @param onRemove the callback which will be called when a folder is removed
  */
 export function cleanEmptyFoldersRecursively(folder: string, onRemove?: (folder: string) => void): void {
+    if (!existsSync(folder)) return;
     const isDir = statSync(folder).isDirectory();
     if (!isDir) {
         return;

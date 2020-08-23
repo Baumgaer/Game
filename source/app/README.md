@@ -2,9 +2,9 @@
 
 This is the core of the project. Every file contained in here is part of the server application and the client.
 
-If a typescript file is contained in here, then it implies that it is a **single process** which can be managed by PM2, which we are using to manage our processes. For more information see: <https://pm2.io/doc/en/runtime/overview/>
+If a typescript file is contained in here, then it implies that it is a **single process** which can be managed by docker-compose, which we are using to manage our processes. For more information see: <https://docs.docker.com/compose/>
 
-PM2 is configured by the [ecosystem.config.js](/ecosystem.config.js) in the root directory.
+PM2 is configured by the [docker-compose.yml](/docker-compose.yml) in the root directory.
 
 ## Important
 

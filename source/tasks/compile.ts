@@ -125,11 +125,11 @@ function compileConfig(grunt: IGrunt) {
             interfaceJSON.client = configs.bdo;
             interfaceJSON.server = merge({}, configs.bdo, configs.server);
             interfaceJSON.client = merge({}, configs.bdo, configs.client);
-            let interfaceString = "";
+            let interfaceString = "export ";
             jsonToTs(interfaceJSON, { rootName: "IConfig" }).forEach((typeInterface) => {
                 interfaceString += typeInterface;
             });
-            writeFileSync(resolvePath(rootPath, "configInterfaces.d.ts"), interfaceString, { encoding: "utf-8" });
+            writeFileSync(resolvePath(rootPath, "localPackages", "configInterfaces.ts"), interfaceString, { encoding: "utf-8" });
             resolve();
         });
     });

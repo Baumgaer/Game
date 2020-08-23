@@ -5,6 +5,8 @@ import { resolve } from 'path';
 import { parse } from 'yaml';
 import { merge } from '~bdo/utils/util';
 
+import { IConfig } from "local-packages";
+
 /**
  * Manages the configuration on server side. See BDOConfigManager for mode
  * information
