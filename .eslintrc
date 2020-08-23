@@ -3,7 +3,9 @@
     "env": {
         "es6": true,
         "shared-node-browser": true,
-        "mocha": true
+        "mocha": true,
+        "node": true,
+        "browser": true
     },
     "parser": "@typescript-eslint/parser",
     "parserOptions": {
