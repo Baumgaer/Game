@@ -9,6 +9,7 @@ export {
     omit,
     isFunction,
     isObject,
+    pick,
     pickBy,
     isUndefined,
     isNull,
