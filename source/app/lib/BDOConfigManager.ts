@@ -35,7 +35,7 @@ export abstract class BDOConfigManager {
      * @returns The configuration variables
      * @memberof BDOConfigManager
      */
-    public async get(config: string): Promise<IndexStructure> {
+    public async get(config: string): Promise<any> {
         let value = this.getCache(config);
         if (!value) {
             value = await this.load(config);

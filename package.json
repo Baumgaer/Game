@@ -100,6 +100,7 @@
         "grunt-contrib-watch-chokidar": "^1.0.0",
         "husky": "^4.2.5",
         "js-yaml": "^3.14.0",
+        "json-to-ts": "^1.7.0",
         "less": "^3.12.2",
         "less-loader": "^6.2.0",
         "less-plugin-clean-css": "^1.5.1",
@@ -174,7 +175,8 @@
         "util": "^0.12.3",
         "uuid": "^8.3.0",
         "walk": "^2.3.14",
-        "ws": "^7.3.1"
+        "ws": "^7.3.1",
+        "yaml": "^1.10.0"
     },
     "optionalDependencies": {
         "bufferutil": "^4.0.1",

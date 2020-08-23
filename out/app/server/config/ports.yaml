@@ -1,0 +1,4 @@
+redis: 6379
+arangoDB: 8529
+gameServer: 3000
+webServer: 3001

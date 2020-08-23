@@ -1,4 +1,4 @@
-import { resolve } from 'path';
+import { resolve, dirname } from 'path';
 import { path as rootPath } from 'app-root-path';
 import { existsSync, unlinkSync } from 'graceful-fs';
 import colors from 'colors';
@@ -8,7 +8,6 @@ import {
     isOnClientSide,
     cleanEmptyFoldersRecursively
 } from './../utils/projectStructure';
-import { dirname } from 'path';
 
 module.exports = (grunt: IGrunt): void => {
     grunt.config.merge({

@@ -13,7 +13,7 @@ import { resolve } from 'path';
 import { path as rootPath } from 'app-root-path';
 import { createServer, Server } from 'http';
 import { AddressInfo } from 'ws';
-import { createHash } from 'crypto';
+import { createHash, HexBase64Latin1Encoding } from 'crypto';
 import { RedisPubSub as GraphQLRedisPubSub } from 'graphql-redis-subscriptions';
 import { GraphQLSchema } from 'graphql';
 import { ConfigManager } from '~server/lib/ConfigManager';
@@ -218,13 +218,13 @@ export abstract class BaseServer {
             <expressSession.SessionOptions>{
                 secret: createHash(config.session.hashFunction)
                     .update(passwords.sessionSecretSeed)
-                    .digest(config.session.digest),
+                    .digest(<HexBase64Latin1Encoding>config.session.digest),
                 resave: config.session.resave,
                 saveUninitialized: config.session.saveUninitialized,
                 cookie: {
                     secure: config.session.secureCookie,
                     httpOnly: config.session.httpOnly,
-                    maxAge: parseInt(ms(config.session.maxAge), 10)
+                    maxAge: ms(config.session.maxAge)
                 }
             }, {
             store: new RedisStore({

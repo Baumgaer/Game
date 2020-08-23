@@ -13,6 +13,18 @@ module.exports = function (grunt) {
                     spawn: false
                 }
             },
+            "compile.config": {
+                files: [
+                    'out/app/config/**/*.yaml',
+                    'out/app/client/config/**/*.yaml',
+                    'out/app/server/config/**/*.yaml'
+                ],
+                tasks: ['compile:config'],
+                options: {
+                    event: ['unlink', 'change', 'add'],
+                    spawn: false
+                }
+            },
             "cleanup.ts": {
                 files: [
                     'source/**/*.ts',

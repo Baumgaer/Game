@@ -1,0 +1,15 @@
+# This config file contains general configuration which could not logically
+# splittes from other config file without creating unnecessary small config
+# files
+
+session:
+    resave: false
+    saveUninitialized: true
+    prefix: 'session'
+    disableTTL: false
+    logErrors: true
+    secureCookie: false
+    httpOnly: true
+    maxAge: '1h'
+    hashFunction: 'sha512'
+    digest: 'base64'

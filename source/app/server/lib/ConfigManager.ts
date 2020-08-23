@@ -2,7 +2,7 @@ import { BDOConfigManager } from '~bdo/lib/BDOConfigManager';
 import { readFile, access, constants } from 'graceful-fs';
 import { path as rootPath } from 'app-root-path';
 import { resolve } from 'path';
-import { parse } from 'ini';
+import { parse } from 'yaml';
 import { merge } from '~bdo/utils/util';
 
 /**
@@ -44,7 +44,17 @@ export class ConfigManager extends BDOConfigManager {
      */
     public getForClient(config: string): Promise<IndexStructure> {
         config = config.replace(/\/{0,1}\.\.\/{0,1}/g, ""); // Security for path traversal
+
+        // NOTE: This is necessary to be able to get config for clients on server side
+        // eslint-disable-next-line
+        // @ts-ignore
         return this.get(`client/${config}`);
+    }
+
+    public get<T extends keyof IConfig["server"]>(config: T, forClient?: boolean): Promise<IConfig["server"][T]> {
+        let configToGet: string = config;
+        if (forClient) configToGet = `client/${config}`;
+        return super.get(configToGet);
     }
 
     /**
@@ -62,10 +72,10 @@ export class ConfigManager extends BDOConfigManager {
         if (config.includes("/")) [environment, config] = config.split("/");
 
         const appRoot = resolve(rootPath, 'out', 'app');
-        const bdoDefault = resolve(appRoot, 'config', `${config}.ini`);
-        const bdoEnv = resolve(appRoot, 'config', process.env.NODE_ENV || '', `${config}.ini`);
-        const serverDefault = resolve(appRoot, environment, 'config', `${config}.ini`);
-        const serverEnv = resolve(appRoot, environment, 'config', process.env.NODE_ENV || '', `${config}.ini`);
+        const bdoDefault = resolve(appRoot, 'config', `${config}.yaml`);
+        const bdoEnv = resolve(appRoot, 'config', process.env.NODE_ENV || '', `${config}.yaml`);
+        const serverDefault = resolve(appRoot, environment, 'config', `${config}.yaml`);
+        const serverEnv = resolve(appRoot, environment, 'config', process.env.NODE_ENV || '', `${config}.yaml`);
 
         const configs = await Promise.all([
             this.getFile(bdoDefault),
@@ -76,38 +86,9 @@ export class ConfigManager extends BDOConfigManager {
 
         for (const configString of configs) {
             const parsedConf = parse(configString);
-            this.correctDataTypes(parsedConf);
             merge(temp, parsedConf);
         }
         return Promise.resolve(temp);
-    }
-
-    /**
-     * Converts parsed values to its real datatype because the module ini is
-     * too stupid for arrays and numbers.
-     *
-     * @param obj The loaded configuration with key => value
-     * @memberof ConfigManager
-     */
-    private correctDataTypes(obj: IndexStructure): void {
-        for (const k in obj) {
-            if (typeof obj[k] === 'object' && obj[k] !== null) {
-                this.correctDataTypes(obj[k]);
-            } else if (typeof obj[k] === 'string') {
-                if (!isNaN(obj[k])) {
-                    if (obj[k].toString().indexOf('.') !== -1) {
-                        // This is a float
-                        obj[k] = parseFloat(obj[k]);
-                    } else {
-                        // This is an int
-                        obj[k] = parseInt(obj[k], 10);
-                    }
-                } else if (obj[k].toString().startsWith('[') && obj[k].toString().endsWith(']')) {
-                    // This is an array
-                    obj[k] = JSON.parse(obj[k]);
-                }
-            }
-        }
     }
 
     /**

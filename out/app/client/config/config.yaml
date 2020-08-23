@@ -1,0 +1,10 @@
+# this is a comment
+
+valueWithoutSection: 'oha...'
+aBoolean: True
+
+section:
+    lalala:
+        - 'test 1'
+        - 1
+    meep: 1

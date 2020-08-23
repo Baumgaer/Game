@@ -33,6 +33,7 @@ var/*/*
 var/*.*
 !var/README.md
 !var/**/README.md
+configInterfaces.d.ts
 
 # output stuff
 out/**/*.js
