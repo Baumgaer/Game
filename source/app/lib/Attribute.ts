@@ -1,7 +1,7 @@
 import { Property, IPropertyParams } from "~bdo/lib/Property";
 import { AdvancedOptions } from "type-graphql/dist/decorators/types";
 import { Modification } from "~bdo/lib/Modification";
-import { constructTypeOfHTMLAttribute, getProxyTarget, isFunction, isObject, isArray } from '~bdo/utils/util';
+import { constructTypeOfHTMLAttribute, getProxyTarget, isFunction, isObject, isArray, isValue } from '~bdo/utils/util';
 import { IWatchAttrPropSettings, isComponent, BaseComponentInstance, isBDOModel } from "~bdo/utils/framework";
 import { ConfigurationError } from "~bdo/lib/Errors";
 import { ModelRegistry } from "~bdo/lib/ModelRegistry";
@@ -158,7 +158,7 @@ export class Attribute<T extends Record<string, any> = any, K extends prop<T> = 
      */
     public proxyHandler(path: string, _changedVal?: T[K], previousValue?: T[K], name?: string) {
         const value = this.value;
-        if (value === undefined || value === null) return;
+        if (!isValue(value)) return;
         if (!this.disableTypeGuard) {
             const error = this.typeGuard(value);
             if (error) {

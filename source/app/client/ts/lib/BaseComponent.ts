@@ -473,7 +473,7 @@ export function BaseComponentFactory<TBase extends Constructor<HTMLElement>>(HTM
                 if (!isPrimitive(value.valueOf())) continue;
                 fields[key] = value.valueOf();
             }
-            if (isString(this.templateString)) stringToParse = renderString(this.templateString, fields);
+            if (isString(this.templateString)) stringToParse = renderString(this.templateString, fields, (_err, res) => { stringToParse = res; });
             if (isObject(this.templateString)) stringToParse = (<Template>getProxyTarget(this.templateString)).render(fields);
             if (stringToParse) {
                 const shadowRoot = this.attachShadow({ mode: 'open' });

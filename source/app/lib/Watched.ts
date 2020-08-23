@@ -2,7 +2,7 @@ import { Property } from "~bdo/lib/Property";
 import { Attribute } from '~bdo/lib/Attribute';
 import { Modification } from '~bdo/lib/Modification';
 import { Field } from "~bdo/lib/Field";
-import { ucFirst, getProxyTarget, isFunction, isArray, isObject } from "~bdo/utils/util";
+import { ucFirst, getProxyTarget, isFunction, isArray, isObject, union } from "~bdo/utils/util";
 import { getMetadata } from "~bdo/utils/metadata";
 import { diffChangedObject } from "~bdo/utils/framework";
 import cloneDeep from "clone-deep";
@@ -266,7 +266,7 @@ export class Watched<T extends Record<string, any> = any, K extends DefNonFuncPr
             this.subObject.proxyHandler(path, changedVal, prevVal);
         }
 
-        const keys = Array.from(new Set(Object.keys(addedElements).concat(Object.keys(removedElements))));
+        const keys = union(Object.keys(addedElements), Object.keys(removedElements));
         for (const key of keys) {
             if (key in removedElements && isFunction(this.object[this.onRemove])) this.object[this.onRemove](removedElements[key], key.toString());
             if (key in addedElements && isFunction(this.object[this.onAdd])) this.object[this.onAdd](addedElements[key], key.toString());

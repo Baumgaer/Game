@@ -1,6 +1,6 @@
 import { NullableListOptions, ReturnTypeFunc } from "type-graphql/dist/decorators/types";
 import { getDesignType } from "~bdo/utils/metadata";
-import { isArray, isPrimitive, isObject, getProxyTarget } from "~bdo/utils/util";
+import { isArray, isPrimitive, isObject, getProxyTarget, isValue } from "~bdo/utils/util";
 import { isBDOModel, diffChangedObject } from "~bdo/utils/framework";
 import { TypeError } from "~bdo/lib/Errors";
 import { Modification } from '~bdo/lib/Modification';
@@ -143,12 +143,12 @@ export abstract class Field<T extends Record<string, any> = any, K extends DefNo
 
         let error;
 
-        if (!this.nullable && (valueToPass === undefined || valueToPass === null)) error = typeError;
+        if (!this.nullable && !isValue(valueToPass)) error = typeError;
 
         if (!error) {
             if (isPrimitive(valueToPass)) {
                 if (typeof valueToPass !== designType.name.toLowerCase()) {
-                    if (!this.nullable || !(valueToPass === undefined || valueToPass === null)) error = typeError;
+                    if (!this.nullable || isValue(valueToPass)) error = typeError;
                 }
             } else if (!(valueToPass instanceof designType)) {
                 error = typeError;

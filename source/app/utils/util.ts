@@ -2,6 +2,7 @@ import { getDesignType } from "~bdo/utils/metadata";
 import { isBrowser } from '~bdo/utils/environment';
 import { isBaseConstructor, BaseConstructor } from "~bdo/utils/framework";
 import onChange from "on-change";
+import { isNull, isUndefined } from "lodash";
 
 export {
     merge,
@@ -10,6 +11,10 @@ export {
     isObject,
     pickBy,
     isUndefined,
+    isNull,
+    intersection,
+    union,
+    isPlainObject,
     isEqual,
     isString,
     isNumber,
@@ -159,7 +164,7 @@ export function isPrimitive(value: unknown): value is string | number | boolean 
  * @returns true if it is a Proxy and false else
  */
 export function isProxy(value?: Record<string, any>): value is ProxyConstructor {
-    if (value === undefined || value === null) return false;
+    if (!isValue(value)) return false;
     if (onChange.target(value) === value) return false;
     return true;
 }
@@ -201,4 +206,15 @@ export function toURIPathPart(value: string): string {
  */
 export function isNonEmptyArray<T>(arr: T[]): arr is NonEmptyArray<T> {
     return arr.length > 0;
+}
+
+/**
+ * Checks if a given value is not null and not undefined
+ *
+ * @template T
+ * @param value the value to check if it is a real value
+ * @returns true if value has another value than undefined or null and false else
+ */
+export function isValue<T>(value: T | null | undefined): value is T {
+    return !isUndefined(value) && !isNull(value);
 }

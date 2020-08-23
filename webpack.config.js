@@ -12,12 +12,16 @@ const FilterWarningsPlugin = require('webpack-filter-warnings-plugin');
 const TerserPlugin = require('terser-webpack-plugin');
 const lessPluginCleanCSS = require('less-plugin-clean-css');
 const EventHooksPlugin = require('event-hooks-webpack-plugin');
+const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 
 const projectStructureUtils = require('./out/utils/projectStructure');
 const componentsDir = path.resolve(arp.path, "source", "app", "client", "ts", "components");
 
 module.exports = (_env, options) => {
+
+    console.log("operating in mode", options.mode);
+
     const cacheLoaderSettings = (cacheName) => {
         return {
             loader: 'cache-loader',
@@ -138,6 +142,9 @@ module.exports = (_env, options) => {
             new webpack.NormalModuleReplacementPlugin(/type-graphql$/, resource => {
                 resource.request = resource.request.replace(/type-graphql/, "type-graphql/dist/browser-shim");
             }),
+            new webpack.NormalModuleReplacementPlugin(/nunjucks$/, resource => {
+                resource.request = resource.request.replace(/nunjucks/, "nunjucks/browser/nunjucks-slim");
+            }),
             new FilterWarningsPlugin({
                 exclude: /Critical dependency: the request of a dependency is an expression/
             }),
@@ -153,7 +160,9 @@ module.exports = (_env, options) => {
                     if (fs.existsSync(tsOutDir)) rimraf.sync(tsOutDir);
                 }
             })
-        ],
+        ].concat(options.mode !== "development" ? [
+            new BundleAnalyzerPlugin()
+        ] : []),
         module: {
             rules: [{
                 test: /\.tsx?$/,

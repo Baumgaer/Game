@@ -2,7 +2,7 @@ import { Modification } from "~bdo/lib/Modification";
 import { Field, IFieldParams } from "~bdo/lib/Field";
 import { getMetadata, defineMetadata } from "~bdo/utils/metadata";
 import { isBrowser } from "~bdo/utils/environment";
-import { ucFirst, isProxy, isFunction, getProxyTarget, isArray, isObject } from "~bdo/utils/util";
+import { ucFirst, isProxy, isFunction, getProxyTarget, isArray, isObject, isValue } from "~bdo/utils/util";
 import { IWatchAttrPropSettings, canGetNamespacedStorage } from "~bdo/utils/framework";
 
 /**
@@ -201,7 +201,7 @@ export class Property<T extends Record<string, any> = any, K extends DefNonFuncP
      */
     public proxyHandler(path: string, _changedVal?: T[K], previousValue?: T[K], name?: string) {
         const value = this.value;
-        if (value === undefined || value === null) return;
+        if (!isValue(value)) return;
 
         if (!this.disableTypeGuard) {
             const error = this.typeGuard(value);

@@ -3,7 +3,7 @@ import { Watched } from "~bdo/lib/Watched";
 import { Attribute } from "~bdo/lib/Attribute";
 import { Property } from "~bdo/lib/Property";
 import { Modification } from '~bdo/lib/Modification';
-import { removeElementFromArray, getProxyTarget, isArray, isObject } from "~bdo/utils/util";
+import { removeElementFromArray, getProxyTarget, isArray, isObject, isValue } from "~bdo/utils/util";
 import { isBDOModel, diffChangedObject } from "~bdo/utils/framework";
 import { defineWildcardMetadata, getMetadata } from "~bdo/utils/metadata";
 
@@ -97,7 +97,7 @@ export class Distributor<T extends Record<string, any> = any, K extends DefNonFu
      */
     public proxyHandler(path: string, changedValue?: T[K], previousValue?: T[K], name?: string) {
         const value = this.value;
-        if (value === undefined || value === null) return;
+        if (!isValue(value)) return;
         const pTargetValue = getProxyTarget(this.value);
 
         // Reconstruct objects in case of an assignment
