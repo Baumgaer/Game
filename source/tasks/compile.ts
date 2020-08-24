@@ -129,7 +129,7 @@ function compileConfig(grunt: IGrunt) {
             jsonToTs(interfaceJSON, { rootName: "IConfig" }).forEach((typeInterface) => {
                 interfaceString += typeInterface;
             });
-            writeFileSync(resolvePath(rootPath, "localPackages", "configInterfaces.ts"), interfaceString, { encoding: "utf-8" });
+            writeFileSync(resolvePath(rootPath, "source", "app", "interfaces", "Config.ts"), interfaceString, { encoding: "utf-8" });
             resolve();
         });
     });

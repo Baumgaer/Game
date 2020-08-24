@@ -1,0 +1,13 @@
+{
+    "extends": "./tsconfig.json",
+    "compilerOptions": {
+        "tsBuildInfoFile": "var/buildcache/.infra",
+    },
+    "include": [
+        "source/game-dev-cli.ts",
+        "source/tasks",
+        "source/utils",
+        "./global.d.ts",
+        "./modules.d.ts"
+    ]
+}

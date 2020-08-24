@@ -5,7 +5,7 @@ import { resolve } from 'path';
 import { parse } from 'yaml';
 import { merge } from '~bdo/utils/util';
 
-import { IConfig } from "local-packages";
+import type { IConfig } from "~bdo/interfaces/Config";
 
 /**
  * Manages the configuration on server side. See BDOConfigManager for mode
@@ -44,19 +44,12 @@ export class ConfigManager extends BDOConfigManager {
      * @returns The configuration as a plain JSObject (key value)
      * @memberof ConfigManager
      */
-    public getForClient(config: string): Promise<IndexStructure> {
-        config = config.replace(/\/{0,1}\.\.\/{0,1}/g, ""); // Security for path traversal
-
-        // NOTE: This is necessary to be able to get config for clients on server side
-        // eslint-disable-next-line
-        // @ts-ignore
-        return this.get(`client/${config}`);
+    public getForClient<T extends keyof IConfig["client"]>(config: T): Promise<IConfig["client"][T]> {
+        return super.get(`client/${config.replace(/\/{0,1}\.\.\/{0,1}/g, "")}`); // with path-traversal-security
     }
 
-    public get<T extends keyof IConfig["server"]>(config: T, forClient?: boolean): Promise<IConfig["server"][T]> {
-        let configToGet: string = config;
-        if (forClient) configToGet = `client/${config}`;
-        return super.get(configToGet);
+    public get<T extends keyof IConfig["server"]>(config: T): Promise<IConfig["server"][T]> {
+        return super.get(config);
     }
 
     /**

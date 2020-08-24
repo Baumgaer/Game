@@ -21,7 +21,8 @@ export {
     isNumber,
     isArray,
     difference,
-    debounce
+    debounce,
+    cloneDeep
 } from "lodash";
 
 /**

@@ -2,10 +2,9 @@ import { Property } from "~bdo/lib/Property";
 import { Attribute } from '~bdo/lib/Attribute';
 import { Modification } from '~bdo/lib/Modification';
 import { Field } from "~bdo/lib/Field";
-import { ucFirst, getProxyTarget, isFunction, isArray, isObject, union } from "~bdo/utils/util";
+import { ucFirst, getProxyTarget, isFunction, isArray, isObject, union, cloneDeep } from "~bdo/utils/util";
 import { getMetadata } from "~bdo/utils/metadata";
 import { diffChangedObject } from "~bdo/utils/framework";
-import cloneDeep from "clone-deep";
 
 /**
  * This parameters are in fact for all objects with or without baseConstructor

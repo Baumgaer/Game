@@ -1,4 +1,3 @@
-/* tslint:disable*/
 import Module = require('module');
 import { resolve } from 'path';
 import { path as rootPath } from 'app-root-path';

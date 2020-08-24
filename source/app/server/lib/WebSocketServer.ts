@@ -10,6 +10,8 @@ import { graphql, GraphQLSchema } from 'graphql';
 import { ConfigManager } from '~server/lib/ConfigManager';
 import { ucFirst } from "~bdo/utils/util";
 
+import type { IConfig } from "~bdo/interfaces/Config";
+
 const logger = new Logger();
 const redisClientManager = RedisClientManager.getInstance();
 const configManager = ConfigManager.getInstance();
@@ -250,7 +252,7 @@ export abstract class WebSocketServer extends BaseServer {
                 break;
             case 'config':
                 socket.send(JSON.stringify({
-                    data: await configManager.getForClient(data.data)
+                    data: await configManager.getForClient(<keyof IConfig["client"]>data.data)
                 }));
                 break;
             default:

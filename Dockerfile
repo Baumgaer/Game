@@ -7,7 +7,7 @@ COPY package-lock.json package.json ./
 
 RUN npm install
 
-COPY tsconfig.json baseTSConfig.json global.d.ts webpack.config.js nodemon.json ./
+COPY tsconfig.json tsconfig.base.json webpack.config.js nodemon.json ./
 COPY out ./out
 COPY source ./source
 

@@ -4,6 +4,7 @@ export interface IConfig {
 }interface Client {
   biomes: Biomes;
   config: Config2;
+  spec?: any;
 }interface Config2 {
   timeouts: Timeouts;
   valueWithoutSection: string;
@@ -15,13 +16,11 @@ export interface IConfig {
 }interface Server {
   biomes: Biomes;
   config: Config;
+  spec: Spec;
   databases: Databases;
   passwords: Passwords;
   paths: Paths;
   ports: Ports;
-  spec: Spec;
-}interface Spec {
-  aBooleanTest: boolean;
 }interface Ports {
   redis: number;
   arangoDB: number;
@@ -57,6 +56,8 @@ export interface IConfig {
   database13: number;
   database14: number;
   database15: number;
+}interface Spec {
+  aBooleanTest: boolean;
 }interface Config {
   timeouts: Timeouts;
   session: Session;
