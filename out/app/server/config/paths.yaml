@@ -22,6 +22,3 @@ clientConfig: 'out/app/client/config'
 
 # Path to server side configuration
 serverConfig: 'out/app/server/config'
-
-# This path is the entry point for the client to the api e.g. https://www.domain.de/api
-apiEntryPoint: '/api'

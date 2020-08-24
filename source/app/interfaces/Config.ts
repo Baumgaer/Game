@@ -4,7 +4,10 @@ export interface IConfig {
 }interface Client {
   biomes: Biomes;
   config: Config2;
+  paths: Paths2;
   spec?: any;
+}interface Paths2 {
+  apiEntryPoint: string;
 }interface Config2 {
   timeouts: Timeouts;
   valueWithoutSection: string;
@@ -16,25 +19,16 @@ export interface IConfig {
 }interface Server {
   biomes: Biomes;
   config: Config;
+  paths: Paths;
   spec: Spec;
   databases: Databases;
   passwords: Passwords;
-  paths: Paths;
   ports: Ports;
 }interface Ports {
   redis: number;
   arangoDB: number;
   gameServer: number;
   webServer: number;
-}interface Paths {
-  views: string;
-  staticFiles: string;
-  routes: string;
-  resolvers: string;
-  bdoConfig: string;
-  clientConfig: string;
-  serverConfig: string;
-  apiEntryPoint: string;
 }interface Passwords {
   sessionSecretSeed: string;
 }interface Databases {
@@ -58,6 +52,15 @@ export interface IConfig {
   database15: number;
 }interface Spec {
   aBooleanTest: boolean;
+}interface Paths {
+  apiEntryPoint: string;
+  views: string;
+  staticFiles: string;
+  routes: string;
+  resolvers: string;
+  bdoConfig: string;
+  clientConfig: string;
+  serverConfig: string;
 }interface Config {
   timeouts: Timeouts;
   session: Session;
