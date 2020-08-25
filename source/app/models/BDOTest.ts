@@ -1,5 +1,6 @@
 import { baseConstructor, attribute, watched } from '~bdo/utils/decorators';
 import { BDOModel } from '~bdo/lib/BDOModel';
+import { Column } from "typeorm";
 
 /**
  * Test
@@ -24,7 +25,7 @@ export function BDOTestFactory<TBase extends Constructor<BDOModel>>(ctor: TBase)
          * @type {string}
          * @memberof Test
          */
-        @attribute({ autoSave: true }) public title: string = 'test';
+        @Column() @attribute() public title: string = 'test';
 
         /**
          * Test
@@ -32,7 +33,7 @@ export function BDOTestFactory<TBase extends Constructor<BDOModel>>(ctor: TBase)
          * @type {string[]}
          * @memberof BDOTest
          */
-        @watched() @attribute((_type) => [String]) public tester: string[] = [];
+        @Column("varchar", { array: true }) @watched() @attribute((_type) => [String]) public tester: string[] = [];
 
         /**
          * Test

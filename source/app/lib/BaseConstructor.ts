@@ -3,6 +3,10 @@ import { getMetadata, defineMetadata } from "~bdo/utils/metadata";
 import { isFunction } from "~bdo/utils/util";
 import { isComponent, IGetNamespaceStorageAddition, BaseComponentInstance, canGetNamespacedStorage } from "~bdo/utils/framework";
 import { ObjectTypeOptions } from "type-graphql/dist/decorators/ObjectType";
+import { ViewEntityOptions } from "typeorm/decorator/options/ViewEntityOptions";
+import { EntityOptions } from "typeorm/decorator/options/EntityOptions";
+import { IndexOptions } from "typeorm/decorator/options/IndexOptions";
+import { TreeType } from "typeorm/metadata/types/TreeTypes";
 
 export interface IBaseConstructorCtor<T = any> extends IGetNamespaceStorageAddition<T> {
 
@@ -31,14 +35,13 @@ export interface IBaseConstructorCtor<T = any> extends IGetNamespaceStorageAddit
  * @interface IBaseConstructorOpts
  * @extends ObjectOptions
  */
-export interface IBaseConstructorOpts extends ObjectTypeOptions {
+export interface IBaseConstructorOpts extends ObjectTypeOptions, Omit<EntityOptions, "name" | "database" | "engine"> {
 
     /**
      * Defines the name of the collection where a model is saved in.
      * Only effects the behavior of a model.
      *
      * @default "default"
-     * @type {string}
      * @memberof IBaseConstructorOpts
      */
     collectionName?: string;
@@ -48,10 +51,27 @@ export interface IBaseConstructorOpts extends ObjectTypeOptions {
      * Only effects the behavior of a model.
      *
      * @default "default"
-     * @type {string}
      * @memberof IBaseConstructorOpts
      */
     databaseName?: string;
+
+    /**
+     * Enables inheritance for entities derived from this entity which are stored in same table
+     *
+     * @memberof IBaseConstructorOpts
+     */
+    enableTableInheritance?: boolean;
+
+    /**
+     * Indicates if a model should be used as a view in the database
+     *
+     * @memberof IBaseConstructorOpts
+     */
+    viewOptions?: Omit<ViewEntityOptions, "name" | "database">;
+
+    treeType?: TreeType;
+
+    multiColumnIndex?: { name?: string, fields: string[], options?: IndexOptions }[]
 }
 
 /**

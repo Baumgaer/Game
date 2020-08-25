@@ -127,6 +127,9 @@ module.exports = (_env, options) => {
                 }
             } : false
         },
+        node: {
+            fs: "empty"
+        },
         plugins: [
             new ForkTsCheckerWebpackPlugin({
                 async: true,
@@ -145,8 +148,19 @@ module.exports = (_env, options) => {
             new webpack.NormalModuleReplacementPlugin(/nunjucks$/, resource => {
                 resource.request = resource.request.replace(/nunjucks/, "nunjucks/browser/nunjucks-slim");
             }),
+            new webpack.NormalModuleReplacementPlugin(/typeorm$/, function (result) {
+                result.request = result.request.replace(/typeorm/, "typeorm/browser");
+            }),
+            new webpack.ProvidePlugin({
+                'window.SQL': 'sql.js/dist/sql-wasm.js',
+                'window.localforage': 'localforage'
+            }),
             new FilterWarningsPlugin({
-                exclude: /Critical dependency: the request of a dependency is an expression/
+                exclude: [
+                    /Critical dependency: the request of a dependency is an expression/,
+                    /Module not found: Error: Can't resolve '.*' in '.*\\node_modules\\typeorm\\browser\\driver.*'/,
+                    /export 'AuroraDataApiPostgresDriver' was not found in .*/
+                ]
             }),
             new CleanWebpackPlugin({
                 protectWebpackAssets: true,

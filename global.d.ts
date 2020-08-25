@@ -17,6 +17,10 @@ declare type DefNonFuncPropNames<T> = Exclude<NonFuncPropNames<T>, undefined>
 // The definitely instance type of any object type
 declare type DefInstanceType<T extends Record<string, any>> = T extends Constructor ? InstanceType<T> : T;
 
+type RequireAtLeastOne<T, Keys extends keyof T = keyof T> = Pick<T, Exclude<keyof T, Keys>> & {
+    [K in Keys]-?: Required<Pick<T, K>> & Partial<Pick<T, Exclude<Keys, K>>>
+}[Keys]
+
 // require only one of the keys
 type EachOfTmp<T> = { [K in keyof T]: { _: { [X in K]: T[K] }; } };
 declare type OneOf<T> = EachOfTmp<T>[keyof T]["_"] & Partial<T>;

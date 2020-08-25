@@ -1,5 +1,6 @@
 import { v4 as uuid } from "uuid";
 import { ID } from "type-graphql";
+import { PrimaryColumn } from "typeorm";
 import { Binding, writeRights } from "~bdo/lib/Binding";
 import { attribute, baseConstructor, property } from "~bdo/utils/decorators";
 import { getMetadata } from "~bdo/utils/metadata";
@@ -96,7 +97,7 @@ export abstract class BDOModel implements IBaseConstructorOpts {
      * @type {string}
      * @memberof BDOModel
      */
-    @attribute((_type) => ID) public id: string = `pending_${uuid()}`;
+    @PrimaryColumn() @attribute((_type) => ID) public id: string = `pending_${uuid()}`;
 
     /**
      * Represents the constructors name to ensure the right Model construction
@@ -206,14 +207,6 @@ export abstract class BDOModel implements IBaseConstructorOpts {
         const unsavedChanges = await this.getUnsavedChanges();
         return Promise.resolve(Boolean(Object.keys(unsavedChanges).length));
     }
-
-    /**
-     * Stores the unsaved changes into the corresponding collection of the model.
-     * It is also possible to save only a single attribute.
-     *
-     * @memberof BDOModel
-     */
-    public abstract async save(attr?: DefNonFuncPropNames<this>): Promise<IndexStructure>;
 
     /**
      * Discards the changes of the given attribute or all attributes to the value saved in the database

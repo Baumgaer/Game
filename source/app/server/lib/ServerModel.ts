@@ -33,17 +33,6 @@ export class ServerModel extends BDOModel {
     /**
      * @inheritdoc
      *
-     * @param _attr The attributes which should be saved. leave empty to save all
-     * @returns The resulting model
-     * @memberof ServerModel
-     */
-    public async save(_attr?: DefNonFuncPropNames<this>): Promise<any> {
-        return Promise.resolve();
-    }
-
-    /**
-     * @inheritdoc
-     *
      * @param _attr The attributes which should be discarded
      * @memberof ServerModel
      */

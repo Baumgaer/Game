@@ -240,6 +240,7 @@ export abstract class BaseServer {
 
         // Setup static files directory
         this.app.use(expressStatic(resolve(rootPath, paths.staticFiles)));
+        this.app.use(expressStatic(resolve(rootPath, "node_modules", "sql.js", "dist")));
     }
 
     /**

@@ -6,7 +6,7 @@ import { Modification } from "~bdo/lib/Modification";
 import { merge, isFunction } from "~bdo/utils/util";
 import { isBrowser } from "~bdo/utils/environment";
 import { getMetadata, defineMetadata, getWildcardMetadata, defineWildcardMetadata } from "~bdo/utils/metadata";
-import { baseConstructorFactory } from "~bdo/lib/BaseConstructor";
+import { baseConstructorFactory, IBaseConstructorOpts } from "~bdo/lib/BaseConstructor";
 import { BDOModel } from "~bdo/lib/BDOModel";
 import getValue from "get-value";
 
@@ -18,13 +18,15 @@ import type { getNamespacedStorage } from "~client/utils/util";
 
 import type { ReturnTypeFunc } from "type-graphql/dist/decorators/types";
 
-type defPropOrAttr = "definedProperties" | "definedAttributes" | "definedWatchers";
-type AttrPropWatch = "Attribute" | "Property" | "Watched";
-type DecoratorTypeParams<T> = T extends "Watched" ?
+type defPropAttrWatchConst = "definedProperties" | "definedAttributes" | "definedWatchers" | "definedBaseConstructors";
+type AttrPropWatchConst = "Attribute" | "Property" | "Watched" | "BaseConstructor";
+type DecoratorTypeParams<T> = T extends "BaseConstructor" ?
+    IBaseConstructorOpts : T extends "Watched" ?
     IWatchedParams : T extends "Attribute" ?
     IAttributeParams : IPropertyParams;
 type NewVal<T extends Record<string, any>, K extends DefNonFuncPropNames<T>> = T[K] | Binding<T, K> | Modification<any>;
-type WatchAttrPropParams<T> = T extends "definedProperties" ?
+type WatchAttrPropConstParams<T> = T extends "definedBaseConstructors" ?
+    IBaseConstructorOpts : T extends "definedProperties" ?
     IPropertyParams : T extends "definedAttributes" ?
     IAttributeParams : T extends "definedWatchers" ? IWatchedParams : T;
 
@@ -38,7 +40,7 @@ export interface IGetNamespaceStorageAddition<T> {
     getNamespacedStorage: <K extends DefNonFuncPropNames<T>, P extends DefNonFuncPropNames<T>>(key: K, nsProp?: P, forceNS?: string) => ReturnType<typeof getNamespacedStorage>;
 }
 
-export interface IWatchAttrPropSettings<T extends defPropOrAttr | IAttributeParams | IPropertyParams | IWatchedParams> {
+export interface IWatchAttrPropSettings<T extends defPropAttrWatchConst | IAttributeParams | IPropertyParams | IWatchedParams> {
     /**
      * The function which returns the real type
      *
@@ -51,7 +53,7 @@ export interface IWatchAttrPropSettings<T extends defPropOrAttr | IAttributePara
      *
      * @memberof IWatchAttrPropSettings
      */
-    params?: WatchAttrPropParams<T>;
+    params?: WatchAttrPropConstParams<T>;
 }
 
 export type BaseConstructor = ReturnType<typeof baseConstructorFactory>;
@@ -74,13 +76,13 @@ export type BaseControllerInstance = InstanceType<BaseController>;
  */
 export function beforeDescriptor<
     T extends Record<string, any>,
-    K extends DefNonFuncPropNames<T>,
-    M extends defPropOrAttr,
+    K extends M extends "definedBaseConstructors" ? T["name"] : DefNonFuncPropNames<T>,
+    M extends defPropAttrWatchConst,
     P extends IWatchAttrPropSettings<M>
 >(target: T, key: K, mDataName: M, params: P): P {
     // Define metadata for access to attributes for later checks
     if (!Reflect.hasMetadata(mDataName, target)) defineMetadata(target, mDataName, new Map());
-    const map = getMetadata(target, mDataName) as Map<DefNonFuncPropNames<T>, P>;
+    const map = getMetadata(target, mDataName) as Map<K, P>;
     const oldDecoratorSettings = map.get(key) || {};
     const settings = merge(oldDecoratorSettings, params);
     map.set(key, settings);
@@ -161,7 +163,7 @@ export function setter<
 export function createDecoratorDescriptor<
     T extends Record<string, any>,
     K extends DefNonFuncPropNames<T>,
-    P = DecoratorTypeParams<T>>(target: T, key: K, type: AttrPropWatch, params: P): void {
+    P = DecoratorTypeParams<T>>(target: T, key: K, type: AttrPropWatchConst, params: P): void {
 
     const propDesc = Reflect.getOwnPropertyDescriptor(target, key);
     const stringKey = key.toString();

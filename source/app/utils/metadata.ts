@@ -2,6 +2,7 @@ import { Binding } from "~bdo/lib/Binding";
 import { IAttributeParams } from "~bdo/lib/Attribute";
 import { IPropertyParams } from "~bdo/lib/Property";
 import { IWatchedParams } from "~bdo/lib/Watched";
+import { IBaseConstructorOpts } from "~bdo/lib/BaseConstructor";
 import { IWatchAttrPropSettings } from "~bdo/utils/framework";
 
 interface IMDKeys<T extends Record<string, any> = any> {
@@ -94,6 +95,8 @@ interface IMDKeys<T extends Record<string, any> = any> {
      * @memberof IMDKeys
      */
     definedWatchers?: Map<DefNonFuncPropNames<T>, IWatchAttrPropSettings<IWatchedParams>>;
+
+    definedBaseConstructors?: Map<DefNonFuncPropNames<T>, IWatchAttrPropSettings<IBaseConstructorOpts>>;
 
     /**
      * Indicates in a property which is NOT cached in localStorage but marked

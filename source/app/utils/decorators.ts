@@ -6,6 +6,7 @@ import { IWatchedParams } from "~bdo/lib/Watched";
 import { baseConstructorFactory, IBaseConstructorOpts } from "~bdo/lib/BaseConstructor";
 import { defineMetadata, getMetadata } from "~bdo/utils/metadata";
 import { beforeDescriptor, createDecoratorDescriptor, isBaseConstructor, isComponent, isBDOModel } from "~bdo/utils/framework";
+import { Entity, TableInheritance, ChildEntity, ViewEntity, Tree, Index } from "typeorm";
 import { ReturnTypeFunc } from "type-graphql/dist/decorators/types";
 import {
     Field,
@@ -101,8 +102,8 @@ export function attribute(typeFunc?: FuncOrAttrParams, params?: IAttributeParams
         if (!params || !(params instanceof Object)) params = {};
 
         // Decide which Field should be used
-        if (typeFunc instanceof Function && params) Field(typeFunc, params)(target, key);
-        else if (typeFunc instanceof Function) Field(typeFunc)(target, key);
+        if (typeFunc && params) Field(typeFunc, params)(target, key);
+        else if (typeFunc) Field(typeFunc)(target, key);
         else if (params) Field(params)(target, key);
         else Field()(target, key);
 
@@ -128,8 +129,8 @@ export function attribute(typeFunc?: FuncOrAttrParams, params?: IAttributeParams
 export function baseConstructor(name?: nameOptsIdx, params?: optsIdx, index = 0): ClassDecorator {
 
     return (ctor: any) => {
-        const prototype = Object.getPrototypeOf(ctor);
-        if (isBaseConstructor(prototype)) Object.setPrototypeOf(ctor, Object.getPrototypeOf(prototype));
+        let prototype = Object.getPrototypeOf(ctor);
+        if (isBaseConstructor(prototype)) prototype = Object.setPrototypeOf(ctor, Object.getPrototypeOf(prototype));
 
         // Determine param types
         if (name && (typeof name === "number")) index = name;
@@ -138,15 +139,44 @@ export function baseConstructor(name?: nameOptsIdx, params?: optsIdx, index = 0)
         if (params && (typeof params === "number")) index = params;
         if (params && (typeof params === "number")) params = undefined;
 
+        const isAbstract = (params && (typeof params === "object" && params.isAbstract));
+
+        const installEntity = (theParams?: IBaseConstructorOpts) => {
+            if (isAbstract) return;
+            const mData = getMetadata(ctor, "definedBaseConstructors")?.get(ctor.name);
+            let entityToUse;
+            if (theParams?.viewOptions) {
+                entityToUse = ViewEntity(Object.assign(theParams.viewOptions, { name: theParams.collectionName, database: theParams.databaseName }));
+            } else if (mData?.params?.enableTableInheritance) {
+                entityToUse = ChildEntity();
+            } else entityToUse = Entity({ database: theParams?.databaseName, name: theParams?.collectionName, engine: "InnoDB" });
+            entityToUse(ctor);
+            if (theParams?.enableTableInheritance) TableInheritance({ column: "className" })(ctor);
+            if (theParams?.treeType) Tree(theParams.treeType)(ctor);
+            if (theParams?.multiColumnIndex) {
+                for (const index of theParams.multiColumnIndex) {
+                    if (index.name && index.fields && index.options) Index(index.name, index.fields, index.options)(ctor);
+                    if (!index.name && index.fields && index.options) Index(index.fields, index.options)(ctor);
+                    if (!index.name && index.fields && !index.options) Index(index.fields)(ctor);
+                }
+            }
+        };
+
         if (isBDOModel(ctor)) {
             // Decide which ObjectType to use
             if (name && (typeof name === "string") && params && (typeof params === "object")) {
                 ObjectType(name, params)(ctor);
+                installEntity(params);
             } else if (name && (typeof name === "string")) {
                 ObjectType(name)(ctor);
+                installEntity();
             } else if (params && (typeof params === "object")) {
                 ObjectType(params)(ctor);
-            } else ObjectType()(ctor);
+                installEntity(params);
+            } else {
+                ObjectType()(ctor);
+                installEntity();
+            }
 
             // set collection and database name
             if (params && (typeof params === "object")) {
@@ -154,9 +184,10 @@ export function baseConstructor(name?: nameOptsIdx, params?: optsIdx, index = 0)
                 const prevDatabaseName = getMetadata(ctor, "databaseName");
                 defineMetadata(ctor, "collectionName", params.collectionName || prevCollectionName || "default");
                 defineMetadata(ctor, "databaseName", params.databaseName || prevDatabaseName || "default");
+                beforeDescriptor(ctor, ctor.name, "definedBaseConstructors", { params });
             }
         }
-        if (params && (typeof params === "object" && params.isAbstract)) return ctor;
+        if (isAbstract) return ctor;
 
         const BaseConstructor = baseConstructorFactory(ctor, index);
         // Register custom Element

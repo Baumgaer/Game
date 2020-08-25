@@ -1,20 +1,13 @@
 /* tslint:disable */
 import { BDODatabasemanager } from "~bdo/lib/BDODatabaseManager";
-import localForage from "localforage";
+import { ConnectionOptions, Connection, createConnection } from 'typeorm';
+import { SqljsConnectionOptions } from "typeorm/driver/sqljs/SqljsConnectionOptions";
+import { ClientModel } from '~client/lib/ClientModel';
 
-export class DatabaseManager<D extends string, C extends string, G extends string, V extends string> extends BDODatabasemanager {
+export class DatabaseManager extends BDODatabasemanager {
 
-    private static instance?: DatabaseManager<any, any, any, any>;
+    private static instance?: DatabaseManager;
 
-    private currentDatabase?: D;
-
-    private currentCollection?: C;
-
-    private currentGraph?: G;
-
-    private currentView?: V;
-
-    private databases: Map<D, LocalForage> = new Map<D, LocalForage>();
 
     private constructor() {
         super();
@@ -25,92 +18,40 @@ export class DatabaseManager<D extends string, C extends string, G extends strin
         return DatabaseManager.instance;
     }
 
-    public database(name: D) {
-        this.currentDatabase = name;
-        if (!(name in this.databases)) {
-            this.databases.set(name, localForage.createInstance({
-                name: name,
-                driver: [localForage.INDEXEDDB, localForage.WEBSQL]
-            }));
-        }
-        delete this.currentCollection;
-        delete this.currentGraph;
-        delete this.currentView;
-        return this;
-    }
+    public createConnection(name: string = "default", options: Omit<SqljsConnectionOptions, "type" | "name"> = {}): Promise<Connection> {
+        let connection = this.connections.get(name);
+        if (connection) return connection;
 
-    public collection(name: C) {
-        this.currentCollection = <C>`collection_${name}`;
-        this.getDatabase().config({ storeName: this.currentCollection });
-        delete this.currentGraph;
-        delete this.currentView;
-        return this;
-    }
-
-    public view(name: V) {
-        this.currentView = <V>`view_${name}`;
-        this.getDatabase().config({ storeName: this.currentView });
-        delete this.currentCollection;
-        delete this.currentGraph;
-        return this;
-    }
-
-    public graph(name: G) {
-        this.currentGraph = <G>`graph_${name}`;
-        this.getDatabase().config({ storeName: this.currentGraph });
-        delete this.currentCollection;
-        delete this.currentView;
-        return this;
-    }
-
-    public get(id: string): Promise<IndexStructure | null> {
-        return this.getDatabase().getItem(id);
-    }
-
-    public insert(id: string, value: IndexStructure) {
-        return this.getDatabase().setItem(id, value);
-    }
-
-    public update(id: string, values: IndexStructure) {
-        return new Promise(async (resolve, reject) => {
-            try {
-                const result = await this.get(id) || {};
-                Object.assign(result, values);
-                await this.insert(id, result);
-                resolve();
-            } catch (error) {
-                reject(error);
-            }
+        const entities: typeof ClientModel[] = [];
+        const context = require.context("./../models", true, /.+\.ts/, "sync");
+        context.keys().forEach((key) => {
+            const modelName = key.split("/").pop()?.split(".").slice(0, -1).join('.');
+            if (modelName) entities.push((<typeof ClientModel>context(key)[modelName]).graphQLType);
         });
+
+        connection = createConnection(Object.assign(<ConnectionOptions>{
+            type: "sqljs",
+            name: name,
+            autoSave: true,
+            synchronize: true,
+            location: name,
+            useLocalForage: true,
+            entities: entities
+        }, options));
+        this.connections.set(name, connection);
+        return connection;
     }
 
-    public delete(id: string) {
-        return this.getDatabase().removeItem(id);
+    public getConnection(name: string): Promise<Connection | undefined> {
+        const connection = this.connections.get(name);
+        if (connection) return connection;
+        return Promise.resolve(undefined);
     }
 
-    public clear() {
-        return this.getDatabase().clear();
-    }
-
-    public length() {
-        return this.getDatabase().length();
-    }
-
-    public key(index: number) {
-        return this.getDatabase().key(index);
-    }
-
-    public keys() {
-        return this.getDatabase().keys();
-    }
-
-    public iterate(iterator: (value: IndexStructure, id: string, iterationNumber: number) => unknown) {
-        return this.getDatabase().iterate(iterator);
-    }
-
-    private getDatabase() {
-        if (!this.currentDatabase) throw new Error("No Database chosen");
-        return this.databases.get(this.currentDatabase) as LocalForage;
+    public async removeConnection(name: string): Promise<void> {
+        const connection = this.connections.get(name);
+        if (!connection) return;
+        (await connection).close();
     }
 
 }
