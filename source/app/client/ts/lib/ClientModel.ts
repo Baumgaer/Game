@@ -74,7 +74,11 @@ export class ClientModel extends BDOModel {
 
     public async save(options: SaveOptions) {
         const connection = await DatabaseManager.getInstance().createConnection(this.databaseName);
-        return connection.getRepository(Object.getPrototypeOf(this.constructor)).save(this, options);
+        const repository = connection.getRepository(Object.getPrototypeOf(this.constructor));
+        const mayModel = await repository.findOne(this.id);
+        if (mayModel) {
+            return repository.update(this.id, this);
+        } else return repository.save(this, options);
     }
 
     /**
@@ -107,6 +111,10 @@ export class ClientModel extends BDOModel {
      */
     protected onTypeCheckFail(error: Error) {
         logger.error(error.message);
+    }
+
+    protected afterDatabaseLoadCallback() {
+        console.log("LOAD!"); // eslint-disable-line
     }
 
 }

@@ -1,5 +1,6 @@
 import { BDOTestFactory } from '~bdo/models/BDOTest';
 import { baseConstructor, attribute } from "~bdo/utils/decorators";
+import { Column } from "typeorm";
 
 /**
  * Test
@@ -24,7 +25,7 @@ export function BDOTest1Factory<TBase extends ReturnType<typeof BDOTestFactory>>
          * @type {string}
          * @memberof Test
          */
-        @attribute({ description: "tester..." }) public title: string = 'test';
+        @Column() @attribute({ description: "tester..." }) public title: string = 'test';
 
         /**
          * Test

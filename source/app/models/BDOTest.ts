@@ -33,7 +33,11 @@ export function BDOTestFactory<TBase extends Constructor<BDOModel>>(ctor: TBase)
          * @type {string[]}
          * @memberof BDOTest
          */
-        @Column("varchar", { array: true }) @watched() @attribute((_type) => [String]) public tester: string[] = [];
+        @Column("simple-array") @watched() @attribute((_type) => [String]) public tester: string[] = [];
+
+        protected beforeDatabaseInsertCallback() {
+            console.log(this.id, this.className); // eslint-disable-line
+        }
 
         /**
          * Test

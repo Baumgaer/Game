@@ -208,6 +208,34 @@ export abstract class BDOModel implements IBaseConstructorOpts {
         return Promise.resolve(Boolean(Object.keys(unsavedChanges).length));
     }
 
+    protected afterDatabaseLoadCallback() {
+        return;
+    }
+
+    protected beforeDatabaseInsertCallback() {
+        return;
+    }
+
+    protected beforeDatabaseUpdateCallback() {
+        return;
+    }
+
+    protected beforeDatabaseRemoveCallback() {
+        return;
+    }
+
+    protected afterDatabaseInsertCallback() {
+        return;
+    }
+
+    protected afterDatabaseUpdateCallback() {
+        return;
+    }
+
+    protected afterDatabaseRemoveCallback() {
+        return;
+    }
+
     /**
      * Discards the changes of the given attribute or all attributes to the value saved in the database
      *

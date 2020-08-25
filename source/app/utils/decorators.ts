@@ -6,7 +6,7 @@ import { IWatchedParams } from "~bdo/lib/Watched";
 import { baseConstructorFactory, IBaseConstructorOpts } from "~bdo/lib/BaseConstructor";
 import { defineMetadata, getMetadata } from "~bdo/utils/metadata";
 import { beforeDescriptor, createDecoratorDescriptor, isBaseConstructor, isComponent, isBDOModel } from "~bdo/utils/framework";
-import { Entity, TableInheritance, ChildEntity, ViewEntity, Tree, Index } from "typeorm";
+import { Entity, TableInheritance, ChildEntity, ViewEntity, Tree, Index, AfterLoad, BeforeInsert, AfterInsert, BeforeUpdate, AfterUpdate, BeforeRemove, AfterRemove } from "typeorm";
 import { ReturnTypeFunc } from "type-graphql/dist/decorators/types";
 import {
     Field,
@@ -143,6 +143,7 @@ export function baseConstructor(name?: nameOptsIdx, params?: optsIdx, index = 0)
 
         const installEntity = (theParams?: IBaseConstructorOpts) => {
             if (isAbstract) return;
+
             const mData = getMetadata(ctor, "definedBaseConstructors")?.get(ctor.name);
             let entityToUse;
             if (theParams?.viewOptions) {
@@ -151,6 +152,7 @@ export function baseConstructor(name?: nameOptsIdx, params?: optsIdx, index = 0)
                 entityToUse = ChildEntity();
             } else entityToUse = Entity({ database: theParams?.databaseName, name: theParams?.collectionName, engine: "InnoDB" });
             entityToUse(ctor);
+
             if (theParams?.enableTableInheritance) TableInheritance({ column: "className" })(ctor);
             if (theParams?.treeType) Tree(theParams.treeType)(ctor);
             if (theParams?.multiColumnIndex) {
@@ -160,6 +162,15 @@ export function baseConstructor(name?: nameOptsIdx, params?: optsIdx, index = 0)
                     if (!index.name && index.fields && !index.options) Index(index.fields)(ctor);
                 }
             }
+
+            AfterLoad()(ctor.prototype, "afterDatabaseLoadCallback");
+            BeforeInsert()(ctor.prototype, "beforeDatabaseInsertCallback");
+            BeforeUpdate()(ctor.prototype, "beforeDatabaseUpdateCallback");
+            BeforeRemove()(ctor.prototype, "beforeDatabaseRemoveCallback");
+            AfterInsert()(ctor.prototype, "afterDatabaseInsertCallback");
+            AfterUpdate()(ctor.prototype, "afterDatabaseUpdateCallback");
+            AfterRemove()(ctor.prototype, "afterDatabaseRemoveCallback");
+
         };
 
         if (isBDOModel(ctor)) {

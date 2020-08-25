@@ -69,8 +69,19 @@ export interface IBaseConstructorOpts extends ObjectTypeOptions, Omit<EntityOpti
      */
     viewOptions?: Omit<ViewEntityOptions, "name" | "database">;
 
+    /**
+     * Declares the entity as a tree which should have parent and children.
+     * Optimized for navigation
+     *
+     * @memberof IBaseConstructorOpts
+     */
     treeType?: TreeType;
 
+    /**
+     * Enables the definition of intices which uses multiple columns
+     *
+     * @memberof IBaseConstructorOpts
+     */
     multiColumnIndex?: { name?: string, fields: string[], options?: IndexOptions }[]
 }
 
