@@ -73,7 +73,7 @@ export class ClientModel extends BDOModel {
     }
 
     public async save(options: SaveOptions) {
-        const connection = await DatabaseManager.getInstance().createConnection();
+        const connection = await DatabaseManager.getInstance().createConnection(this.databaseName);
         return connection.getRepository(Object.getPrototypeOf(this.constructor)).save(this, options);
     }
 
