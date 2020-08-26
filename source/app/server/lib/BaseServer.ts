@@ -283,7 +283,7 @@ export abstract class BaseServer {
         // Setup the API
         const pathsConfig = await configManager.get('paths');
         // Next line has to be ignored by eslint because type-graphql expects a function array
-        const resolvers: Function[] = []; // eslint-disable-line
+        const resolvers: AnyFunction[] = [];
         const [subscriber, publisher] = await Promise.all([
             redisClientManager.createThirdPartyClient('graphQLSubscriber'),
             redisClientManager.createThirdPartyClient('graphQLPublisher'),
