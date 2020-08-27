@@ -3,7 +3,7 @@ import { Attribute, IAttributeParams } from "~bdo/lib/Attribute";
 import { Property, IPropertyParams } from "~bdo/lib/Property";
 import { Watched, IWatchedParams } from "~bdo/lib/Watched";
 import { Modification } from "~bdo/lib/Modification";
-import { merge, isFunction } from "~bdo/utils/util";
+import { merge, isFunction, isObject } from "~bdo/utils/util";
 import { isBrowser } from "~bdo/utils/environment";
 import { getMetadata, defineMetadata, getWildcardMetadata, defineWildcardMetadata } from "~bdo/utils/metadata";
 import { baseConstructorFactory, IBaseConstructorOpts } from "~bdo/lib/BaseConstructor";
@@ -211,7 +211,7 @@ export function createDecoratorDescriptor<
  * @param value The thing (what ever it is) to check if it is a BaseConstructor
  * @returns true if it is a BaseConstructor and false else
  */
-export function isBaseConstructor(value: Record<string, any>): value is BaseConstructor {
+export function isBaseConstructor(value: any): value is BaseConstructor {
     if (typeof value === "function" && value.name === "BaseConstructor") return true;
     if (value instanceof Object && value.constructor.name === "BaseConstructor") return true;
     return false;
@@ -224,7 +224,8 @@ export function isBaseConstructor(value: Record<string, any>): value is BaseCons
  * @param value The thing to check if it is a model in general
  * @returns true if it is a model in general and false else
  */
-export function isBDOModel(value: Record<string, any>): value is typeof BDOModel {
+export function isBDOModel(value: any): value is typeof BDOModel {
+    if (!isObject(value)) return false;
     if ("isBDOModel" in value) return true;
     return false;
 }
@@ -236,7 +237,7 @@ export function isBDOModel(value: Record<string, any>): value is typeof BDOModel
  * @param value The thing to check if it is a ClientModel
  * @returns true if the value is a ClientModel and false else
  */
-export function isClientModel(value: Record<string, any>): value is typeof ClientModel {
+export function isClientModel(value: any): value is typeof ClientModel {
     if (isBDOModel(value) && "isClientModel" in value) return true;
     return false;
 }
@@ -248,7 +249,7 @@ export function isClientModel(value: Record<string, any>): value is typeof Clien
  * @param value The thing to check if it is a ServerModel
  * @returns true if the value is a ServerModel and false else
  */
-export function isServerModel(value: Record<string, any>): value is typeof ServerModel {
+export function isServerModel(value: any): value is typeof ServerModel {
     if (isBDOModel(value) && "isServerModel" in value) return true;
     return false;
 }
@@ -261,7 +262,8 @@ export function isServerModel(value: Record<string, any>): value is typeof Serve
  * @param value The thing to check if it is a controller or not
  * @returns true if the value is a controller and false else
  */
-export function isController(value: Record<string, any>): value is BaseController {
+export function isController(value: any): value is BaseController {
+    if (!isObject) return false;
     if (isBrowser() && "isBaseController" in value && !("isBaseComponent" in value)) return true;
     return false;
 }
@@ -274,7 +276,8 @@ export function isController(value: Record<string, any>): value is BaseControlle
  * @param value The thing to check if it is any component
  * @returns true if the value is any component and false else
  */
-export function isComponent<T = BaseComponent>(value: Record<string, any>): value is T {
+export function isComponent<T = BaseComponent>(value: any): value is T {
+    if (!isObject(value)) return false;
     if (isBrowser() && "isBaseComponent" in value && "isBaseController" in value) return true;
     return false;
 }

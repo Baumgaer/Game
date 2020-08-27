@@ -1,7 +1,7 @@
 import { NullableListOptions, ReturnTypeFunc } from "type-graphql/dist/decorators/types";
 import { getDesignType } from "~bdo/utils/metadata";
 import { isArray, isPrimitive, isObject, getProxyTarget, isValue } from "~bdo/utils/util";
-import { isBDOModel, diffChangedObject } from "~bdo/utils/framework";
+import { isBDOModel, diffChangedObject, isBaseConstructor } from "~bdo/utils/framework";
 import { TypeError } from "~bdo/lib/Errors";
 import { Modification } from '~bdo/lib/Modification';
 import { typeCheck } from "type-check";
@@ -154,10 +154,17 @@ export abstract class Field<T extends Record<string, any> = any, K extends DefNo
                 error = typeError;
             } else {
                 if (isArray(typeFuncResult)) {
+                    let valueToCheck = valueToPass;
+                    if (isArray(valueToPass)) {
+                        valueToCheck = valueToPass.map((item: any) => {
+                            if (isBaseConstructor(item)) return Object.getPrototypeOf(item.constructor);
+                            return item;
+                        });
+                    }
                     let checkString = `[${(<IndexStructure>typeFuncResult[0]).name} | Undefined]`;
-                    if (typeFuncResult.length === 1 && !typeCheck(checkString, valueToPass)) error = new TypeError(`${valueToPass} is not assignable to type ${checkString}`);
+                    if (typeFuncResult.length === 1 && !typeCheck(checkString, valueToCheck)) error = new TypeError(`${valueToCheck} is not assignable to type ${checkString}`);
                     checkString = `(${typeFuncResult.map((type) => (<IndexStructure>type).name).join(",")})`;
-                    if (typeFuncResult.length > 1 && !typeCheck(checkString, valueToPass)) error = new TypeError(`${valueToPass} is not assignable to type ${checkString}`);
+                    if (typeFuncResult.length > 1 && !typeCheck(checkString, valueToCheck)) error = new TypeError(`${valueToCheck} is not assignable to type ${checkString}`);
                 }
             }
         }

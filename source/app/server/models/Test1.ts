@@ -1,7 +1,8 @@
 
 import { BDOTest1Factory } from "~bdo/models/BDOTest1";
 import { Test } from "~server/models/Test";
-import { baseConstructor } from "~bdo/utils/decorators";
+import { baseConstructor, attribute } from "~bdo/utils/decorators";
+
 
 /**
  * Test
@@ -11,6 +12,8 @@ import { baseConstructor } from "~bdo/utils/decorators";
  */
 @baseConstructor()
 export class Test1 extends BDOTest1Factory(Test) {
+
+    @attribute(() => [Test]) public testTesten: Test[] = [];
 
     constructor(params?: ConstParams<Test1>) {
         super(params);

@@ -96,6 +96,12 @@ interface IMDKeys<T extends Record<string, any> = any> {
      */
     definedWatchers?: Map<DefNonFuncPropNames<T>, IWatchAttrPropSettings<IWatchedParams>>;
 
+    /**
+     * Stores all defined classes which are BaseConstructors decorated with
+     * corresponding decorator
+     *
+     * @memberof IMDKeys
+     */
     definedBaseConstructors?: Map<DefNonFuncPropNames<T>, IWatchAttrPropSettings<IBaseConstructorOpts>>;
 
     /**

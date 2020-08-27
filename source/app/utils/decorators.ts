@@ -1,12 +1,40 @@
 import 'reflect-metadata';
-import { pascalCase2kebabCase } from "~bdo/utils/util";
+import { pascalCase2kebabCase, isFunction, isPlainObject, isArray, isObject } from "~bdo/utils/util";
 import { IPropertyParams } from "~bdo/lib/Property";
 import { IAttributeParams } from "~bdo/lib/Attribute";
 import { IWatchedParams } from "~bdo/lib/Watched";
 import { baseConstructorFactory, IBaseConstructorOpts } from "~bdo/lib/BaseConstructor";
 import { defineMetadata, getMetadata } from "~bdo/utils/metadata";
-import { beforeDescriptor, createDecoratorDescriptor, isBaseConstructor, isComponent, isBDOModel } from "~bdo/utils/framework";
-import { Entity, TableInheritance, ChildEntity, ViewEntity, Tree, Index, AfterLoad, BeforeInsert, AfterInsert, BeforeUpdate, AfterUpdate, BeforeRemove, AfterRemove } from "typeorm";
+import { beforeDescriptor, createDecoratorDescriptor, isBaseConstructor, isComponent, isBDOModel, isClientModel } from "~bdo/utils/framework";
+import { GraphQLScalarType } from "graphql";
+import { ColumnEmbeddedOptions } from "typeorm/decorator/options/ColumnEmbeddedOptions";
+import { ColumnCommonOptions } from "typeorm/decorator/options/ColumnCommonOptions";
+import { ColumnOptions } from "typeorm/decorator/options/ColumnOptions";
+import {
+    Entity,
+    TableInheritance,
+    ChildEntity,
+    ViewEntity,
+    Tree,
+    Index,
+    AfterLoad,
+    BeforeInsert,
+    AfterInsert,
+    BeforeUpdate,
+    AfterUpdate,
+    BeforeRemove,
+    AfterRemove,
+    Column,
+    TreeParent,
+    TreeChildren,
+    PrimaryColumn,
+    PrimaryGeneratedColumn
+    // OneToOne,
+    // OneToMany,
+    // ManyToOne,
+    // ManyToMany,
+    // ViewColumn
+} from "typeorm";
 import { ReturnTypeFunc } from "type-graphql/dist/decorators/types";
 import {
     Field,
@@ -22,7 +50,14 @@ import {
     InputType
 } from "type-graphql";
 
-type FuncOrAttrParams = ReturnTypeFunc | IAttributeParams;
+interface IDatabaseColumns {
+    isTreeParent?: boolean;
+    isTreeChildArray?: boolean;
+    isIndex?: boolean | string;
+    hasRelation?: Record<string, any>;
+}
+type AttributeParams = Omit<IAttributeParams & ColumnEmbeddedOptions & IDatabaseColumns & ColumnCommonOptions & ColumnOptions, "array" | "comment" | "defaultValue">;
+type FuncOrAttrParams = ReturnTypeFunc | AttributeParams;
 type FuncOrPropParams = ReturnTypeFunc | IPropertyParams;
 type nameOptsIdx = string | IBaseConstructorOpts | number;
 type optsIdx = IBaseConstructorOpts | number;
@@ -92,7 +127,7 @@ export function property(typeFunc?: FuncOrPropParams, params?: IPropertyParams):
  * @returns A property descriptor to mark a field as an attribute which adds
  *          functionality to components and models
  */
-export function attribute(typeFunc?: FuncOrAttrParams, params?: IAttributeParams): PropertyDecorator {
+export function attribute(typeFunc?: FuncOrAttrParams, params?: AttributeParams): PropertyDecorator {
     return (target: Record<string, any>, key: string | symbol) => {
         const stringKey = key.toString();
 
@@ -101,11 +136,58 @@ export function attribute(typeFunc?: FuncOrAttrParams, params?: IAttributeParams
         if (typeFunc && !(typeFunc instanceof Function)) typeFunc = undefined;
         if (!params || !(params instanceof Object)) params = {};
 
-        // Decide which Field should be used
-        if (typeFunc && params) Field(typeFunc, params)(target, key);
-        else if (typeFunc) Field(typeFunc)(target, key);
-        else if (params) Field(params)(target, key);
-        else Field()(target, key);
+        const installColumn = () => {
+            let isPrimary = false;
+            if (isFunction(typeFunc)) {
+                const typeFuncValue = typeFunc();
+                if (typeFuncValue instanceof GraphQLScalarType && typeFuncValue.name === "ID" || params?.primary) {
+                    if (isClientModel(target)) {
+                        PrimaryColumn("uuid", { nullable: false, unique: true, primary: true })(target, key);
+                    } else PrimaryGeneratedColumn("uuid")(target, key);
+                    isPrimary = true;
+                } else if (!params?.isTreeParent && !params?.isTreeChildArray && !params?.hasRelation) {
+                    if (isPlainObject(typeFuncValue)) Column("simple-json", params)(target, key);
+                    if (isArray(typeFuncValue)) {
+                        const isPrimitiveArray = typeFuncValue.every((item) => {
+                            if (isObject(item) && "name" in item) return ["Number", "Boolean", "String"].includes(item.name);
+                            return false;
+                        });
+                        if (isPrimitiveArray) {
+                            Column("simple-array", params)(target, key);
+                        } else Column("simple-json", params || {})(target, key);
+                    }
+                }
+            }
+
+            if (!isPrimary) {
+                // TypeFunc independant columns which can be used additionally
+                if (params?.isTreeParent && !params?.isTreeChildArray) TreeParent()(target, key);
+                if (params?.isTreeChildArray && !params?.isTreeParent) TreeChildren({ cascade: ["insert", "update", "remove", "recover", "soft-remove"] })(target, key);
+                if (params?.isIndex) {
+                    if (typeof params.isIndex === "boolean") Index()(target, key);
+                    if (typeof params.isIndex === "string") Index(params.isIndex)(target, key);
+                }
+            }
+        };
+
+        if (isBDOModel(target)) {
+            if (typeFunc) {
+                const typeFuncValue = typeFunc();
+                if (isArray(typeFuncValue)) {
+                    for (const [index, typeFuncValueItem] of typeFuncValue.entries()) {
+                        if (isBaseConstructor(typeFuncValueItem)) typeFuncValue[index] = typeFuncValueItem.graphQLType;
+                    }
+                }
+                typeFunc = (_value) => typeFuncValue;
+            }
+            // Decide which Field should be used
+            installColumn();
+            params = Object.assign({}, params, { defaultValue: params.default });
+            if (typeFunc && params) Field(typeFunc, params)(target, key);
+            else if (typeFunc) Field(typeFunc)(target, key);
+            else if (params) Field(params)(target, key);
+            else Field()(target, key);
+        }
 
         // Do general decorator stuff
         const decoratorSettings = beforeDescriptor(target, stringKey, "definedAttributes", { typeFunc, params });
