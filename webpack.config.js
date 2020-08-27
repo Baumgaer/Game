@@ -75,7 +75,7 @@ module.exports = (_env, options) => {
                 })
             ]
         },
-        devtool: options.mode === "development" ? 'cheap-eval-source-map' : '',
+        devtool: options.mode === "development" ? 'inline-source-map' : '', // use cheap-eval-source-map when sourcemaps are broken
         optimization: {
             noEmitOnErrors: true,
             removeAvailableModules: options.mode !== "development",
