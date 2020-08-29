@@ -1,10 +1,9 @@
 import { NullableListOptions, ReturnTypeFunc } from "type-graphql/dist/decorators/types";
 import { getDesignType } from "~bdo/utils/metadata";
-import { isArray, isPrimitive, isObject, getProxyTarget, isValue } from "~bdo/utils/util";
-import { isBDOModel, diffChangedObject, isBaseConstructor } from "~bdo/utils/framework";
+import { isArray, isPrimitive, isObject, getProxyTarget, isValue, isPrimitiveWrapper, isPrimitiveWrapperArray } from "~bdo/utils/util";
+import { isBDOModel, diffChangedObject } from "~bdo/utils/framework";
 import { TypeError } from "~bdo/lib/Errors";
 import { Modification } from '~bdo/lib/Modification';
-import { typeCheck } from "type-check";
 import onChange from "on-change";
 
 
@@ -153,18 +152,29 @@ export abstract class Field<T extends Record<string, any> = any, K extends DefNo
             } else if (!(valueToPass instanceof designType)) {
                 error = typeError;
             } else {
-                if (isArray(typeFuncResult)) {
-                    let valueToCheck = valueToPass;
-                    if (isArray(valueToPass)) {
-                        valueToCheck = valueToPass.map((item: any) => {
-                            if (isBaseConstructor(item)) return Object.getPrototypeOf(item.constructor);
-                            return item;
+                if (isArray(typeFuncResult) && isArray(valueToPass)) {
+
+                    const notAssignableError = new TypeError(`${valueToPass} is not assignable to type ${JSON.stringify(typeFuncResult)}`);
+
+                    if (typeFuncResult.length === 1) {
+                        if (isPrimitiveWrapperArray(typeFuncResult)) {
+                            if (!valueToPass.every((item: Unpacked<typeof valueToPass>) => {
+                                return typeof item === typeFuncResult[0].name.toLowerCase() || item === undefined;
+                            })) error = notAssignableError;
+                        } else if (!valueToPass.every((item: Unpacked<typeof valueToPass>) => {
+                            return item instanceof <any>typeFuncResult[0] || item === undefined;
+                        })) error = notAssignableError;
+                    } else {
+                        if (typeFuncResult.length !== valueToPass.length) error = notAssignableError;
+                        const arrayCheckResult = valueToPass.every((item: Unpacked<typeof valueToPass>, index: number) => {
+                            const currentType = typeFuncResult[index];
+                            if (isPrimitiveWrapper(currentType)) {
+                                return typeof item === currentType.name;
+                            } else return item instanceof <any>currentType;
                         });
+                        if (!arrayCheckResult) error = notAssignableError;
                     }
-                    let checkString = `[${(<IndexStructure>typeFuncResult[0]).name} | Undefined]`;
-                    if (typeFuncResult.length === 1 && !typeCheck(checkString, valueToCheck)) error = new TypeError(`${valueToCheck} is not assignable to type ${checkString}`);
-                    checkString = `(${typeFuncResult.map((type) => (<IndexStructure>type).name).join(",")})`;
-                    if (typeFuncResult.length > 1 && !typeCheck(checkString, valueToCheck)) error = new TypeError(`${valueToCheck} is not assignable to type ${checkString}`);
+
                 }
             }
         }

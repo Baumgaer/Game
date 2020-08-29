@@ -11,7 +11,7 @@ import { baseConstructor, attribute } from "~bdo/utils/decorators";
 @baseConstructor({ collectionName: "Test1" })
 export class Test1 extends BDOTest1Factory(Test) {
 
-    @attribute(() => [Test], { disableTypeGuard: true }) public testTesten: Test[] = [new Test()];
+    @attribute(() => [Test]) public testTesten: Test[] = [new Test()];
 
     constructor(params?: ConstParams<Test1>) {
         super(params);

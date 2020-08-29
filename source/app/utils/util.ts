@@ -2,7 +2,7 @@ import { getDesignType } from "~bdo/utils/metadata";
 import { isBrowser } from '~bdo/utils/environment';
 import { isBaseConstructor, BaseConstructor } from "~bdo/utils/framework";
 import onChange from "on-change";
-import { isNull, isUndefined } from "lodash";
+import { isNull, isUndefined, isArray } from "lodash";
 
 export {
     merge,
@@ -24,6 +24,8 @@ export {
     debounce,
     cloneDeep
 } from "lodash";
+
+export type PrimitiveConstructor = StringConstructor | NumberConstructor | BooleanConstructor | SymbolConstructor;
 
 /**
  * Capitalizes only the first letter of a string
@@ -147,6 +149,28 @@ export function constructTypeOfHTMLAttribute(element: HTMLElement, key: string):
     }
     if (valueToSet && type && valueToSet.constructor.name !== type.name) throw new Error("attribute type equals not defined type");
     return valueToSet;
+}
+
+/**
+ * Checks if the value is a wrapper version of a primitive
+ *
+ * @param value The value to check for primitive wrapper
+ * @returns true if it is a primitive wrapper and false else
+ */
+export function isPrimitiveWrapper(value: any): value is PrimitiveConstructor {
+    if (!isValue(value)) return false;
+    return [String, Number, Boolean, Symbol].includes(value);
+}
+
+/**
+ * Checks if the given value is an array of primitive wrappers
+ *
+ * @param value The value to check
+ * @returns true if every item in array is a primitive wrapper and false else
+ */
+export function isPrimitiveWrapperArray(value: unknown): value is PrimitiveConstructor[] {
+    if (!isArray(value)) return false;
+    return value.every(isPrimitiveWrapper);
 }
 
 /**
