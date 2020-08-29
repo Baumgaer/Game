@@ -42,8 +42,8 @@ export class Distributor<T extends Record<string, any> = any, K extends DefNonFu
             this.value = this.proxyfyValue(field.valueOf());
             this.disableTypeGuard = field.disableTypeGuard;
             this.typeFunc = field.typeFunc;
-            field.disableTypeGuard = true;
         }
+        field.disableTypeGuard = true;
         if (field instanceof Watched && field.subObject) this.redefineValue(field.subObject);
         this.redefineValue(field);
         this.fields.push(field);

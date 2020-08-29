@@ -270,8 +270,7 @@ export function BaseComponentFactory<TBase extends Constructor<HTMLElement>>(HTM
                 let valueToSet = value;
                 if (!isPrimitive(value)) valueToSet = JSON.stringify(value).replace(/"/g, "'");
                 super.setAttribute(qualifiedName, valueToSet);
-                valueToSet = constructTypeOfHTMLAttribute(this, qualifiedName);
-                if (setValue) this[qualifiedName] = valueToSet;
+                if (setValue) this[qualifiedName] = constructTypeOfHTMLAttribute(this, qualifiedName);
             } else this.removeAttribute(qualifiedName);
         }
 
