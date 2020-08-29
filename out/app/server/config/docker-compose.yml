@@ -1,0 +1,77 @@
+version: "3.7"
+
+services:
+    gameServer:
+        image: game:latest
+        build:
+            # context path relative to this file
+            context: ./../../..
+            # docker file path relative to context
+            dockerfile: ./Dockerfile
+        environment:
+            PORT: 3000
+            REDIS_HOST: redis
+            REDIS_PORT: 6379
+            ARANGODB_HOST: arangodb
+            ARANGODB_PORT: 8529
+        ports:
+            - 3000:3000
+        depends_on:
+            - redis
+            - arangoDB
+        volumes:
+            # host path relative to this file
+            - "./../../../out:/app/out"
+            - "./../../../var:/app/var"
+
+    webServer:
+        image: game:latest
+        build:
+            # context path relative to this file
+            context: ./../../..
+            # docker file path relative to context
+            dockerfile: ./Dockerfile
+        environment:
+            PORT: 3001
+            REDIS_HOST: redis
+            REDIS_PORT: 6379
+            ARANGODB_HOST: arangodb
+            ARANGODB_PORT: 8529
+        ports:
+            - 3001:3001
+        depends_on:
+            - redis
+            - arangoDB
+        volumes:
+            # host path relative to this file
+            - "./../../../out:/app/out"
+            - "./../../../var:/app/var"
+
+    redis:
+        image: redis
+        command: redis-server --save ''
+        ports:
+            - 6379:6379
+
+    arangoDB:
+        image: arangodb
+        environment:
+            ARANGO_NO_AUTH: "true"
+            ARANGO_STORAGE_ENGINE: "mmfiles"
+        ports:
+            - 8529:8529
+        volumes:
+            - type: volume
+              source: dbPersist
+              # path relative to image root
+              target: /var/lib/arangodb3
+              volume:
+                  nocopy: true
+
+    redisInsight:
+        image: redislabs/redisinsight:latest
+        ports:
+            - 8001:8001
+
+volumes:
+    dbPersist:

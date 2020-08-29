@@ -4,7 +4,7 @@
     "description": "A MMORPG mixed with RTS and simulation in the underground and on the bad side",
     "scripts": {
         "test": "nyc --exclude-after-remap=false mocha --config ./.mocharc.yml",
-        "start": "docker-compose up --build",
+        "start": "docker-compose -f ./out/app/config/docker-compose.yml -f ./out/app/config/development/docker-compose.yml -f ./out/app/server/config/docker-compose.yml -f ./out/app/server/config/development/docker-compose.yml  up --build",
         "build": "npm run build:infra && grunt compile:config && npm run build:server && npm run build:client && grunt cleanup",
         "build:server": "tsc -p ./tsconfig.json",
         "build:client": "webpack --progress --mode development --config webpack.config.js",

@@ -95,7 +95,7 @@ export abstract class BaseServer {
 
     constructor() {
         const gracefulShutdownHandler = () => {
-            logger.info(`Shutting down ${process.env.name}`);
+            logger.info(`Shutting down ${process.env.NAME}`);
             this.gracefulShutdown();
         };
         process.once("SIGTERM", gracefulShutdownHandler.bind(this));
@@ -104,27 +104,27 @@ export abstract class BaseServer {
         this.server.on('listening', () => {
             this.state = 'started';
             const addressInfo = <AddressInfo>this.server.address();
-            logger.info(`${process.env.name} started: ${addressInfo.address}:${addressInfo.port}`);
+            logger.info(`${process.env.NAME} started: ${addressInfo.address}:${addressInfo.port}`);
         });
         this.server.on('close', () => {
             this.state = 'stopped';
-            logger.info(`${process.env.name} stopped`);
+            logger.info(`${process.env.NAME} stopped`);
         });
         this.state = 'setupServer';
         this.setupServer()
             .then(async () => {
                 this.state = 'routeCollection';
-                logger.info(`Collecting routes of ${process.env.name}`);
+                logger.info(`Collecting routes of ${process.env.NAME}`);
                 await this.routeCollection();
             })
             .then(async () => {
                 this.state = 'resolverCollection';
-                logger.info(`Collecting resolvers of ${process.env.name}`);
+                logger.info(`Collecting resolvers of ${process.env.NAME}`);
                 await this.resolverCollection();
             })
             .then(() => {
                 this.state = "ready";
-                logger.info(`${process.env.name} is ready for start`);
+                logger.info(`${process.env.NAME} is ready for start`);
             });
     }
 
@@ -136,7 +136,7 @@ export abstract class BaseServer {
      * @memberof BaseServer
      */
     public async start(): Promise<Server> {
-        logger.info(`Start of ${process.env.name} requested`);
+        logger.info(`Start of ${process.env.NAME} requested`);
         await new Promise((resolver) => {
             const interval = setInterval(() => {
                 if (this.state === 'ready') {
@@ -178,7 +178,7 @@ export abstract class BaseServer {
      * @memberof BaseServer
      */
     protected async setupServer(): Promise<void> {
-        logger.info(`Setting up ${process.env.name}`);
+        logger.info(`Setting up ${process.env.NAME}`);
         const [config, passwords, databases, paths, redisStoreClient] = await Promise.all([
             configManager.get('config'),
             configManager.get('passwords'),
@@ -265,7 +265,7 @@ export abstract class BaseServer {
      */
     protected async singleRouteCollection(file: string): Promise<void> {
         const Route = (await import(file)).default;
-        if (!includesMemberOfList(<string[]>Route.attachToServers, [<string>process.env.name, '*'])) return;
+        if (!includesMemberOfList(<string[]>Route.attachToServers, [<string>process.env.NAME, '*'])) return;
         const clRoute: ServerRoute = new Route(this);
         if (!clRoute.isServerRoute) throw new Error(`${file} is not instance of ~server/lib/ServerRoute`);
         clRoute.routerNameSpace = toURIPathPart(clRoute.routerNameSpace);

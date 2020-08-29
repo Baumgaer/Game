@@ -25,7 +25,7 @@ module.exports = (grunt: IGrunt): void => {
                 program: 'less'
             },
             config: {
-                src: ['out/app/config/**/*.yaml', 'out/app/client/config/**/*.yaml', 'out/app/client/server/**/*.yaml'],
+                src: ['out/app/config/**/*.yml', 'out/app/client/config/**/*.yml', 'out/app/client/server/**/*.yml'],
                 program: "config"
             }
         }
@@ -97,20 +97,20 @@ function compileConfig(grunt: IGrunt) {
         };
 
         const handler = (fileOrDir: string, status: WalkStats) => {
-            if (!status.isFile() || !fileOrDir.endsWith(".yaml")) return;
+            if (!status.isFile() || !fileOrDir.endsWith(".yml")) return;
             if (![bdoConfig, clientConfig, serverConfig].includes(dirname(fileOrDir))) return;
             grunt.log.ok(`processing config ${fileOrDir}`);
 
             if (fileOrDir.startsWith(bdoConfig)) {
-                configs.bdo[basename(fileOrDir).replace(".yaml", "")] = parse(readFileSync(fileOrDir).toString());
+                configs.bdo[basename(fileOrDir).replace(".yml", "")] = parse(readFileSync(fileOrDir).toString());
             }
 
             if (fileOrDir.startsWith(clientConfig)) {
-                configs.client[basename(fileOrDir).replace(".yaml", "")] = parse(readFileSync(fileOrDir).toString());
+                configs.client[basename(fileOrDir).replace(".yml", "")] = parse(readFileSync(fileOrDir).toString());
             }
 
             if (fileOrDir.startsWith(serverConfig)) {
-                configs.server[basename(fileOrDir).replace(".yaml", "")] = parse(readFileSync(fileOrDir).toString());
+                configs.server[basename(fileOrDir).replace(".yml", "")] = parse(readFileSync(fileOrDir).toString());
             }
         };
 
@@ -125,7 +125,7 @@ function compileConfig(grunt: IGrunt) {
             interfaceJSON.client = configs.bdo;
             interfaceJSON.server = merge({}, configs.bdo, configs.server);
             interfaceJSON.client = merge({}, configs.bdo, configs.client);
-            let interfaceString = "export ";
+            let interfaceString = "/* eslint-disable */export ";
             jsonToTs(interfaceJSON, { rootName: "IConfig" }).forEach((typeInterface) => {
                 interfaceString += typeInterface;
             });

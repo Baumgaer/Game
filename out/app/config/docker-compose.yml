@@ -1,0 +1,56 @@
+version: "3.7"
+
+services:
+    gameServer:
+        environment:
+            NAME: "GameServer"
+        deploy:
+            replicas: 2
+            restart_policy:
+                condition: unless-stopped
+                delay: 5s
+                max_attempts: 3
+                window: 120s
+        restart: unless-stopped
+
+    webServer:
+        environment:
+            NAME: "WebServer"
+        deploy:
+            replicas: 2
+            restart_policy:
+                condition: unless-stopped
+                delay: 5s
+                max_attempts: 3
+                window: 120s
+        restart: unless-stopped
+
+    redis:
+        deploy:
+            replicas: 1
+            restart_policy:
+                condition: unless-stopped
+                delay: 5s
+                max_attempts: 3
+                window: 120s
+        restart: unless-stopped
+
+    arangoDB:
+        deploy:
+            replicas: 1
+            restart_policy:
+                condition: unless-stopped
+                delay: 5s
+                max_attempts: 3
+                window: 120s
+        restart: unless-stopped
+
+    redisInsight:
+        deploy:
+            replicas: 1
+            restart_policy:
+                condition: unless-stopped
+                delay: 5s
+                max_attempts: 3
+                window: 120s
+        restart: unless-stopped

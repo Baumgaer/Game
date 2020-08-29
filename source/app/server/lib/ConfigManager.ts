@@ -67,10 +67,10 @@ export class ConfigManager extends BDOConfigManager {
         if (config.includes("/")) [environment, config] = config.split("/");
 
         const appRoot = resolve(rootPath, 'out', 'app');
-        const bdoDefault = resolve(appRoot, 'config', `${config}.yaml`);
-        const bdoEnv = resolve(appRoot, 'config', process.env.NODE_ENV || '', `${config}.yaml`);
-        const serverDefault = resolve(appRoot, environment, 'config', `${config}.yaml`);
-        const serverEnv = resolve(appRoot, environment, 'config', process.env.NODE_ENV || '', `${config}.yaml`);
+        const bdoDefault = resolve(appRoot, 'config', `${config}.yml`);
+        const bdoEnv = resolve(appRoot, 'config', process.env.NODE_ENV || '', `${config}.yml`);
+        const serverDefault = resolve(appRoot, environment, 'config', `${config}.yml`);
+        const serverEnv = resolve(appRoot, environment, 'config', process.env.NODE_ENV || '', `${config}.yml`);
 
         const configs = await Promise.all([
             this.getFile(bdoDefault),

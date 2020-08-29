@@ -15,9 +15,9 @@ module.exports = function (grunt) {
             },
             "compile.config": {
                 files: [
-                    'out/app/config/**/*.yaml',
-                    'out/app/client/config/**/*.yaml',
-                    'out/app/server/config/**/*.yaml'
+                    'out/app/config/**/*.yml',
+                    'out/app/client/config/**/*.yml',
+                    'out/app/server/config/**/*.yml'
                 ],
                 tasks: ['compile:config'],
                 options: {

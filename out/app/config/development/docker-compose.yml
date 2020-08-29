@@ -1,0 +1,10 @@
+version: "3.7"
+
+services:
+    gameServer:
+        environment:
+            NODE_ENV: "development"
+
+    webServer:
+        environment:
+            NODE_ENV: "development"

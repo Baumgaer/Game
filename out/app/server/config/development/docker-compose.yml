@@ -1,0 +1,14 @@
+version: "3.7"
+
+services:
+    gameServer:
+        # paths relative to image root
+        entrypoint: "npx nodemon -L --inspect=0.0.0.0:9001 out/app/GameServer.js"
+        ports:
+            - 9001:9001
+
+    webServer:
+        # paths relative to image root
+        entrypoint: "npx nodemon -L --inspect=0.0.0.0:9002 out/app/WebServer.js"
+        ports:
+            - 9002:9002

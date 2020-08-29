@@ -1,13 +1,32 @@
-export interface IConfig {
+/* eslint-disable */export interface IConfig {
   server: Server;
   client: Client;
 }interface Client {
   biomes: Biomes;
   config: Config2;
+  'docker-compose': Dockercompose2;
   paths: Paths2;
   spec?: any;
 }interface Paths2 {
   apiEntryPoint: string;
+}interface Dockercompose2 {
+  version: string;
+  services: Services2;
+}interface Services2 {
+  gameServer: GameServer2;
+  webServer: GameServer2;
+  redis: Redis3;
+  arangoDB: Redis3;
+  redisInsight: Redis3;
+}interface Redis3 {
+  deploy: Deploy;
+  restart: string;
+}interface GameServer2 {
+  environment: Environment3;
+  deploy: Deploy;
+  restart: string;
+}interface Environment3 {
+  NAME: string;
 }interface Config2 {
   timeouts: Timeouts;
   valueWithoutSection: string;
@@ -19,6 +38,7 @@ export interface IConfig {
 }interface Server {
   biomes: Biomes;
   config: Config;
+  'docker-compose': Dockercompose;
   paths: Paths;
   spec: Spec;
   databases: Databases;
@@ -32,9 +52,9 @@ export interface IConfig {
 }interface Passwords {
   sessionSecretSeed: string;
 }interface Databases {
-  redis: Redis;
+  redis: Redis2;
   arangodb?: any;
-}interface Redis {
+}interface Redis2 {
   default: number;
   sessions: number;
   database3: number;
@@ -61,6 +81,73 @@ export interface IConfig {
   bdoConfig: string;
   clientConfig: string;
   serverConfig: string;
+}interface Dockercompose {
+  version: string;
+  services: Services;
+  volumes: Volumes;
+}interface Volumes {
+  dbPersist?: any;
+}interface Services {
+  gameServer: GameServer;
+  webServer: GameServer;
+  redis: Redis;
+  arangoDB: ArangoDB;
+  redisInsight: RedisInsight;
+}interface RedisInsight {
+  deploy: Deploy;
+  restart: string;
+  image: string;
+  ports: string[];
+}interface ArangoDB {
+  deploy: Deploy;
+  restart: string;
+  image: string;
+  environment: Environment2;
+  ports: string[];
+  volumes: Volume2[];
+}interface Volume2 {
+  type: string;
+  source: string;
+  target: string;
+  volume: Volume;
+}interface Volume {
+  nocopy: boolean;
+}interface Environment2 {
+  ARANGO_NO_AUTH: string;
+  ARANGO_STORAGE_ENGINE: string;
+}interface Redis {
+  deploy: Deploy;
+  restart: string;
+  image: string;
+  command: string;
+  ports: string[];
+}interface GameServer {
+  environment: Environment;
+  deploy: Deploy;
+  restart: string;
+  image: string;
+  build: Build;
+  ports: string[];
+  depends_on: string[];
+  volumes: string[];
+}interface Build {
+  context: string;
+  dockerfile: string;
+}interface Deploy {
+  replicas: number;
+  restart_policy: Restartpolicy;
+}interface Restartpolicy {
+  condition: string;
+  delay: string;
+  max_attempts: number;
+  window: string;
+}interface Environment {
+  NAME: string;
+  PORT: number;
+  REDIS_HOST: string;
+  REDIS_PORT: number;
+  ARANGODB_HOST: string;
+  ARANGODB_PORT: number;
 }interface Config {
   timeouts: Timeouts;
   session: Session;

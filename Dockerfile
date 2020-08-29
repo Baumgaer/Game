@@ -10,7 +10,3 @@ RUN npm install
 COPY tsconfig.json tsconfig.base.json webpack.config.js nodemon.json ./
 COPY out ./out
 COPY source ./source
-
-# RUN npm run build
-
-# CMD node out/app/GameServer.js

@@ -1,6 +1,6 @@
 import { BaseComponentFactory } from '~client/lib/BaseComponent';
 import { includesMemberOfList } from '~bdo/utils/util';
-import { baseConstructor , property } from '~bdo/utils/decorators';
+import { baseConstructor, property } from '~bdo/utils/decorators';
 
 import { ClientRoute } from "~client/lib/ClientRoute";
 import Navigo from "navigo";
@@ -54,7 +54,7 @@ export default class ViewRouter extends BaseComponentFactory(HTMLElement) {
      * @memberof ViewRouter
      */
     private singeRouteCollection(Route: typeof ClientRoute): void {
-        if (!includesMemberOfList(<string[]>Route.attachToServers, [<string>global.process.env.name, '*'])) return;
+        if (!includesMemberOfList(<string[]>Route.attachToServers, [<string>global.process.env.NAME, '*'])) return;
         const RouteClass = new Route();
         if (!RouteClass.isClientRoute) {
             throw new Error(`${RouteClass.constructor.name} is not instance of ~client/lib/BaseRoute`);
