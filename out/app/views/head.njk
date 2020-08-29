@@ -2,10 +2,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta http-equiv="X-UA-Compatible" content="ie=edge">
 <title>Document</title>
-{# % if process.env.NODE_ENV === 'development' %}
+{#% if process.env.NODE_ENV === 'development' %}
 <script src="/js/browser-source-map-support.js"></script>
-<script>sourceMapSupport.install();</script>
-{% endif % #}
+<script nonce="{{ responseLocals.cspScriptNonce }}">sourceMapSupport.install();</script>
+{% endif %#}
 <link rel="stylesheet" href="/css/themes/default.css">
 <link rel="stylesheet" id="themeSheet" href="/css/themes/dark.css">
 <link rel="stylesheet" href="/css/global.css">
