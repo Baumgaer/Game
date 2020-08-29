@@ -6,7 +6,6 @@ import { IWatchedParams } from "~bdo/lib/Watched";
 import { baseConstructorFactory, IBaseConstructorOpts } from "~bdo/lib/BaseConstructor";
 import { defineMetadata, getMetadata } from "~bdo/utils/metadata";
 import { beforeDescriptor, createDecoratorDescriptor, isBaseConstructor, isComponent, isBDOModel, isClientModel } from "~bdo/utils/framework";
-import { GraphQLScalarType } from "graphql";
 import { ColumnEmbeddedOptions } from "typeorm/decorator/options/ColumnEmbeddedOptions";
 import { ColumnCommonOptions } from "typeorm/decorator/options/ColumnCommonOptions";
 import { ColumnOptions } from "typeorm/decorator/options/ColumnOptions";
@@ -28,12 +27,13 @@ import {
     TreeParent,
     TreeChildren,
     PrimaryColumn,
-    PrimaryGeneratedColumn
-    // OneToOne,
-    // OneToMany,
-    // ManyToOne,
-    // ManyToMany,
-    // ViewColumn
+    PrimaryGeneratedColumn,
+    OneToOne,
+    OneToMany,
+    ManyToOne,
+    ManyToMany,
+    ViewColumn,
+    JoinColumn
 } from "typeorm";
 import { ReturnTypeFunc } from "type-graphql/dist/decorators/types";
 import {
@@ -50,11 +50,19 @@ import {
     InputType
 } from "type-graphql";
 
+interface IRelations {
+    oneToOne?: Parameters<typeof OneToOne>;
+    oneToMany?: Parameters<typeof OneToMany>;
+    manyToOne?: Parameters<typeof ManyToOne>;
+    manyToMany?: Parameters<typeof ManyToMany>;
+}
+
 interface IDatabaseColumns {
     isTreeParent?: boolean;
     isTreeChildArray?: boolean;
     isIndex?: boolean | string;
-    hasRelation?: Record<string, any>;
+    isViewColumn?: boolean;
+    hasRelation?: RequireOnlyOne<IRelations> & { isRelationOwner?: boolean; };
 }
 type AttributeParams = Omit<IAttributeParams & ColumnEmbeddedOptions & IDatabaseColumns & ColumnCommonOptions & ColumnOptions, "array" | "comment" | "defaultValue">;
 type FuncOrAttrParams = ReturnTypeFunc | AttributeParams;
@@ -138,14 +146,15 @@ export function attribute(typeFunc?: FuncOrAttrParams, params?: AttributeParams)
 
         const installColumn = () => {
             let isPrimary = false;
-            if (isFunction(typeFunc)) {
+            if (params?.isViewColumn) return ViewColumn(params)(target, key);
+            if (!params?.hasRelation && isFunction(typeFunc)) {
                 const typeFuncValue = typeFunc();
-                if (typeFuncValue instanceof GraphQLScalarType && typeFuncValue.name === "ID" || params?.primary) {
+                if (isObject(typeFuncValue) && "name" in typeFuncValue && typeFuncValue.name === "ID" || params?.primary) {
                     if (isClientModel(target)) {
                         PrimaryColumn("uuid", { nullable: false, unique: true, primary: true })(target, key);
                     } else PrimaryGeneratedColumn("uuid")(target, key);
                     isPrimary = true;
-                } else if (!params?.isTreeParent && !params?.isTreeChildArray && !params?.hasRelation) {
+                } else if (!params?.isTreeParent && !params?.isTreeChildArray) {
                     if (isPlainObject(typeFuncValue)) Column("simple-json", params)(target, key);
                     if (isArray(typeFuncValue)) {
                         const isPrimitiveArray = typeFuncValue.every((item) => {
@@ -157,6 +166,16 @@ export function attribute(typeFunc?: FuncOrAttrParams, params?: AttributeParams)
                         } else Column("simple-json", params || {})(target, key);
                     }
                 }
+            }
+
+            const relation = params?.hasRelation;
+            if (relation) {
+                if (relation.oneToOne) OneToOne.apply(target, relation.oneToOne)(target, key);
+                if (relation.oneToMany) OneToMany.apply(target, relation.oneToMany)(target, key);
+                if (relation.manyToOne) ManyToOne.apply(target, relation.manyToOne)(target, key);
+                if (relation.manyToMany) ManyToMany.apply(target, relation.manyToMany)(target, key);
+                if (relation.isRelationOwner) JoinColumn({ name: params?.name })(target, key);
+                isPrimary = Boolean((relation.oneToOne || relation.oneToMany || relation.manyToOne || relation.manyToMany)?.[2]?.primary);
             }
 
             if (!isPrimary) {

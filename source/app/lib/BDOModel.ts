@@ -1,6 +1,5 @@
 import { v4 as uuid } from "uuid";
-import { ID } from "type-graphql";
-import { PrimaryColumn } from "typeorm";
+import { GraphQLID } from "graphql/type";
 import { Binding, writeRights } from "~bdo/lib/Binding";
 import { attribute, baseConstructor, property } from "~bdo/utils/decorators";
 import { getMetadata } from "~bdo/utils/metadata";
@@ -97,7 +96,7 @@ export abstract class BDOModel implements IBaseConstructorOpts {
      * @type {string}
      * @memberof BDOModel
      */
-    @PrimaryColumn() @attribute((_type) => ID) public id: string = `pending_${uuid()}`;
+    @attribute((_type) => GraphQLID) public id: string = `pending_${uuid()}`;
 
     /**
      * Represents the constructors name to ensure the right Model construction
@@ -107,7 +106,7 @@ export abstract class BDOModel implements IBaseConstructorOpts {
      * @type {string}
      * @memberof BDOModel
      */
-    @attribute() public readonly className: string = Object.getPrototypeOf(this.constructor).name;
+    @attribute() public readonly className: string = this.constructor.name;
 
     constructor() {
         ModelRegistry.getInstance().register(this);
@@ -123,16 +122,6 @@ export abstract class BDOModel implements IBaseConstructorOpts {
      */
     public static getInstanceByID<T extends BDOModel>(this: new () => T, _id: T["id"]): Promise<T | undefined> {
         throw new Error("Not implemented");
-    }
-
-    /**
-     * Returns the reference string which is stored in the database instead of the model itself
-     *
-     * @returns A string representing the model in the database within another model
-     * @memberof BDOModel
-     */
-    public getReferenceString() {
-        return `_reference:${this.className}${this.id}`;
     }
 
     /**

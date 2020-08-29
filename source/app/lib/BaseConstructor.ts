@@ -158,6 +158,8 @@ export function baseConstructorFactory<T extends Constructor<IBaseConstructorCto
          */
         public readonly databaseName?: string = BaseConstructor.databaseName;
 
+        public readonly className: string = Object.getPrototypeOf(this.constructor).name;
+
         constructor(...params: any[]) {
             super(...params);
             const constParams = params[constParamsIndex];

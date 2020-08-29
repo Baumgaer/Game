@@ -3,7 +3,7 @@ import { Attribute, IAttributeParams } from "~bdo/lib/Attribute";
 import { Property, IPropertyParams } from "~bdo/lib/Property";
 import { Watched, IWatchedParams } from "~bdo/lib/Watched";
 import { Modification } from "~bdo/lib/Modification";
-import { merge, isFunction, isObject } from "~bdo/utils/util";
+import { merge, isFunction } from "~bdo/utils/util";
 import { isBrowser } from "~bdo/utils/environment";
 import { getMetadata, defineMetadata, getWildcardMetadata, defineWildcardMetadata } from "~bdo/utils/metadata";
 import { baseConstructorFactory, IBaseConstructorOpts } from "~bdo/lib/BaseConstructor";
@@ -225,7 +225,6 @@ export function isBaseConstructor(value: any): value is BaseConstructor {
  * @returns true if it is a model in general and false else
  */
 export function isBDOModel(value: any): value is typeof BDOModel {
-    if (!isObject(value)) return false;
     if ("isBDOModel" in value) return true;
     return false;
 }
@@ -263,7 +262,6 @@ export function isServerModel(value: any): value is typeof ServerModel {
  * @returns true if the value is a controller and false else
  */
 export function isController(value: any): value is BaseController {
-    if (!isObject) return false;
     if (isBrowser() && "isBaseController" in value && !("isBaseComponent" in value)) return true;
     return false;
 }
@@ -277,7 +275,6 @@ export function isController(value: any): value is BaseController {
  * @returns true if the value is any component and false else
  */
 export function isComponent<T = BaseComponent>(value: any): value is T {
-    if (!isObject(value)) return false;
     if (isBrowser() && "isBaseComponent" in value && "isBaseController" in value) return true;
     return false;
 }
