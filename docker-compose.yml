@@ -1,4 +1,4 @@
-version: '3.7'
+version: "3.7"
 
 services:
     gameserver:
@@ -6,7 +6,7 @@ services:
         build:
             context: .
             dockerfile: ./Dockerfile
-        entrypoint: 'npx nodemon -L --inspect=0.0.0.0:9001 out/app/GameServer.js'
+        entrypoint: "npx nodemon -L --inspect=0.0.0.0:9001 out/app/GameServer.js"
         deploy:
             replicas: 2
             restart_policy:
@@ -15,9 +15,9 @@ services:
                 max_attempts: 3
                 window: 120s
         environment:
-            NODE_ENV: 'development'
+            NODE_ENV: "development"
 
-            name: 'GameServer'
+            name: "GameServer"
 
             PORT: 3000
             REDIS_HOST: redis
@@ -31,8 +31,8 @@ services:
             - redis
             - arangodb
         volumes:
-            - './out:/app/out'
-            - './var:/app/var'
+            - "./out:/app/out"
+            - "./var:/app/var"
         restart: unless-stopped
 
     webserver:
@@ -40,7 +40,7 @@ services:
         build:
             context: .
             dockerfile: ./Dockerfile
-        entrypoint: 'npx nodemon -L --inspect=0.0.0.0:9002 out/app/WebServer.js'
+        entrypoint: "npx nodemon -L --inspect=0.0.0.0:9002 out/app/WebServer.js"
         deploy:
             replicas: 2
             restart_policy:
@@ -49,9 +49,9 @@ services:
                 max_attempts: 3
                 window: 120s
         environment:
-            NODE_ENV: 'development'
+            NODE_ENV: "development"
 
-            name: 'WebServer'
+            name: "WebServer"
 
             PORT: 3001
             REDIS_HOST: redis
@@ -65,8 +65,8 @@ services:
             - redis
             - arangodb
         volumes:
-            - './out:/app/out'
-            - './var:/app/var'
+            - "./out:/app/out"
+            - "./var:/app/var"
         restart: unless-stopped
 
     redis:
@@ -93,8 +93,8 @@ services:
                 max_attempts: 3
                 window: 120s
         environment:
-            ARANGO_NO_AUTH: 'true'
-            ARANGO_STORAGE_ENGINE: 'mmfiles'
+            ARANGO_NO_AUTH: "true"
+            ARANGO_STORAGE_ENGINE: "mmfiles"
         ports:
             - 8529:8529
         volumes:
@@ -103,6 +103,12 @@ services:
               target: /var/lib/arangodb3
               volume:
                   nocopy: true
+        restart: unless-stopped
+
+    redisInsight:
+        image: redislabs/redisinsight:latest
+        ports:
+            - 8001:8001
         restart: unless-stopped
 
 volumes:
