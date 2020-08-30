@@ -145,31 +145,33 @@ export function attribute(typeFunc?: FuncOrAttrParams, params?: AttributeParams)
         if (!params || !(params instanceof Object)) params = {};
 
         const installColumn = () => {
-            let isPrimary = false;
-            if (params?.isViewColumn) return ViewColumn(params)(target, key);
-            if (!params?.hasRelation && isFunction(typeFunc)) {
-                const typeFuncValue = typeFunc();
-                if (isObject(typeFuncValue) && "name" in typeFuncValue && typeFuncValue.name === "ID" || params?.primary) {
-                    if (isClientModel(target)) {
-                        PrimaryColumn("uuid", { nullable: false, unique: true, primary: true })(target, key);
-                    } else PrimaryGeneratedColumn("uuid")(target, key);
-                    isPrimary = true;
-                } else if (!params?.isTreeParent && !params?.isTreeChildArray) {
-                    if (isPlainObject(typeFuncValue)) Column("simple-json", params)(target, key);
-                    if (isArray(typeFuncValue)) {
-                        const isPrimitiveArray = typeFuncValue.every((item) => {
-                            if (isObject(item) && "name" in item) return ["Number", "Boolean", "String"].includes(item.name);
-                            return false;
-                        });
-                        if (isPrimitiveArray) {
-                            Column("simple-array", params)(target, key);
-                        } else Column("simple-json", params || {})(target, key);
-                    }
-                }
-            }
-
             const relation = params?.hasRelation;
-            if (relation) {
+            let isPrimary = false;
+
+            if (params?.isViewColumn) return ViewColumn(params)(target, key);
+
+            if (!relation) {
+                if (isFunction(typeFunc)) {
+                    const typeFuncValue = typeFunc();
+                    if (isObject(typeFuncValue) && "name" in typeFuncValue && typeFuncValue.name === "ID" || params?.primary) {
+                        if (isClientModel(target)) {
+                            PrimaryColumn("uuid", { nullable: false, unique: true, primary: true })(target, key);
+                        } else PrimaryGeneratedColumn("uuid")(target, key);
+                        isPrimary = true;
+                    } else if (!params?.isTreeParent && !params?.isTreeChildArray) {
+                        if (isPlainObject(typeFuncValue)) Column("simple-json", params)(target, key);
+                        if (isArray(typeFuncValue)) {
+                            const isPrimitiveArray = typeFuncValue.every((item) => {
+                                if (isObject(item) && "name" in item) return ["Number", "Boolean", "String"].includes(item.name);
+                                return false;
+                            });
+                            if (isPrimitiveArray) {
+                                Column("simple-array", params)(target, key);
+                            } else Column("simple-json", params || {})(target, key);
+                        }
+                    }
+                } else Column(params || {})(target, key);
+            } else {
                 if (relation.oneToOne) OneToOne.apply(target, relation.oneToOne)(target, key);
                 if (relation.oneToMany) OneToMany.apply(target, relation.oneToMany)(target, key);
                 if (relation.manyToOne) ManyToOne.apply(target, relation.manyToOne)(target, key);

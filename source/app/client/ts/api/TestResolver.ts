@@ -1,13 +1,13 @@
-import { Test1 } from "~server/models/Test1";
+import { Test1 } from "~client/models/Test1";
 import { resolver, arg, query } from "~bdo/utils/decorators";
-import { ServerResolver } from "~server/lib/ServerResolver";
+import { ClientResolver } from "~client/lib/ClientResolver";
 import { BDOTestResolverFactory } from "~bdo/api/BDOTestResolver";
 
 /**
  * Test
  */
 @resolver(Test1)
-export default class TestResolver extends BDOTestResolverFactory(ServerResolver) {
+export default class TestResolver extends BDOTestResolverFactory(ClientResolver) {
 
     /**
      * Test

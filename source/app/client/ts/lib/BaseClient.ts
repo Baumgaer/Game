@@ -82,7 +82,7 @@ export abstract class BaseClient {
     }
 
     protected async resolverCollection() {
-        // Collect graphQL resolvers
+        // const context = require.context("./../routes", true, /.+\.ts/, "sync");
     }
 
     protected async gracefulShutdown() {

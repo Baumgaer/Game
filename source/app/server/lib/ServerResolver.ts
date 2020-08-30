@@ -1,9 +1,10 @@
+import { BDOResolver } from "~bdo/lib/BDOResolver";
 import { query, arg } from "~bdo/utils/decorators";
 
 /**
  * Test
  */
-export class BaseResolver {
+export class ServerResolver extends BDOResolver {
 
     /**
      * Test

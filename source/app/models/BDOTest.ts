@@ -1,6 +1,5 @@
 import { baseConstructor, attribute, watched } from '~bdo/utils/decorators';
 import { BDOModel } from '~bdo/lib/BDOModel';
-import { Column } from "typeorm";
 
 /**
  * Test
@@ -25,7 +24,7 @@ export function BDOTestFactory<TBase extends Constructor<BDOModel>>(ctor: TBase)
          * @type {string}
          * @memberof Test
          */
-        @Column() @attribute() public title: string = 'test';
+        @attribute() public title: string = 'test';
 
         /**
          * Test
@@ -33,7 +32,7 @@ export function BDOTestFactory<TBase extends Constructor<BDOModel>>(ctor: TBase)
          * @type {string[]}
          * @memberof BDOTest
          */
-        @Column("simple-array") @watched() @attribute((_type) => [String]) public tester: string[] = [];
+        @watched() @attribute((_type) => [String]) public tester: string[] = [];
 
         protected beforeDatabaseInsertCallback() {
             console.log(this.id, this.className); // eslint-disable-line
