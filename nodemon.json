@@ -9,5 +9,6 @@
         "/app/out/app/**",
         "/app/out/utils/**"
     ],
-    "ext": "js,njk"
+    "ext": "js,njk",
+    "delay": 1000
 }
