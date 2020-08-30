@@ -93,11 +93,11 @@ export abstract class BDORoute {
      *
      * @protected
      * @abstract
-     * @param _requestOrParams The request given by the http server or a response from the http server
+     * @param _request The request given by the http server or a response from the http server
      * @returns the processed template parameters
      * @memberof BDORoute
      */
-    protected async templateParams(_requestOrParams: Request | IndexStructure): Promise<IndexStructure> {
+    protected async templateParams(_request: Request): Promise<IndexStructure> {
         return {};
     }
 
@@ -113,7 +113,7 @@ export abstract class BDORoute {
      * @memberof BDORoute
      */
     protected abstract handleGet(
-        requestOrParams: Request | IndexStructure,
+        request: Request,
         response: Response,
         next: NextFunction
     ): Promise<void>;

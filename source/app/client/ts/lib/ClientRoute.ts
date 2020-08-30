@@ -3,6 +3,8 @@ import { merge, toURIPathPart } from '~bdo/utils/util';
 import { Logger } from '~client/lib/Logger';
 import NightHawk from "nighthawk";
 
+import type { Request } from "express";
+
 const logger = new Logger();
 
 /**
@@ -51,7 +53,7 @@ export class ClientRoute extends BDORoute {
      * @returns the processed template parameters
      * @memberof ClientRoute
      */
-    protected async templateParams(params: IndexStructure): Promise<IndexStructure> {
+    protected async templateParams(params: Request): Promise<IndexStructure> {
         return super.templateParams(params);
     }
 
@@ -62,7 +64,7 @@ export class ClientRoute extends BDORoute {
      * @returns {Promise<void>}
      * @memberof ClientRoute
      */
-    protected async handleGet(params: IndexStructure): Promise<void> {
+    protected async handleGet(params: Request): Promise<void> {
         logger.log(merge(await this.templateParamsFromServer(), await this.templateParams(params)));
     }
 
