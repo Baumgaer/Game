@@ -51,7 +51,6 @@ export abstract class BaseServer {
      * The application which handles the routing and serving and so on
      *
      * @protected
-     * @type {express.Application}
      * @memberof BaseServer
      */
     protected readonly app: express.Application = express();
@@ -60,7 +59,6 @@ export abstract class BaseServer {
      * The real HTTP server which is listening on the provided port
      *
      * @protected
-     * @type {Server}
      * @memberof BaseServer
      */
     protected readonly server: Server = createServer(this.app);
@@ -69,7 +67,6 @@ export abstract class BaseServer {
      * Provides the initialized express session as a handler for other mechanisms
      *
      * @protected
-     * @type {express.RequestHandler}
      * @memberof BaseServer
      */
     protected sessionParser?: express.RequestHandler;
@@ -79,7 +76,6 @@ export abstract class BaseServer {
      * running life cycle function.
      *
      * @protected
-     * @type {string}
      * @memberof BaseServer
      */
     protected state: states = 'stopped';
@@ -88,7 +84,6 @@ export abstract class BaseServer {
      * Holds the parsed schema from type graphql with corresponding resolvers
      *
      * @protected
-     * @type {(GraphQLSchema | null)}
      * @memberof BaseServer
      */
     protected apiSchema!: GraphQLSchema;
@@ -111,21 +106,18 @@ export abstract class BaseServer {
             logger.info(`${process.env.NAME} stopped`);
         });
         this.state = 'setupServer';
-        this.setupServer()
-            .then(async () => {
-                this.state = 'routeCollection';
-                logger.info(`Collecting routes of ${process.env.NAME}`);
-                await this.routeCollection();
-            })
-            .then(async () => {
-                this.state = 'resolverCollection';
-                logger.info(`Collecting resolvers of ${process.env.NAME}`);
-                await this.resolverCollection();
-            })
-            .then(() => {
-                this.state = "ready";
-                logger.info(`${process.env.NAME} is ready for start`);
-            });
+        this.setupServer().then(async () => {
+            this.state = 'routeCollection';
+            logger.info(`Collecting routes of ${process.env.NAME}`);
+            await this.routeCollection();
+        }).then(async () => {
+            this.state = 'resolverCollection';
+            logger.info(`Collecting resolvers of ${process.env.NAME}`);
+            await this.resolverCollection();
+        }).then(() => {
+            this.state = "ready";
+            logger.info(`${process.env.NAME} is ready for start`);
+        });
     }
 
     /**

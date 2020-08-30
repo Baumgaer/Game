@@ -5,7 +5,7 @@ import os from "os";
  */
 export const proc = {
     env: {
-        name: process.env.NAME,
+        NAME: process.env.NAME,
         hostname: os.hostname(),
         NODE_ENV: process.env.NODE_ENV
     },

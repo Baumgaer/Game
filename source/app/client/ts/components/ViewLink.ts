@@ -63,7 +63,6 @@ export default class ViewLink extends BaseComponentFactory(HTMLAnchorElement) {
      */
     public constructedCallback() {
         super.constructedCallback();
-        this.addEventListener("click", this.onLinkClick.bind(this));
     }
 
     /**
@@ -153,15 +152,4 @@ export default class ViewLink extends BaseComponentFactory(HTMLAnchorElement) {
         console.log("tester removed", removed, this);  // eslint-disable-line
     }
 
-    /**
-     * Triggers the router to navigate to the href of the link
-     *
-     * @private
-     * @param event The event which happened on click
-     * @memberof ViewLink
-     */
-    private onLinkClick(event: MouseEvent): void {
-        event.preventDefault();
-        window.router.navigate(this.href, true);
-    }
 }

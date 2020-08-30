@@ -1,6 +1,7 @@
 import { BDORoute } from '~bdo/lib/BDORoute';
-import { merge } from '~bdo/utils/util';
+import { merge, toURIPathPart } from '~bdo/utils/util';
 import { Logger } from '~client/lib/Logger';
+import NightHawk from "nighthawk";
 
 const logger = new Logger();
 
@@ -28,12 +29,17 @@ export class ClientRoute extends BDORoute {
      * @readonly
      * @memberof ClientRoute
      */
-    public get router(): IndexStructure<(params: IndexStructure) => void> {
-        const routes: IndexStructure = {};
-        for (const route of this.routes) {
-            routes[`${this.routerNameSpace}/${route}`.replace("//", "/")] = this.handleGet.bind(this);
+    public get router() {
+        const router = NightHawk();
+        for (let route of this.routes) {
+            route = toURIPathPart(route);
+            router.get(route, this.handleGet.bind(this));
+            // router.post(route, this.handlePost.bind(this));
+            // router.put(route, this.handlePut.bind(this));
+            // router.delete(route, this.handleDelete.bind(this));
+            // router.patch(route, this.handlePatch.bind(this));
         }
-        return routes;
+        return router;
     }
 
     /**
