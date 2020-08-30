@@ -49,12 +49,12 @@ export class ClientRoute extends BDORoute {
      *
      * @protected
      * @abstract
-     * @param params a response from the http server
+     * @param request a response from the http server
      * @returns the processed template parameters
      * @memberof ClientRoute
      */
-    protected async templateParams(params: Request): Promise<IndexStructure> {
-        return super.templateParams(params);
+    protected async templateParams(request: Request): Promise<IndexStructure> {
+        return super.templateParams(request);
     }
 
     /**
@@ -64,8 +64,8 @@ export class ClientRoute extends BDORoute {
      * @returns {Promise<void>}
      * @memberof ClientRoute
      */
-    protected async handleGet(params: Request): Promise<void> {
-        logger.log(merge(await this.templateParamsFromServer(), await this.templateParams(params)));
+    protected async handleGet(request: Request): Promise<void> {
+        logger.log(merge(await this.templateParamsFromServer(), await this.templateParams(request)));
     }
 
     /**
