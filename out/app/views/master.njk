@@ -7,7 +7,7 @@
 
 <body>
     <script nonce="{{ responseLocals.cspScriptNonce }}">
-        window.process = {{ process | json }};
+        window.process = JSON.parse('{{ process | json }}');
         window.cspScriptNonce = "{{ responseLocals.cspScriptNonce }}";
     </script>
     <view-router>{% block body %}{% endblock %}</view-router>

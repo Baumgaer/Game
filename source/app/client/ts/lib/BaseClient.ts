@@ -3,6 +3,8 @@ import { ClientRoute } from "~client/lib/ClientRoute";
 import { includesMemberOfList, toURIPathPart } from "~bdo/utils/util";
 import NightHawk from "nighthawk";
 
+import type { Request } from "express";
+
 const logger = new Logger({
     logLevel: "debug"
 });
@@ -51,6 +53,11 @@ export abstract class BaseClient {
         }).then(() => {
             this.state = "ready";
             logger.info(`${global.process.env.NAME} is ready for start`);
+
+            this.app.use((request: Request) => {
+                throw new Error(`Route ${request.path} is not defined`);
+            });
+
             this.app.listen();
         });
     }
