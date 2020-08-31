@@ -2,9 +2,12 @@ import { v4 as uuid } from "uuid";
 import { GraphQLID } from "graphql/type";
 import { Binding, writeRights } from "~bdo/lib/Binding";
 import { attribute, baseConstructor, property } from "~bdo/utils/decorators";
-import { getMetadata } from "~bdo/utils/metadata";
+import { getMetadata, getWildcardMetadata } from "~bdo/utils/metadata";
 import { IBaseConstructorOpts } from "~bdo/lib/BaseConstructor";
 import { ModelRegistry } from "~bdo/lib/ModelRegistry";
+import { Watched } from "~bdo/lib/Watched";
+
+import type { Attribute } from "~bdo/lib/Attribute";
 
 /**
  * Provides basic functionality and fields for each Model on each side
@@ -113,18 +116,6 @@ export abstract class BDOModel implements IBaseConstructorOpts {
     }
 
     /**
-     * Test
-     *
-     * @static
-     * @param this The this context of the method which can not be overwritten
-     * @param _id The id of the instance of the model
-     * @memberof BDOModel
-     */
-    public static getInstanceByID<T extends BDOModel>(this: new () => T, _id: T["id"]): Promise<T | undefined> {
-        throw new Error("Not implemented");
-    }
-
-    /**
      * Gets a property of this model and converts it into a data-binding
      * depending on the given mode. By default it is a two-way-data-binding.
      * The binding can be processed by a decorator @attribute, @property or @watched.
@@ -178,11 +169,10 @@ export abstract class BDOModel implements IBaseConstructorOpts {
      * @returns true if attribute is not persisted and false else
      * @memberof BDOModel
      */
-    public async isUnsaved(attr: DefNonFuncPropNames<this>): Promise<boolean> {
-        const unsavedChanges = await this.getUnsavedChanges();
-        let unsaved = false;
-        if (unsavedChanges && <string>attr in unsavedChanges) unsaved = true;
-        return Promise.resolve(unsaved);
+    public isUnsaved(attr: DefNonFuncPropNames<this>) {
+        let attribute: Attribute | Watched = getWildcardMetadata(this, attr);
+        if (attribute instanceof Watched) attribute = <Attribute>attribute.subObject;
+        return Boolean(attribute.isUnsaved);
     }
 
     /**
@@ -192,9 +182,43 @@ export abstract class BDOModel implements IBaseConstructorOpts {
      * @returns true if there are unsaved changes and false else
      * @memberof BDOModel
      */
-    public async hasUnsavedChanges(): Promise<boolean> {
-        const unsavedChanges = await this.getUnsavedChanges();
-        return Promise.resolve(Boolean(Object.keys(unsavedChanges).length));
+    public hasUnsavedChanges() {
+        const definedAttributes = getMetadata(this, "definedAttributes");
+        const attributeNames = (definedAttributes?.keys() || []);
+
+        for (const attributeName of attributeNames) {
+            let attribute: Attribute | Watched = getWildcardMetadata(this, attributeName);
+            if (attribute instanceof Watched) attribute = <Attribute>attribute.subObject;
+            if (attribute.isUnsaved) return true;
+        }
+        return false;
+    }
+
+    /**
+     * Returns all values of all attributes which are not stored in the database
+     *
+     * @abstract
+     * @returns An object with all attributes which are not persisted yet
+     * @memberof BDOModel
+     */
+    public getUnsavedChanges() {
+        const definedAttributes = getMetadata(this, "definedAttributes");
+        const attributeNames = (definedAttributes?.keys() || []);
+        const unsavedAttributes: Record<string, any> = {};
+
+        for (const attributeName of attributeNames) {
+            let attribute: Attribute | Watched = getWildcardMetadata(this, attributeName);
+            if (attribute instanceof Watched) attribute = <Attribute>attribute.subObject;
+            if (!attribute.isUnsaved) continue;
+            unsavedAttributes[attributeName.toString()] = attribute.valueOf();
+        }
+        return unsavedAttributes as Record<DefNonFuncPropNames<this>, any>;
+    }
+
+    public getAttribute<T extends DefNonFuncPropNames<this>>(name: T): Attribute<this, T> {
+        let attribute: Attribute | Watched = getWildcardMetadata(this, name);
+        if (attribute instanceof Watched) attribute = <Attribute>attribute.subObject;
+        return attribute;
     }
 
     protected afterDatabaseLoadCallback() {
@@ -234,14 +258,5 @@ export abstract class BDOModel implements IBaseConstructorOpts {
      * @memberof BDOModel
      */
     public abstract async discard(attr?: DefNonFuncPropNames<this>): Promise<void>;
-
-    /**
-     * Returns all values of all attributes which are not stored in the database
-     *
-     * @abstract
-     * @returns An object with all attributes which are not persisted yet
-     * @memberof BDOModel
-     */
-    public abstract async getUnsavedChanges(): Promise<Record<string, any>>;
 
 }

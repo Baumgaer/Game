@@ -1,6 +1,7 @@
 import { baseConstructor, property } from "~bdo/utils/decorators";
 import { BDOModel } from "~bdo/lib/BDOModel";
 import { getNamespacedStorage, setUpdateNamespacedStorage, deleteFromNamespacedStorage } from "~client/utils/util";
+import { pick } from "~bdo/utils/util";
 import { Logger } from "~client/lib/Logger";
 import { DatabaseManager } from "~client/lib/DatabaseManager";
 
@@ -72,13 +73,26 @@ export class ClientModel extends BDOModel {
         deleteFromNamespacedStorage(this, key, nsProp);
     }
 
-    public async save(options: SaveOptions) {
+    public async save<T extends ClientModel>(this: T, attributes: DefNonFuncPropNames<T>[] = [], options?: SaveOptions) {
         const connection = await DatabaseManager.getInstance().createConnection(this.databaseName);
-        const repository = connection.getRepository(Object.getPrototypeOf(this.constructor));
-        const mayModel = await repository.findOne(this.id);
-        if (mayModel) {
-            return repository.update(this.id, this);
-        } else return repository.save(this, options);
+        const repository = connection.getRepository<ClientModel>(Object.getPrototypeOf(this.constructor));
+        const unsavedChanges = attributes.length ? pick(this.getUnsavedChanges(), attributes) : this.getUnsavedChanges();
+        const updateKeys = Object.keys(unsavedChanges);
+        if (!updateKeys.length) return Promise.resolve();
+
+        let result;
+        try {
+            result = await repository.save(this, options);
+        } catch (error) {
+            result = await repository.update(this.id, unsavedChanges);
+        }
+
+        for (const attributeName of updateKeys) {
+            const attribute = this.getAttribute(<DefNonFuncPropNames<T>>attributeName);
+            attribute.isUnsaved = false;
+        }
+
+        return result;
     }
 
     /**
@@ -88,16 +102,6 @@ export class ClientModel extends BDOModel {
      * @memberof ClientModel
      */
     public discard(_attr?: DefNonFuncPropNames<this>): Promise<void> {
-        throw new Error("Method not implemented.");
-    }
-
-    /**
-     * @inheritdoc
-     *
-     * @returns The changes which are not saved yet
-     * @memberof ClientModel
-     */
-    public async getUnsavedChanges(): Promise<Record<string, any>> {
         throw new Error("Method not implemented.");
     }
 

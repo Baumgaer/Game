@@ -55,6 +55,8 @@ declare type ConstParams<T> = Partial<
     >
 >;
 
+declare type ConstParamsKeys<T> = Array<keyof ConstParams<T>>
+
 // WebSocket types
 type wsVerifyClientInfo = { origin: string; secure: boolean; req: IncomingMessage };
 type wsVerifyClientDone = (

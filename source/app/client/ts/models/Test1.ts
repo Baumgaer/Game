@@ -24,8 +24,6 @@ export class Test1 extends BDOTest1Factory(Test) {
      * @memberof Test1
      */
     public async wadde(): Promise<IndexStructure | undefined> {
-        const test = await Test1.getInstanceByID(this.id);
-        if (test) return test.getUnsavedChanges();
         return;
     }
 }

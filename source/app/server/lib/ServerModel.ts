@@ -40,33 +40,4 @@ export class ServerModel extends BDOModel {
         throw new Error("Method not implemented.");
     }
 
-    /**
-     * @inheritdoc
-     *
-     * @param _attr The attributes which should be checked
-     * @throws {Error}
-     * @memberof ServerModel
-     */
-    public isUnsaved(_attr?: DefNonFuncPropNames<this>): Promise<boolean> {
-        throw new Error("Method not implemented.");
-    }
-
-    /**
-     * @inheritdoc
-     *
-     * @memberof ServerModel
-     */
-    public hasUnsavedChanges(): Promise<boolean> {
-        throw new Error("Method not implemented.");
-    }
-
-    /**
-     * @inheritdoc
-     *
-     * @memberof ServerModel
-     */
-    public getUnsavedChanges(): Promise<IndexStructure> {
-        throw new Error("Method not implemented.");
-    }
-
 }

@@ -107,6 +107,13 @@ export class Attribute<T extends Record<string, any> = any, K extends prop<T> = 
     public doNotPersist?: boolean;
 
     /**
+     * Indicates wether an attribute is saved or not
+     *
+     * @memberof Attribute
+     */
+    public isUnsaved: boolean = false;
+
+    /**
      * Marks if an attribute is initialized on a DOM element
      *
      * @memberof Attribute
@@ -142,6 +149,7 @@ export class Attribute<T extends Record<string, any> = any, K extends prop<T> = 
         let oldID;
         if (isBDOModel(this.object) && this.property === "id") oldID = this.ownValue;
         this.doSetValue(value, true, true);
+        this.isUnsaved = true;
         if (oldID) ModelRegistry.getInstance().updateID(oldID, this.object);
         this.reflectToDOMAttribute(value);
         this.doAutoSave();
@@ -180,6 +188,7 @@ export class Attribute<T extends Record<string, any> = any, K extends prop<T> = 
             }
         }
         this.doSetValue(value, false, true);
+        this.isUnsaved = true;
         this.reflectToDOMAttribute(value);
         this.doAutoSave();
     }
