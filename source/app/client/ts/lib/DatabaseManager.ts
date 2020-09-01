@@ -29,7 +29,7 @@ export class DatabaseManager extends BDODatabasemanager {
             const modelName = key.split("/").pop()?.split(".").slice(0, -1).join('.');
             if (modelName) {
                 const baseClass: ReturnType<typeof baseConstructorFactory> = context(key)[modelName];
-                if (baseClass.databaseName === name) entities.push(<typeof ClientModel>baseClass.graphQLType);
+                if (baseClass.databaseName === name) entities.push(<typeof ClientModel><unknown>baseClass.graphQLType);
             }
         });
 

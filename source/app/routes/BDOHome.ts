@@ -1,5 +1,4 @@
 import { BDORoute } from '~bdo/lib/BDORoute';
-import template from "~bdo/views/home.njk";
 
 /**
  * constructs the base for the home route on server and client
@@ -37,20 +36,12 @@ export function BDOHomeFactory<TBase extends Constructor<BDORoute>>(ctor: TBase)
          * @inheritdoc
          *
          * @protected
-         * @memberof BDOHome
-         */
-        protected templateString = template;
-
-        /**
-         * @inheritdoc
-         *
-         * @protected
          * @returns Additional template params for server and client
          * @memberof BDOHome
          */
         protected async templateParams(): Promise<IndexStructure> {
             return {
-                oha: 'endlich zu Hause =)'
+                title: 'endlich zu Hause =)'
             };
         }
     }

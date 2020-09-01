@@ -1,7 +1,8 @@
 import { BaseComponentFactory } from '~client/lib/BaseComponent';
 import { baseConstructor } from '~bdo/utils/decorators';
-import { WebClient } from "~client/WebClient";
+import { Logger } from "~client/lib/Logger";
 
+const logger = new Logger();
 /**
  * Manages routing on client side, switches views and collects routes for client.
  *
@@ -9,7 +10,7 @@ import { WebClient } from "~client/WebClient";
  * @extends ReturnType<BaseComponentFactory<HTMLElement>>
  */
 @baseConstructor()
-export default class ViewRouter extends BaseComponentFactory(HTMLElement) {
+export default class WebClient extends BaseComponentFactory(HTMLElement) {
 
     /**
      * @inheritdoc
@@ -19,7 +20,8 @@ export default class ViewRouter extends BaseComponentFactory(HTMLElement) {
      */
     protected connectedCallback() {
         super.connectedCallback();
-        new WebClient();
+        logger.log("WebClient loaded");
+        this.innerHTML = "";
     }
 
 }

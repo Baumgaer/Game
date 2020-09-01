@@ -1,0 +1,7 @@
+{% set ctor = "~server/views/ServerRoute.njk" %}
+{% extends "~bdo/views/BDOHomeRoute.njk" %}
+
+{% block bodyMiddle %}
+{{ super() }}
+<web-client> {{ bigLoadingAnimation() }} </web-client>
+{% endblock %}

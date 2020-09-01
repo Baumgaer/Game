@@ -8,6 +8,8 @@ import { EntityOptions } from "typeorm/decorator/options/EntityOptions";
 import { IndexOptions } from "typeorm/decorator/options/IndexOptions";
 import { TreeType } from "typeorm/metadata/types/TreeTypes";
 
+import type { BaseControllerFactory } from "~client/lib/BaseController";
+
 export interface IBaseConstructorCtor<T = any> extends IGetNamespaceStorageAddition<T> {
 
     /**
@@ -93,7 +95,7 @@ export interface IBaseConstructorOpts extends ObjectTypeOptions, Omit<EntityOpti
  * @param constParamsIndex The position of the construction parameters
  * @returns The mixed in class BaseConstructor
  */
-export function baseConstructorFactory<T extends Constructor<IBaseConstructorCtor>>(ctor: T, constParamsIndex: number) {
+export function baseConstructorFactory<T extends IBaseConstructorCtor & ReturnType<typeof BaseControllerFactory>>(ctor: T, constParamsIndex: number) {
 
     /**
      * Invokes the life cycle of every component and model
@@ -160,6 +162,8 @@ export function baseConstructorFactory<T extends Constructor<IBaseConstructorCto
 
         public readonly className: string = Object.getPrototypeOf(this.constructor).name;
 
+        private callConnectedCallback: boolean = false;
+
         constructor(...params: any[]) {
             super(...params);
             const constParams = params[constParamsIndex];
@@ -189,6 +193,13 @@ export function baseConstructorFactory<T extends Constructor<IBaseConstructorCto
             defineMetadata(this, "constructionComplete", true);
             if (isComponent(ctor) && isFunction(this.renderTemplate)) this.renderTemplate();
             if (isFunction(this.constructedCallback)) this.constructedCallback();
+            if (this.callConnectedCallback) this.connectedCallback();
+        }
+
+        protected connectedCallback() {
+            if (isComponent(this) && !getMetadata(this, "constructionComplete")) {
+                this.callConnectedCallback = true;
+            } else super.connectedCallback();
         }
 
         /**

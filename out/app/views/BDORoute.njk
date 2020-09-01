@@ -1,0 +1,23 @@
+{% macro bigLoadingAnimation() %}
+<div class="lds-roller" ref="loadingAnimation">
+    <div></div>
+    <div></div>
+    <div></div>
+    <div></div>
+    <div></div>
+    <div></div>
+    <div></div>
+    <div></div>
+</div>
+{% endmacro %}
+
+{% macro littleLoadingAnimation() %}
+<div class="lds-ellipsis" ref="loadingAnimation">
+    <div></div>
+    <div></div>
+    <div></div>
+    <div></div>
+</div>
+{% endmacro %}
+
+{% block view %}{% endblock %}

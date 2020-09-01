@@ -57,8 +57,23 @@ export abstract class BaseClient {
             this.app.use((request: Request) => {
                 throw new Error(`Route ${request.path} is not defined`);
             });
+        });
+    }
 
+    public async start() {
+        logger.info(`Start of ${process.env.NAME} requested`);
+        await new Promise((resolver) => {
+            const interval = setInterval(() => {
+                if (this.state === 'ready') {
+                    clearInterval(interval);
+                    resolver();
+                }
+            });
+        });
+
+        return new Promise((resolver) => {
             this.app.listen();
+            resolver();
         });
     }
 

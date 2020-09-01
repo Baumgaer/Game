@@ -5,6 +5,7 @@ import { property } from '~bdo/utils/decorators';
 import { constructTypeOfHTMLAttribute, isPrimitive, isString, isObject, pascalCase2kebabCase, getProxyTarget } from '~bdo/utils/util';
 import { isComponent } from "~bdo/utils/framework";
 import { BaseControllerFactory } from "~client/lib/BaseController";
+import template from "~static/views/DefaultTemplate.njk";
 
 export type Position = "after" | "before" | "replace" | "first" | "last" | number;
 
@@ -71,7 +72,7 @@ export function BaseComponentFactory<TBase extends Constructor<HTMLElement>>(HTM
          * @type {(string | Template)}
          * @memberof BaseComponent
          */
-        @property({ disableTypeGuard: true }) protected readonly templateString: string | Template = '<div><slot></slot></div>';
+        @property({ disableTypeGuard: true }) protected readonly templateString: string | Template = template;
 
         /**
          * Defines the style of the component.

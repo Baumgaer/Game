@@ -42,15 +42,10 @@ module.exports = (_env, options) => {
         };
     };
     const settings = {
-        entry: () => new Promise((resolve) => {
-            const entryPoints = [
-                path.resolve(arp.path, "node_modules/@webcomponents/webcomponentsjs/webcomponents-bundle.js")
-            ];
-            projectStructureUtils.walk(componentsDir, (file) => {
-                if (file.endsWith(".d.ts") || !file.endsWith(".ts")) return;
-                entryPoints.push(file);
-            }).then(() => resolve(entryPoints));
-        }),
+        entry: [
+            path.resolve(arp.path, "node_modules/@webcomponents/webcomponentsjs/webcomponents-bundle.js"),
+            path.resolve(arp.path, "source", "app", "client", "ts", "WebClient.ts")
+        ],
         output: {
             filename: "bundle.js",
             chunkFilename: '[name].bundle.js',
