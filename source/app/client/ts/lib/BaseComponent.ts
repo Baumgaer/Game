@@ -2,7 +2,7 @@ import 'reflect-metadata';
 import { Template, renderString } from 'nunjucks';
 import { Properties } from "csstype";
 import { property } from '~bdo/utils/decorators';
-import { constructTypeOfHTMLAttribute, isPrimitive, isString, isObject, pascalCase2kebabCase, getProxyTarget } from '~bdo/utils/util';
+import { constructTypeOfHTMLAttribute, isPrimitive, isString, isObject, pascalCase2kebabCase, getProxyTarget, camelCase2kebabCase } from '~bdo/utils/util';
 import { isComponent } from "~bdo/utils/framework";
 import { BaseControllerFactory } from "~client/lib/BaseController";
 import template from "~static/views/BaseComponent.njk";
@@ -310,7 +310,7 @@ export function BaseComponentFactory<TBase extends Constructor<HTMLElement>>(HTM
                 nameOrValue = elementOrName;
                 elementOrName = this;
             } else if (value) valueToAssign = value;
-            elementOrName.style.setProperty(nameOrValue, valueToAssign);
+            elementOrName.style.setProperty(camelCase2kebabCase(nameOrValue), valueToAssign);
         }
 
         /**
