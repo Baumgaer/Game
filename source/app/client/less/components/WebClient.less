@@ -1,0 +1,53 @@
+@import (less) "~static/less/BaseComponent.less";
+
+:host {
+    display: flex;
+    flex-flow: column;
+    align-items: stretch;
+    box-sizing: border-box;
+    height: 100%;
+    width: 100%;
+
+    *:not(slot) {
+        border: 2px solid blue;
+        box-sizing: border-box;
+    }
+
+    .topPanel {
+        display: block;
+        height: 30px;
+        width: 100%;
+    }
+
+    .verticalMiddlePanel {
+        display: flex;
+        flex-flow: row;
+        align-items: stretch;
+        width: 100%;
+        height: 100%;
+
+        section-panel-splitter {
+            padding: 0;
+            margin: 0;
+            width: 5px;
+        }
+
+        .browsePanel {
+            padding: 0;
+            margin: 0;
+            width: 400px;
+        }
+
+        .horizontalMiddlePanel {
+            padding: 0;
+            margin: 0;
+            width: 100%;
+        }
+
+        .communicationPanel {
+            padding: 0;
+            margin: 0;
+            width: 400px;
+        }
+    }
+}

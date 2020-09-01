@@ -1,0 +1,21 @@
+{% extends "~static/views/BaseComponent.njk" %}
+
+{% block view %}
+<section-panel class="topPanel"></section-panel>
+<section-panel class="verticalMiddlePanel">
+    <section-panel class="browsePanel" aligned="left">
+        <side-bar></side-bar>
+        <content-panel></content-panel>
+    </section-panel>
+    <section-panel-splitter></section-panel-splitter>
+    <section-panel class="horizontalMiddlePanel">
+        <tab-bar></tab-bar>
+        <content-panel></content-panel>
+    </section-panel>
+    <section-panel-splitter></section-panel-splitter>
+    <section-panel class="communicationPanel" aligned="right">
+        <content-panel></content-panel>
+        <side-bar></side-bar>
+    </section-panel>
+</section-panel>
+{% endblock %}

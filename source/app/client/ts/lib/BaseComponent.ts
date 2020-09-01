@@ -5,7 +5,8 @@ import { property } from '~bdo/utils/decorators';
 import { constructTypeOfHTMLAttribute, isPrimitive, isString, isObject, pascalCase2kebabCase, getProxyTarget } from '~bdo/utils/util';
 import { isComponent } from "~bdo/utils/framework";
 import { BaseControllerFactory } from "~client/lib/BaseController";
-import template from "~static/views/DefaultTemplate.njk";
+import template from "~static/views/BaseComponent.njk";
+import style from "~static/less/BaseComponent.less";
 
 export type Position = "after" | "before" | "replace" | "first" | "last" | number;
 
@@ -84,7 +85,7 @@ export function BaseComponentFactory<TBase extends Constructor<HTMLElement>>(HTM
          * @type {string}
          * @memberof BaseComponent
          */
-        @property({ disableTypeGuard: true }) protected readonly styleString: string = '';
+        @property({ disableTypeGuard: true }) protected readonly styleString: string = style;
 
         /**
          * this contains all HTMLElements with a ref attribute to give fast
@@ -285,8 +286,9 @@ export function BaseComponentFactory<TBase extends Constructor<HTMLElement>>(HTM
             if (this.properties && this.properties.has(qualifiedName)) {
                 throw new Error(`"${qualifiedName}" can't be removed as attribute because it is a defined property`);
             }
+            const attribute = this.attributes.get(qualifiedName);
             super.removeAttribute(qualifiedName);
-            this[qualifiedName] = undefined;
+            if (attribute?.nullable) this[qualifiedName] = undefined;
         }
 
         /**
@@ -478,8 +480,12 @@ export function BaseComponentFactory<TBase extends Constructor<HTMLElement>>(HTM
             if (stringToParse) {
                 const shadowRoot = this.attachShadow({ mode: 'open' });
                 const doc = new DOMParser().parseFromString(`<style nonce="${window.cspScriptNonce}">${this.styleString}</style>${stringToParse}`, 'text/html');
-                shadowRoot.appendChild(<HTMLElement>doc.head.firstChild);
-                shadowRoot.appendChild(<HTMLElement>doc.body.firstChild);
+                for (const headChild of Array.from(doc.head.children)) {
+                    shadowRoot.appendChild(headChild);
+                }
+                for (const bodyChild of Array.from(doc.body.children)) {
+                    shadowRoot.appendChild(bodyChild);
+                }
             }
         }
     }

@@ -1,13 +1,7 @@
 import { BaseComponentFactory } from '~client/lib/BaseComponent';
-import { baseConstructor } from '~bdo/utils/decorators';
+import { baseConstructor, attribute } from '~bdo/utils/decorators';
 import { Logger } from "~client/lib/Logger";
-import template from "~static/views/WebClient.njk";
-import style from "~static/less/components/WebClient.less";
-
-import "~client/components/SectionPanel";
-import "~client/components/SectionPanelSplitter";
-import "~client/components/TabBar";
-import "~client/components/ContentPanel";
+import style from "~static/less/components/SectionPanel.less";
 
 const logger = new Logger();
 /**
@@ -17,9 +11,10 @@ const logger = new Logger();
  * @extends ReturnType<BaseComponentFactory<HTMLElement>>
  */
 @baseConstructor()
-export default class WebClient extends BaseComponentFactory(HTMLElement) {
+export default class SectionPanel extends BaseComponentFactory(HTMLElement) {
 
-    templateString = template;
+
+    @attribute() public aligned: string = "";
 
     styleString = style;
 
@@ -31,7 +26,7 @@ export default class WebClient extends BaseComponentFactory(HTMLElement) {
      */
     protected connectedCallback() {
         super.connectedCallback();
-        logger.log("WebClient loaded");
+        logger.log("SectionPanel connected");
     }
 
 }
