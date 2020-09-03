@@ -117,15 +117,23 @@ export default class SectionPanelSplitter extends BaseComponentFactory(HTMLEleme
             this.wasResize = false;
             return;
         }
+
         let componentToCollapseOrExpand;
         if (this.collapsibleSection === "next") {
             componentToCollapseOrExpand = this.nextComponentSibling;
         } else if (this.collapsibleSection === "previous") componentToCollapseOrExpand = this.previousComponentSibling;
+
         if (!componentToCollapseOrExpand) return;
         const style = getComputedStyle(componentToCollapseOrExpand);
-        if (style.maxWidth === "0px") {
-            componentToCollapseOrExpand.removeStyle("maxWidth");
-        } else componentToCollapseOrExpand.setStyle("maxWidth", "0px");
+
+        let sizeToChange: "maxWidth" | "maxHeight";
+        if (this.direction === "horizontal") {
+            sizeToChange = "maxWidth";
+        } else sizeToChange = "maxHeight";
+
+        if (style[sizeToChange] === "0px") {
+            componentToCollapseOrExpand.removeStyle(sizeToChange);
+        } else componentToCollapseOrExpand.setStyle(sizeToChange, "0px");
     }
 
     /**
