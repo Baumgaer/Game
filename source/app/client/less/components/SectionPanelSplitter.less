@@ -1,12 +1,48 @@
 @import (less) "~static/less/BaseComponent.less";
 
 :host {
-    display: block;
-    height: 100%;
+    > div {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+    }
+}
+
+:host([direction="vertical"]) {
     width: 8px;
+    height: 100%;
     cursor: col-resize;
+
+    > div {
+        height: 70px;
+        width: 2px;
+        border-left: 1px solid var(--secondary-text-color);
+        border-right: 1px solid var(--secondary-text-color);
+    }
+}
+
+:host([direction="horizontal"]) {
+    height: 8px;
+    width: 100%;
+    cursor: row-resize;
+
+    > div {
+        width: 70px;
+        height: 2px;
+        border-top: 1px solid var(--secondary-text-color);
+        border-bottom: 1px solid var(--secondary-text-color);
+    }
 }
 
 :host(:hover) {
-    background: pink;
+    background: var(--secondary-text-color);
+
+    > div {
+        border-color: var(--primary-text-color);
+    }
+}
+
+:host(:active) {
+    background: var(--primary-text-color);
 }

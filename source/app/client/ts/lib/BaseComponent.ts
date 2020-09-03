@@ -217,7 +217,7 @@ export function BaseComponentFactory<TBase extends Constructor<HTMLElement>>(HTM
                 const rootNode = currentElement.getRootNode();
                 let previousElementSibling = currentElement.previousElementSibling;
                 if (!previousElementSibling && rootNode instanceof ShadowRoot) previousElementSibling = this.shadowRoot?.firstElementChild ?? null;
-                if (!previousElementSibling) break;
+                if (!previousElementSibling || previousElementSibling instanceof HTMLStyleElement) break;
                 if (isComponent<BaseComponent>(previousElementSibling)) {
                     previousComponentSibling = previousElementSibling;
                     break;
@@ -331,7 +331,7 @@ export function BaseComponentFactory<TBase extends Constructor<HTMLElement>>(HTM
                 elementOrName = this;
             } else if (name) styleToRemove = name;
             if (!styleToRemove) throw new Error("Property name must be provided!");
-            elementOrName.style.removeProperty(styleToRemove);
+            elementOrName.style.removeProperty(camelCase2kebabCase(styleToRemove));
         }
 
         /**
