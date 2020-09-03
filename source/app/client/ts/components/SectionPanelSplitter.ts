@@ -89,6 +89,13 @@ export default class SectionPanelSplitter extends BaseComponentFactory(HTMLEleme
      */
     private nextSection: SectionPanel | null = null;
 
+    /**
+     * Indicates wether the action was a resize or not to be able to prevent the
+     * click event in case of resize.
+     *
+     * @private
+     * @memberof SectionPanelSplitter
+     */
     private wasResize: boolean = false;
 
     /**
