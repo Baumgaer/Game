@@ -17,8 +17,8 @@
     > div {
         height: 70px;
         width: 2px;
-        border-left: 1px solid var(--secondary-text-color);
-        border-right: 1px solid var(--secondary-text-color);
+        border-left: 1px solid var(--primary-grayed-out-color);
+        border-right: 1px solid var(--primary-grayed-out-color);
     }
 }
 
@@ -30,19 +30,19 @@
     > div {
         width: 70px;
         height: 2px;
-        border-top: 1px solid var(--secondary-text-color);
-        border-bottom: 1px solid var(--secondary-text-color);
+        border-top: 1px solid var(--primary-grayed-out-color);
+        border-bottom: 1px solid var(--primary-grayed-out-color);
     }
 }
 
 :host(:hover) {
-    background: var(--secondary-text-color);
+    background: var(--primary-grayed-out-color);
 
     > div {
-        border-color: var(--primary-text-color);
+        border-color: var(--primary-background-color);
     }
 }
 
 :host(:active) {
-    background: var(--primary-text-color);
+    background: var(--secondary-background-color);
 }

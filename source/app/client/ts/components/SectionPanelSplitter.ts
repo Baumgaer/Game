@@ -106,6 +106,14 @@ export default class SectionPanelSplitter extends BaseComponentFactory(HTMLEleme
         this.onclick = this.onClick.bind(this);
     }
 
+    private getCollapsibleSection() {
+        let collapsibleSection;
+        if (this.collapsibleSection === "next") {
+            collapsibleSection = this.nextComponentSibling;
+        } else if (this.collapsibleSection === "previous") collapsibleSection = this.previousComponentSibling;
+        return collapsibleSection;
+    }
+
     /**
      * Collapses or expands the given collapsible component
      *
@@ -118,22 +126,25 @@ export default class SectionPanelSplitter extends BaseComponentFactory(HTMLEleme
             return;
         }
 
-        let componentToCollapseOrExpand;
-        if (this.collapsibleSection === "next") {
-            componentToCollapseOrExpand = this.nextComponentSibling;
-        } else if (this.collapsibleSection === "previous") componentToCollapseOrExpand = this.previousComponentSibling;
-
-        if (!componentToCollapseOrExpand) return;
-        const style = getComputedStyle(componentToCollapseOrExpand);
+        const collapsibleSection = this.getCollapsibleSection();
+        if (!collapsibleSection) return;
+        const style = getComputedStyle(collapsibleSection);
 
         let sizeToChange: "maxWidth" | "maxHeight";
-        if (this.direction === "horizontal") {
+        let sizeToCorrect: "height" | "width";
+        if (this.direction === "vertical") {
             sizeToChange = "maxWidth";
-        } else sizeToChange = "maxHeight";
+            sizeToCorrect = "width";
+        } else {
+            sizeToChange = "maxHeight";
+            sizeToCorrect = "height";
+        }
 
-        if (style[sizeToChange] === "0px") {
-            componentToCollapseOrExpand.removeStyle(sizeToChange);
-        } else componentToCollapseOrExpand.setStyle(sizeToChange, "0px");
+        const parsedSizeToCorrect = parseInt(style[sizeToCorrect]);
+        if (style[sizeToChange] === "0px" || parsedSizeToCorrect <= 5) {
+            if (parsedSizeToCorrect <= 5) collapsibleSection.removeStyle(sizeToCorrect);
+            collapsibleSection.removeStyle(sizeToChange);
+        } else collapsibleSection.setStyle(sizeToChange, "0px");
     }
 
     /**
@@ -174,6 +185,7 @@ export default class SectionPanelSplitter extends BaseComponentFactory(HTMLEleme
         if (event.clientX === this.initialCoordinates.x || event.clientY === this.initialCoordinates.y) return;
 
         this.wasResize = true;
+        const collapsibleSection = this.getCollapsibleSection();
         let prevSize, nextSize, offset;
         let direction: "height" | "width";
 
@@ -183,12 +195,14 @@ export default class SectionPanelSplitter extends BaseComponentFactory(HTMLEleme
             nextSize = this.initialSizes.next.height - (event.clientY - this.initialCoordinates.y);
             direction = "height";
             offset = this.clientHeight / 2;
+            if (collapsibleSection) collapsibleSection.removeStyle("maxHeight");
         } else {
             // Calculate width
             prevSize = this.initialSizes.prev.width + (event.clientX - this.initialCoordinates.x);
             nextSize = this.initialSizes.next.width - (event.clientX - this.initialCoordinates.x);
             direction = "width";
             offset = this.clientWidth / 2;
+            if (collapsibleSection) collapsibleSection.removeStyle("maxWidth");
         }
 
         // Do not resize for values <= 0 to avoid overlapping
@@ -208,6 +222,8 @@ export default class SectionPanelSplitter extends BaseComponentFactory(HTMLEleme
         this.initialSizes = null;
         this.prevSection = null;
         this.nextSection = null;
+        // This timeout is necessary to wait until the click event was fired
+        setTimeout(() => this.wasResize = false);
         window.removeEventListener("mousemove", this.onMouseMove);
         window.removeEventListener("mouseup", this.onMouseUp);
     }
