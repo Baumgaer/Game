@@ -17,7 +17,8 @@ interface ISizes {
 }
 
 /**
- * Manages routing on client side, switches views and collects routes for client.
+ * Resizes and collapses section-panels by modifying their sizes directly.
+ * One of the siblings should have a dynamic size like "flex: 1".
  *
  * @class GameView
  * @extends ReturnType<BaseComponentFactory<HTMLElement>>

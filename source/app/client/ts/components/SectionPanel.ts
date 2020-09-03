@@ -3,7 +3,7 @@ import { baseConstructor } from '~bdo/utils/decorators';
 import style from "~static/less/components/SectionPanel.less";
 
 /**
- * Manages routing on client side, switches views and collects routes for client.
+ * Provides a handlable style for resizing and collapsing
  *
  * @class GameView
  * @extends ReturnType<BaseComponentFactory<HTMLElement>>
