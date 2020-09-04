@@ -1,8 +1,8 @@
 import 'reflect-metadata';
-import { Template, renderString } from 'nunjucks';
+import { Template } from 'nunjucks';
 import { Properties } from "csstype";
 import { property } from '~bdo/utils/decorators';
-import { constructTypeOfHTMLAttribute, isPrimitive, isString, isObject, pascalCase2kebabCase, getProxyTarget, camelCase2kebabCase } from '~bdo/utils/util';
+import { constructTypeOfHTMLAttribute, isPrimitive, pascalCase2kebabCase, getProxyTarget, camelCase2kebabCase } from '~bdo/utils/util';
 import { isComponent } from "~bdo/utils/framework";
 import { BaseControllerFactory } from "~client/lib/BaseController";
 import template from "~static/views/BaseComponent.njk";
@@ -34,7 +34,6 @@ export function BaseComponentFactory<TBase extends Constructor<HTMLElement>>(HTM
          * HTMLAnchorElement.
          *
          * @static
-         * @type {(string | null)}
          * @memberof BaseComponent
          */
         public static readonly extends?: string;
@@ -52,7 +51,6 @@ export function BaseComponentFactory<TBase extends Constructor<HTMLElement>>(HTM
          * @see IBaseConstructorCtor.isProceduralComponentConstruction
          *
          * @static
-         * @type {boolean}
          * @memberof BaseComponent
          */
         public static isProceduralComponentConstruction: boolean = false;
@@ -60,7 +58,6 @@ export function BaseComponentFactory<TBase extends Constructor<HTMLElement>>(HTM
         /**
          * This is for better identification of base components and instance check
          *
-         * @type {boolean}
          * @memberof BaseComponent
          */
         @property() public readonly isBaseComponent: boolean = true;
@@ -70,10 +67,9 @@ export function BaseComponentFactory<TBase extends Constructor<HTMLElement>>(HTM
          * Must have exactly one root node and can be a string or a Template
          * for e.g. require("./path/to/template.njk") or module syntax.
          *
-         * @type {(string | Template)}
          * @memberof BaseComponent
          */
-        @property({ disableTypeGuard: true }) protected readonly templateString: string | Template = template;
+        @property({ disableTypeGuard: true }) protected readonly templateString: Template = template;
 
         /**
          * Defines the style of the component.
@@ -82,7 +78,6 @@ export function BaseComponentFactory<TBase extends Constructor<HTMLElement>>(HTM
          * or module syntax.
          *
          * @protected
-         * @type {string}
          * @memberof BaseComponent
          */
         @property({ disableTypeGuard: true }) protected readonly styleString: string = style;
@@ -353,7 +348,7 @@ export function BaseComponentFactory<TBase extends Constructor<HTMLElement>>(HTM
                 elementOrName = this;
             } else if (name) propToGet = name;
             if (!propToGet) throw new Error("Property name must be provided!");
-            return elementOrName.style.getPropertyValue(propToGet) as Properties[T];
+            return elementOrName.style.getPropertyValue(camelCase2kebabCase(propToGet)) as Properties[T];
         }
 
         /**
@@ -475,8 +470,7 @@ export function BaseComponentFactory<TBase extends Constructor<HTMLElement>>(HTM
                 if (!isPrimitive(value.valueOf())) continue;
                 fields[key] = value.valueOf();
             }
-            if (isString(this.templateString)) stringToParse = renderString(this.templateString, fields, (_err, res) => { stringToParse = res; });
-            if (isObject(this.templateString)) stringToParse = (<Template>getProxyTarget(this.templateString)).render(fields);
+            stringToParse = (<Template>getProxyTarget(this.templateString)).render(fields);
             if (stringToParse) {
                 const shadowRoot = this.attachShadow({ mode: 'open' });
                 const doc = new DOMParser().parseFromString(`<style nonce="${window.cspScriptNonce}">${this.styleString}</style>${stringToParse}`, 'text/html');
