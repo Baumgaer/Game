@@ -296,6 +296,15 @@ export function BaseControllerFactory<TBase extends Constructor<any>>(extension:
             return data;
         }
 
+        public dispatchEvent(name: string, detail?: Record<string, any>) {
+            super.dispatchEvent(new CustomEvent(name, {
+                bubbles: true,
+                composed: true,
+                cancelable: true,
+                detail
+            }));
+        }
+
         /**
          * @inheritdoc
          *

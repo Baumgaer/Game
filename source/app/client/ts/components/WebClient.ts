@@ -32,6 +32,7 @@ export default class WebClient extends BaseComponentFactory(HTMLElement) {
     protected connectedCallback() {
         super.connectedCallback();
         logger.log("WebClient loaded");
+        this.addEventListener("test", (event: Event) => logger.log(event));
     }
 
 }

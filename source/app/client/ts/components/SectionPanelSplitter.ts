@@ -174,6 +174,7 @@ export default class SectionPanelSplitter extends BaseComponentFactory(HTMLEleme
         };
         window.addEventListener("mousemove", this.onMouseMove);
         window.addEventListener("mouseup", this.onMouseUp);
+        this.dispatchEvent(new CustomEvent("test", { bubbles: true, composed: true, detail: { lalala: true } }));
     }
 
     /**
