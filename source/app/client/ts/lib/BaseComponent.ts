@@ -267,7 +267,7 @@ export function BaseComponentFactory<TBase extends Constructor<HTMLElement>>(HTM
                 let valueToSet = value;
                 if (!isPrimitive(value)) valueToSet = JSON.stringify(value).replace(/"/g, "'");
                 super.setAttribute(qualifiedName, valueToSet);
-                if (setValue) this[qualifiedName] = constructTypeOfHTMLAttribute(this, qualifiedName);
+                if (setValue) (<Record<string, any>>this)[qualifiedName] = constructTypeOfHTMLAttribute(this, qualifiedName);
             } else this.removeAttribute(qualifiedName);
         }
 
@@ -283,7 +283,7 @@ export function BaseComponentFactory<TBase extends Constructor<HTMLElement>>(HTM
             }
             const attribute = this.attributes.get(qualifiedName);
             super.removeAttribute(qualifiedName);
-            if (attribute?.nullable) this[qualifiedName] = undefined;
+            if (attribute?.nullable) (<Record<string, any>>this)[qualifiedName] = undefined;
         }
 
         /**

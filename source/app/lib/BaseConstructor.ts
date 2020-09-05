@@ -8,8 +8,6 @@ import { EntityOptions } from "typeorm/decorator/options/EntityOptions";
 import { IndexOptions } from "typeorm/decorator/options/IndexOptions";
 import { TreeType } from "typeorm/metadata/types/TreeTypes";
 
-import type { BaseControllerFactory } from "~client/lib/BaseController";
-
 export interface IBaseConstructorCtor<T = any> extends IGetNamespaceStorageAddition<T> {
 
     /**
@@ -19,7 +17,14 @@ export interface IBaseConstructorCtor<T = any> extends IGetNamespaceStorageAddit
      *
      * @memberof IBaseConstructorCtor
      */
-    constructedCallback?: () => void;
+    constructedCallback?(): void;
+
+    /**
+     * This is called when a BaseComponent is connected to the DOM but at least after the constructedCallback
+     *
+     * @memberof IBaseConstructorCtor
+     */
+    connectedCallback?(): void;
 
     /**
      * If the BaseConstructor is part of a Component of the frontend, there
@@ -28,7 +33,7 @@ export interface IBaseConstructorCtor<T = any> extends IGetNamespaceStorageAddit
      *
      * @memberof IBaseConstructorCtor
      */
-    renderTemplate?: () => void;
+    renderTemplate?(): void;
 }
 /**
  * This parameters should only be used on models because on other objects they
@@ -95,7 +100,7 @@ export interface IBaseConstructorOpts extends ObjectTypeOptions, Omit<EntityOpti
  * @param constParamsIndex The position of the construction parameters
  * @returns The mixed in class BaseConstructor
  */
-export function baseConstructorFactory<T extends IBaseConstructorCtor & ReturnType<typeof BaseControllerFactory>>(ctor: T, constParamsIndex: number) {
+export function baseConstructorFactory<T extends Constructor<IBaseConstructorCtor>>(ctor: T, constParamsIndex: number) {
 
     /**
      * Invokes the life cycle of every component and model
@@ -179,9 +184,9 @@ export function baseConstructorFactory<T extends IBaseConstructorCtor & ReturnTy
          * @param constParams The parameters to construct the object with
          * @memberof BaseConstructor
          */
-        public invokeLifeCycle(constParams: IndexStructure) {
+        public invokeLifeCycle(constParams: Record<string, any>) {
             if (!(constParams instanceof Object)) constParams = {};
-            let defaultSettings: IndexStructure = getMetadata(this, "defaultSettings") || {};
+            let defaultSettings: Record<string, any> = getMetadata(this, "defaultSettings") || {};
             // Assign attributes for declarative instantiation of component
             this.assignComponentDeclarativeAttributes(defaultSettings);
             // Assign constParams for programmatically instantiation
@@ -196,7 +201,8 @@ export function baseConstructorFactory<T extends IBaseConstructorCtor & ReturnTy
             if (this.callConnectedCallback) this.connectedCallback();
         }
 
-        protected connectedCallback() {
+        public connectedCallback() {
+            if (!isFunction(super.connectedCallback)) return;
             if (isComponent(this) && !getMetadata(this, "constructionComplete")) {
                 this.callConnectedCallback = true;
             } else super.connectedCallback();

@@ -1,11 +1,11 @@
 
 import { getNamespacedStorage, setUpdateNamespacedStorage, deleteFromNamespacedStorage } from "~client/utils/util";
 import { getMetadata, getWildcardMetadata } from "~bdo/utils/metadata";
-import { removeElementFromArray, getPrototypeNamesRecursive } from "~bdo/utils/util";
+import { removeElementFromArray, getPrototypeNamesRecursive, isFunction } from "~bdo/utils/util";
 import { attribute, property, watched } from "~bdo/utils/decorators";
 import { ControllerRegistry } from "~client/lib/ControllerRegistry";
 import { Binding } from "~bdo/lib/Binding";
-import { isComponent, BaseComponentInstance } from '~bdo/utils/framework';
+import { isComponent } from '~bdo/utils/framework';
 import languageResources from "~static/locales";
 
 import i18next from "i18next";
@@ -13,13 +13,10 @@ import LanguageDetector from 'i18next-browser-languagedetector';
 
 import type { Property } from "~bdo/lib/Property";
 import type { Attribute } from "~bdo/lib/Attribute";
-import type { BaseComponentFactory } from "~client/lib/BaseComponent";
 
 type controllerLifeCycleFuncNames = "constructedCallback" | "connectedCallback" | "disconnectedCallback" | "adoptedCallback" | "remove";
 type eventMapKey = keyof HTMLElementEventMap;
 type eventListenerFunc<K extends eventMapKey> = (this: ReturnType<typeof BaseControllerFactory>, ev: HTMLElementEventMap[K]) => any;
-
-interface OwnerType extends InstanceType<ReturnType<typeof BaseComponentFactory>> { } // eslint-disable-line
 
 i18next.use(LanguageDetector).init({
     resources: {},
@@ -40,20 +37,19 @@ i18next.use(LanguageDetector).init({
  * @param extension The type to extend with
  * @returns The mixedin class BaseController
  */
-export function BaseControllerFactory<TBase extends Constructor<any>>(extension: TBase) {
+export function BaseControllerFactory<TBase extends Constructor<EventTarget & { remove(): void }>>(extension: TBase) {
 
     /**
      * Provides basic support for controller
      *
      * @extends TBase
      */
-    abstract class BaseController extends (extension ?? Object) {
+    abstract class BaseController extends extension {
 
         /**
          * The static version of the base controller identifier
          *
          * @static
-         * @type {boolean}
          * @memberof BaseController
          */
         public static readonly isBaseController: boolean = true;
@@ -62,7 +58,6 @@ export function BaseControllerFactory<TBase extends Constructor<any>>(extension:
          * Represents the constructors name.
          *
          * @protected
-         * @type {string}
          * @memberof BaseController
          */
         @property() public readonly className: string = Object.getPrototypeOf(this.constructor).name;
@@ -70,7 +65,6 @@ export function BaseControllerFactory<TBase extends Constructor<any>>(extension:
         /**
          * This is for better identification of base controllers and instance check
          *
-         * @type {boolean}
          * @memberof BaseController
          */
         @property() public readonly isBaseController: boolean = true;
@@ -78,7 +72,6 @@ export function BaseControllerFactory<TBase extends Constructor<any>>(extension:
         /**
          * To ensure that every component has a unique ID attribute
          *
-         * @type {string}
          * @memberof BaseController
          */
         @watched() @attribute() public id: string = '';
@@ -98,7 +91,7 @@ export function BaseControllerFactory<TBase extends Constructor<any>>(extension:
          * @protected
          * @memberof BaseController
          */
-        protected owner!: this extends HTMLElement ? undefined : OwnerType;
+        protected owner!: EventTarget;
 
         /**
          * Manages all controllers (and components) to be equal in id and provides an overview
@@ -179,7 +172,7 @@ export function BaseControllerFactory<TBase extends Constructor<any>>(extension:
          * @param _ConstParams The parameters which were used to construct the controller
          * @memberof BaseController
          */
-        public invokeLifeCycle<T extends BaseController>(_ConstParams?: ConstParams<T>) {
+        public invokeLifeCycle(_ConstParams?: Record<string, any>) {
             throw new Error("This is not a BaseConstructor");
         }
 
@@ -204,8 +197,8 @@ export function BaseControllerFactory<TBase extends Constructor<any>>(extension:
             let vars: L | undefined = literals;
 
             // Determine the relevant class
-            let classToTakeCareOf = this as unknown as BaseComponentInstance;
-            if (!isComponent<BaseComponentInstance>(this)) classToTakeCareOf = this.owner;
+            let classToTakeCareOf: BaseController = this;
+            if (!isComponent(this)) classToTakeCareOf = <any>this.owner;
 
             // Sort parameters
             if (!key && !vars) {
@@ -296,12 +289,20 @@ export function BaseControllerFactory<TBase extends Constructor<any>>(extension:
             return data;
         }
 
-        public dispatchEvent(name: string, detail?: Record<string, any>) {
-            super.dispatchEvent(new CustomEvent(name, {
+        /**
+         * @inheritdoc
+         *
+         * @param name The name of the event to emit. Could be a custom name or a DOM event name
+         * @param detail The details which should be emitted with the event to give some more information
+         * @memberof BaseController
+         */
+        public dispatchEvent(name: string | Event, detail?: typeof name extends string ? Record<string, any> : never) {
+            if (name instanceof Event) return super.dispatchEvent(name);
+            return super.dispatchEvent(new CustomEvent(name, {
                 bubbles: true,
                 composed: true,
                 cancelable: true,
-                detail
+                detail: Object.assign(detail, { emitter: this })
             }));
         }
 
@@ -318,7 +319,7 @@ export function BaseControllerFactory<TBase extends Constructor<any>>(extension:
             if (!this.listeners.has(type)) this.listeners.set(type, []);
             const listenersArray: eventListenerFunc<K>[] = this.listeners.get(type) || [];
             listenersArray.push(listener);
-            if (super.addEventListener) super.addEventListener(type, listener, options);
+            super.addEventListener(type, <EventListener>listener, options);
         }
 
         /**
@@ -333,7 +334,7 @@ export function BaseControllerFactory<TBase extends Constructor<any>>(extension:
             if (!(this instanceof HTMLElement) && !(this instanceof EventTarget)) throw new Error("This is not an instance of HTMLElement or EventTarget");
             if (!this.listeners.has(type)) return;
             if (this.listeners.has(type)) removeElementFromArray(this.listeners.get(type) || [], listener);
-            if (super.removeEventListener) super.removeEventListener(type, listener, options);
+            super.removeEventListener(type, <EventListener>listener, options);
         }
 
         /**
@@ -348,7 +349,7 @@ export function BaseControllerFactory<TBase extends Constructor<any>>(extension:
                 }
             }
             this.callLiveCycleFunctionsOfControllers("remove");
-            if (this instanceof HTMLElement) super.remove();
+            if (isFunction(super.remove)) super.remove();
         }
 
         /**
@@ -364,6 +365,8 @@ export function BaseControllerFactory<TBase extends Constructor<any>>(extension:
 
         /**
          * 2. Called when the component / owner is connected with the dom.
+         * In case the connected event is fired before the construction is finished,
+         * the connectedCallback will be hold back until the construction is complete.
          *
          * @protected
          * @memberof BaseController

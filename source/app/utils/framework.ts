@@ -76,9 +76,9 @@ export type BaseControllerInstance = InstanceType<BaseController>;
  */
 export function beforeDescriptor<
     T extends Record<string, any>,
-    K extends M extends "definedBaseConstructors" ? T["name"] : DefNonFuncPropNames<T>,
     M extends defPropAttrWatchConst,
-    P extends IWatchAttrPropSettings<M>
+    P extends IWatchAttrPropSettings<M>,
+    K extends M extends "definedBaseConstructors" ? T["name"] : DefNonFuncPropNames<T>
 >(target: T, key: K, mDataName: M, params: P): P {
     // Define metadata for access to attributes for later checks
     if (!Reflect.hasMetadata(mDataName, target)) defineMetadata(target, mDataName, new Map());

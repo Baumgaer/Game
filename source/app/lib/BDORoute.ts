@@ -18,7 +18,6 @@ export abstract class BDORoute {
      * names in the array.
      *
      * @static
-     * @type {string[]}
      * @memberof BaseRoute
      */
     public static attachToServers: string[] = ['*'];
@@ -27,7 +26,6 @@ export abstract class BDORoute {
      * Namespace for the express router as entry point
      *
      * @public
-     * @type {string}
      * @memberof BaseRoute
      */
     public routerNameSpace: string = `/${this.constructor.name.toLowerCase()}`;
@@ -35,7 +33,6 @@ export abstract class BDORoute {
     /**
      * Defines sub routes on which the routerNameSpace is reachable
      *
-     * @type {string[]}
      * @memberof BDORoute
      */
     public routes: string[] = ['/'];
@@ -53,7 +50,6 @@ export abstract class BDORoute {
      * If this is null, the pure JSON from templateParams will be sent to the client.
      *
      * @protected
-     * @type {string}
      * @memberof BaseRoute
      */
     protected templateString: string | Template = '<div></div>';
@@ -63,7 +59,6 @@ export abstract class BDORoute {
      * will be returned.
      *
      * @protected
-     * @type {boolean}
      * @memberof BDORoute
      */
     protected jsonOnly: boolean = false;
@@ -106,10 +101,10 @@ export abstract class BDORoute {
      *
      * @protected
      * @abstract
-     * @param {Request} request
-     * @param {Response} response
-     * @param {NextFunction} next
-     * @returns {Promise<void>}
+     * @param request The request given by http server or a fake request in Frontend
+     * @param response The response used by the http server to transmit data to the client or redirect on client side
+     * @param next The function which will trigger the next middleware function
+     * @returns A Promise indicating finished request
      * @memberof BDORoute
      */
     protected abstract handleGet(

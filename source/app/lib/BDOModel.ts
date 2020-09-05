@@ -44,7 +44,6 @@ export abstract class BDOModel implements IBaseConstructorOpts {
      * @inheritdoc
      *
      * @static
-     * @type {string}
      * @memberof BDOModel
      */
     public static readonly collectionName?: string;
@@ -53,7 +52,6 @@ export abstract class BDOModel implements IBaseConstructorOpts {
      * @inheritdoc
      *
      * @static
-     * @type {string}
      * @memberof BDOModel
      */
     public static readonly databaseName?: string;
@@ -63,7 +61,6 @@ export abstract class BDOModel implements IBaseConstructorOpts {
      * initialized class is a model.
      *
      * @static
-     * @type {boolean}
      * @memberof BDOModel
      */
     public static readonly isBDOModel: boolean = true;
@@ -71,7 +68,6 @@ export abstract class BDOModel implements IBaseConstructorOpts {
     /**
      * @see BDOModel.isBDOModel
      *
-     * @type {boolean}
      * @memberof BDOModel
      */
     @property() public readonly isBDOModel: boolean = true;
@@ -79,7 +75,6 @@ export abstract class BDOModel implements IBaseConstructorOpts {
     /**
      * @see BDOModel.collectionName
      *
-     * @type {string}
      * @memberof BDOModel
      */
     @property() public readonly collectionName?: string = BDOModel.collectionName;
@@ -87,7 +82,6 @@ export abstract class BDOModel implements IBaseConstructorOpts {
     /**
      * @see BDOModel.databaseName
      *
-     * @type {string}
      * @memberof BDOModel
      */
     @property() public readonly databaseName?: string = BDOModel.databaseName;
@@ -96,7 +90,6 @@ export abstract class BDOModel implements IBaseConstructorOpts {
      * Provides a unique id for each model. If there is no id given, a unique
      * dummy id will be generated.
      *
-     * @type {string}
      * @memberof BDOModel
      */
     @attribute((_type) => GraphQLID) public id: string = `pending_${uuid()}`;
@@ -106,7 +99,6 @@ export abstract class BDOModel implements IBaseConstructorOpts {
      * on client and server side when data is received.
      *
      * @protected
-     * @type {string}
      * @memberof BDOModel
      */
     @attribute() public readonly className: string = this.constructor.name;
