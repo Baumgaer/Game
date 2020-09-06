@@ -13,7 +13,7 @@ import { baseConstructor, attribute } from "~bdo/utils/decorators";
 @baseConstructor()
 export class Test1 extends BDOTest1Factory(Test) {
 
-    @attribute(() => [Test]) public testTesten: Test[] = [];
+    @attribute(() => [Test.graphQLType]) public testTesten: Test[] = [];
 
     constructor(params?: ConstParams<Test1>) {
         super(params);

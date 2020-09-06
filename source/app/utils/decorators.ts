@@ -62,7 +62,7 @@ interface IDatabaseColumns {
     isTreeChildArray?: boolean;
     isIndex?: boolean | string;
     isViewColumn?: boolean;
-    hasRelation?: RequireOnlyOne<IRelations> & { isRelationOwner?: boolean; };
+    hasRelation?: IRelations & { isRelationOwner?: boolean; };
 }
 type AttributeParams = Omit<IAttributeParams & ColumnEmbeddedOptions & IDatabaseColumns & ColumnCommonOptions & ColumnOptions, "array" | "comment" | "defaultValue">;
 type FuncOrAttrParams = ReturnTypeFunc | AttributeParams;
@@ -192,15 +192,6 @@ export function attribute(typeFunc?: FuncOrAttrParams, params?: AttributeParams)
         };
 
         if (isBDOModel(target)) {
-            if (typeFunc) {
-                const typeFuncValue = typeFunc();
-                if (isArray(typeFuncValue)) {
-                    for (const [index, typeFuncValueItem] of typeFuncValue.entries()) {
-                        if (isBaseConstructor(typeFuncValueItem)) typeFuncValue[index] = typeFuncValueItem.graphQLType;
-                    }
-                }
-                typeFunc = (_value) => typeFuncValue;
-            }
             // Decide which Field should be used
             installColumn();
             params = Object.assign({}, params, { defaultValue: params.default });

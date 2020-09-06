@@ -200,6 +200,7 @@ export abstract class BDOModel implements IBaseConstructorOpts {
 
         for (const attributeName of attributeNames) {
             let attribute: Attribute | Watched = getWildcardMetadata(this, attributeName);
+            if (!attribute) continue;
             if (attribute instanceof Watched) attribute = <Attribute>attribute.subObject;
             if (!attribute.isUnsaved) continue;
             unsavedAttributes[attributeName.toString()] = attribute.valueOf();
