@@ -12,8 +12,7 @@ import { baseConstructor, attribute } from "~bdo/utils/decorators";
 @baseConstructor()
 export class User extends BDOUserFactory(ClientModel) {
 
-    @attribute((_type) => [Artifact.graphQLType], { hasRelation: { oneToMany: [(_type) => Artifact.graphQLType, (artifact) => (<Artifact>artifact).creator], isRelationOwner: true } })
-    public artifacts!: Artifact[];
+    @attribute() public artifacts!: Artifact[];
 
     constructor(_params?: ConstParams<User>) {
         super();
