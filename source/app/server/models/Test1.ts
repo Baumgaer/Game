@@ -26,7 +26,7 @@ export class Test1 extends BDOTest1Factory(Test) {
 
     @attribute() public aNumber = 1;
 
-    @attribute() public aBoolean: boolean = true;
+    @attribute() public aBoolean: boolean | null = true;
 
     @attribute() public aDate = new Date();
 

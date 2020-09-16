@@ -143,7 +143,7 @@ function determineType(definitionName: string, attribute: PropertyDeclaration, t
     }
 
     const attributeName = attribute.name.getText();
-    const primitiveTypes = ["string", "number", "boolean", "true", "false"];
+    const primitiveTypes = ["string", "number", "boolean", "true", "false", "null"];
     const typeName = typeChecker.typeToString(type);
 
     // Add to required properties if there is no undefined in type
