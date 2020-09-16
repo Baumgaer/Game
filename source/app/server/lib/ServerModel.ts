@@ -17,7 +17,6 @@ export class ServerModel extends BDOModel {
      * initialized class is a model.
      *
      * @static
-     * @type {boolean}
      * @memberof BDOModel
      */
     public static readonly isServerModel: boolean = true;
@@ -25,7 +24,6 @@ export class ServerModel extends BDOModel {
     /**
      * This is for better identification of BDO models and instance check
      *
-     * @type {boolean}
      * @memberof BDOModel
      */
     @property() public readonly isServerModel: boolean = true;

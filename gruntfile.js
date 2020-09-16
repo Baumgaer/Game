@@ -25,6 +25,17 @@ module.exports = function (grunt) {
                     spawn: false
                 }
             },
+            "compile.schema": {
+                files: [
+                    'source/app/client/ts/models/**/*.ts',
+                    'source/app/server/models/**/*.ts'
+                ],
+                tasks: ['compile:schema'],
+                options: {
+                    event: ['unlink', 'change', 'add'],
+                    spawn: false
+                }
+            },
             "cleanup.ts": {
                 files: [
                     'source/**/*.ts',

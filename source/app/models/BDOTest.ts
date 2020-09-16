@@ -21,7 +21,6 @@ export function BDOTestFactory<TBase extends Constructor<BDOModel>>(ctor: TBase)
         /**
          * Test
          *
-         * @type {string}
          * @memberof Test
          */
         @attribute() public title: string = 'test';
@@ -29,7 +28,6 @@ export function BDOTestFactory<TBase extends Constructor<BDOModel>>(ctor: TBase)
         /**
          * Test
          *
-         * @type {string[]}
          * @memberof BDOTest
          */
         @watched() @attribute((_type) => [String]) public tester: string[] = [];

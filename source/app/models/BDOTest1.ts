@@ -21,10 +21,9 @@ export function BDOTest1Factory<TBase extends ReturnType<typeof BDOTestFactory>>
         /**
          * Test
          *
-         * @type {string}
          * @memberof Test
          */
-        @attribute({ description: "tester..." }) public title: string = 'test';
+        @attribute() public title: string = 'test';
 
         /**
          * Test

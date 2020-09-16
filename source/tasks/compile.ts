@@ -7,6 +7,7 @@ import { readFileSync, writeFileSync } from 'graceful-fs';
 import lessPluginCleanCSS from 'less-plugin-clean-css';
 import { sync as mkDirSync } from 'mkdirp';
 import { walk, getCorrespondingFile } from "./../utils/projectStructure";
+import { buildSchema } from "./../utils/schemaGenerator";
 import { WalkStats } from "walk";
 import { parse } from "yaml";
 import { merge } from "lodash";
@@ -27,6 +28,10 @@ module.exports = (grunt: IGrunt): void => {
             config: {
                 src: ['out/app/config/**/*.yml', 'out/app/client/config/**/*.yml', 'out/app/client/server/**/*.yml'],
                 program: "config"
+            },
+            schema: {
+                src: ['source/app/client/ts/models/**/*.ts', 'source/app/server/models/**/*.ts'],
+                program: "schema"
             }
         }
     });
@@ -37,6 +42,8 @@ module.exports = (grunt: IGrunt): void => {
     });
 
     grunt.registerMultiTask('compile', 'Compiles Less', function task() {
+        let realSrc = this.filesSrc;
+        if (!realSrc.length) realSrc = [grunt.task.current.data.src];
         const done = this.async();
         const currentProgram = grunt.task.current.data.program;
         grunt.log.ok(grunt.task.current.data.program);
@@ -44,6 +51,8 @@ module.exports = (grunt: IGrunt): void => {
             compileLess().then(() => { done(`Finished!`); });
         } else if (currentProgram === "config") {
             compileConfig(grunt).then(() => { done(`Finished!`); });
+        } else if (currentProgram === "schema") {
+            compileSchema(grunt, realSrc).then(() => { done(`Finished!`); });
         } else done();
     });
 };
@@ -132,5 +141,44 @@ function compileConfig(grunt: IGrunt) {
             writeFileSync(resolvePath(rootPath, "source", "app", "interfaces", "Config.ts"), interfaceString, { encoding: "utf-8" });
             resolve();
         });
+    });
+}
+
+/**
+ * Compiles models to JSON schema to be able to validate api calls
+ *
+ * @param grunt The grunt interface
+ * @param filePaths the file path which should be compiles
+ * @returns A promise which indicates ready state
+ */
+function compileSchema(grunt: IGrunt, filePaths: string[]) {
+    return new Promise((resolver) => {
+        const modelsToCompile: string[] = [];
+        const args: Array<[string, string]> = [];
+
+        for (const filePath of filePaths) {
+            if (filePath.includes("source/app/client/ts/models")) {
+                if (modelsToCompile.includes("client")) continue;
+                modelsToCompile.push("client");
+                args.push([
+                    resolvePath(rootPath, "source", "app", "client", "ts", "tsconfig.json"),
+                    resolvePath(rootPath, "source", "app", "client", "ts", "interfaces", "api.json")
+                ]);
+            }
+            if (filePath.includes("source/app/server/models")) {
+                if (modelsToCompile.includes("server")) continue;
+                modelsToCompile.push("server");
+                args.push([
+                    resolvePath(rootPath, "tsconfig.json"),
+                    resolvePath(rootPath, "source", "app", "server", "interfaces", "api.json")
+                ]);
+            }
+        }
+
+        for (const arg of args) {
+            grunt.log.ok(`Creating schema: ${arg[1]}`);
+            buildSchema(...arg);
+        }
+        resolver();
     });
 }

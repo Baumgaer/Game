@@ -48,9 +48,7 @@ export function getCorrespondingFile(filePath: string): string {
  */
 export function isSourceFile(filePath: string): boolean {
     if (!isAbsolute(filePath)) filePath = resolve(rootPath, filePath);
-    if (filePath.includes(resolve(rootPath, 'source'))) {
-        return true;
-    }
+    if (filePath.includes(resolve(rootPath, 'source'))) return true;
     return false;
 }
 
@@ -64,12 +62,11 @@ export function isOnClientSide(filePath: string): boolean {
     if (!isAbsolute(filePath)) filePath = resolve(rootPath, filePath);
     const sourceClientPath = resolve(rootPath, 'source', 'app', 'client');
     const outClientPath = resolve(rootPath, 'out', 'app', 'client');
-    if (
-        (isSourceFile(filePath) && filePath.includes(sourceClientPath)) ||
-        (!isSourceFile(filePath) && filePath.includes(outClientPath))
-    ) {
-        return true;
-    }
+
+    const isSourceClientFile = isSourceFile(filePath) && filePath.includes(sourceClientPath);
+    const isOutClientFile = !isSourceFile(filePath) && filePath.includes(outClientPath);
+
+    if (isSourceClientFile || isOutClientFile) return true;
     return false;
 }
 
@@ -130,4 +127,15 @@ export function cleanEmptyFoldersRecursively(folder: string, onRemove?: (folder:
         rmdirSync(folder);
         return;
     }
+}
+
+/**
+ * Turns a os related path into a path which can be processed by typescript
+ *
+ * @param filePath The path to transform
+ * @returns the transformed path
+ */
+export function toTSProcessablePath(filePath: string) {
+    if (!isAbsolute(filePath)) filePath = resolve(rootPath, filePath);
+    return filePath.split(sep).join("/");
 }
