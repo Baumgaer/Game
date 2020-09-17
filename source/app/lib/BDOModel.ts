@@ -1,5 +1,4 @@
 import { v4 as uuid } from "uuid";
-import { GraphQLID } from "graphql/type";
 import { Binding, writeRights } from "~bdo/lib/Binding";
 import { attribute, baseConstructor, property } from "~bdo/utils/decorators";
 import { getMetadata, getWildcardMetadata } from "~bdo/utils/metadata";
@@ -92,7 +91,7 @@ export abstract class BDOModel implements IBaseConstructorOpts {
      *
      * @memberof BDOModel
      */
-    @attribute((_type) => GraphQLID) public id: string = `pending_${uuid()}`;
+    @attribute() public id: string = `pending_${uuid()}`;
 
     /**
      * Represents the constructors name to ensure the right Model construction

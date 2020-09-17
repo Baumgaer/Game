@@ -36,8 +36,7 @@
             "babylonjs-procedural-textures",
             "babylonjs-gltf2interface",
             "babylonjs-inspector",
-            "reflect-metadata",
-            "graphql"
+            "reflect-metadata"
         ],
         "allowSyntheticDefaultImports": true,
         "experimentalDecorators": true,

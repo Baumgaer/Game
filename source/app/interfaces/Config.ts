@@ -138,7 +138,6 @@
   restart_policy: Restartpolicy;
 }interface Restartpolicy {
   condition: string;
-  delay: string;
   max_attempts: number;
   window: string;
 }interface Environment {

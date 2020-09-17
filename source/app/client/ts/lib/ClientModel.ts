@@ -1,11 +1,7 @@
 import { baseConstructor, property } from "~bdo/utils/decorators";
 import { BDOModel } from "~bdo/lib/BDOModel";
 import { getNamespacedStorage, setUpdateNamespacedStorage, deleteFromNamespacedStorage } from "~client/utils/util";
-import { pick } from "~bdo/utils/util";
 import { Logger } from "~client/lib/Logger";
-import { DatabaseManager } from "~client/lib/DatabaseManager";
-
-import type { SaveOptions } from "typeorm/repository/SaveOptions";
 
 const logger = new Logger();
 
@@ -73,26 +69,8 @@ export class ClientModel extends BDOModel {
         deleteFromNamespacedStorage(this, key, nsProp);
     }
 
-    public async save<T extends ClientModel>(this: T, attributes: DefNonFuncPropNames<T>[] = [], options?: SaveOptions) {
-        const connection = await DatabaseManager.getInstance().createConnection(this.databaseName);
-        const repository = connection.getRepository<ClientModel>(Object.getPrototypeOf(this.constructor));
-        const unsavedChanges = attributes.length ? pick(this.getUnsavedChanges(), attributes) : this.getUnsavedChanges();
-        const updateKeys = Object.keys(unsavedChanges);
-        if (!updateKeys.length) return Promise.resolve();
-
-        let result;
-        try {
-            result = await repository.save(this, options);
-        } catch (error) {
-            result = await repository.update(this.id, unsavedChanges);
-        }
-
-        for (const attributeName of updateKeys) {
-            const attribute = this.getAttribute(<DefNonFuncPropNames<T>>attributeName);
-            attribute.isUnsaved = false;
-        }
-
-        return result;
+    public async save() {
+        throw new Error("not implemented");
     }
 
     /**

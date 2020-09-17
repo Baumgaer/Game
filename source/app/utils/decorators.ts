@@ -1,72 +1,13 @@
 import 'reflect-metadata';
-import { pascalCase2kebabCase, isFunction, isPlainObject, isArray, isObject } from "~bdo/utils/util";
+import { pascalCase2kebabCase } from "~bdo/utils/util";
 import { IPropertyParams } from "~bdo/lib/Property";
 import { IAttributeParams } from "~bdo/lib/Attribute";
 import { IWatchedParams } from "~bdo/lib/Watched";
 import { baseConstructorFactory, IBaseConstructorOpts } from "~bdo/lib/BaseConstructor";
 import { defineMetadata, getMetadata } from "~bdo/utils/metadata";
-import { beforeDescriptor, createDecoratorDescriptor, isBaseConstructor, isComponent, isBDOModel, isClientModel } from "~bdo/utils/framework";
-import { ColumnEmbeddedOptions } from "typeorm/decorator/options/ColumnEmbeddedOptions";
-import { ColumnCommonOptions } from "typeorm/decorator/options/ColumnCommonOptions";
-import { ColumnOptions } from "typeorm/decorator/options/ColumnOptions";
-import {
-    Entity,
-    TableInheritance,
-    ChildEntity,
-    ViewEntity,
-    Tree,
-    Index,
-    AfterLoad,
-    BeforeInsert,
-    AfterInsert,
-    BeforeUpdate,
-    AfterUpdate,
-    BeforeRemove,
-    AfterRemove,
-    Column,
-    TreeParent,
-    TreeChildren,
-    PrimaryColumn,
-    PrimaryGeneratedColumn,
-    OneToOne,
-    OneToMany,
-    ManyToOne,
-    ManyToMany,
-    ViewColumn,
-    JoinColumn
-} from "typeorm";
-import { ReturnTypeFunc } from "type-graphql/dist/decorators/types";
-import {
-    Field,
-    ObjectType,
-    Query,
-    Arg,
-    Args,
-    Resolver,
-    Root,
-    Subscription,
-    Mutation,
-    PubSub,
-    InputType
-} from "type-graphql";
+import { beforeDescriptor, createDecoratorDescriptor, isBaseConstructor, isComponent, isBDOModel } from "~bdo/utils/framework";
 
-interface IRelations {
-    oneToOne?: Parameters<typeof OneToOne>;
-    oneToMany?: Parameters<typeof OneToMany>;
-    manyToOne?: Parameters<typeof ManyToOne>;
-    manyToMany?: Parameters<typeof ManyToMany>;
-}
-
-interface IDatabaseColumns {
-    isTreeParent?: boolean;
-    isTreeChildArray?: boolean;
-    isIndex?: boolean | string;
-    isViewColumn?: boolean;
-    hasRelation?: IRelations & { isRelationOwner?: boolean; };
-}
-type AttributeParams = Omit<IAttributeParams & ColumnEmbeddedOptions & IDatabaseColumns & ColumnCommonOptions & ColumnOptions, "array" | "comment" | "defaultValue">;
-type FuncOrAttrParams = ReturnTypeFunc | AttributeParams;
-type FuncOrPropParams = ReturnTypeFunc | IPropertyParams;
+type AttributeParams = IAttributeParams;
 type nameOptsIdx = string | IBaseConstructorOpts | number;
 type optsIdx = IBaseConstructorOpts | number;
 
@@ -95,23 +36,14 @@ export function watched(params: IWatchedParams = {}): PropertyDecorator {
  * Furthermore it handles type checking, caching and more. Read comments of
  * IPropertyParams for more information.
  *
- * @param typeFunc Used in type guard if the type is not
- *                 determinable automatically for example
- *                 the types inside an array or union types
  * @param params used to modify the behavior of the decorator
  * @returns A property descriptor to mark a field as a property and give more functionality
  */
-export function property(typeFunc?: FuncOrPropParams, params?: IPropertyParams): PropertyDecorator {
+export function property(params: IPropertyParams = {}): PropertyDecorator {
     return (target: Record<string, any>, key: string | symbol) => {
         const stringKey = key.toString();
-
-        // sort parameters
-        if (typeFunc && !(typeFunc instanceof Function) && !params) params = typeFunc;
-        if (typeFunc && !(typeFunc instanceof Function)) typeFunc = undefined;
-        if (!params || !(params instanceof Object)) params = {};
-
         // Do general decorator stuff
-        const decoratorSettings = beforeDescriptor(target, stringKey, "definedProperties", { typeFunc, params });
+        const decoratorSettings = beforeDescriptor(target, stringKey, "definedProperties", { params });
         createDecoratorDescriptor(target, stringKey, "Property", decoratorSettings);
     };
 }
@@ -128,81 +60,15 @@ export function property(typeFunc?: FuncOrPropParams, params?: IPropertyParams):
  *
  * Read IAttributeParams for more Information.
  *
- * @param typeFunc Used in type guard if the type is not
- *                 determinable automatically for example
- *                 the types inside an array or union types
  * @param params used to modify the behavior of the decorator
  * @returns A property descriptor to mark a field as an attribute which adds
  *          functionality to components and models
  */
-export function attribute(typeFunc?: FuncOrAttrParams, params?: AttributeParams): PropertyDecorator {
+export function attribute(params: AttributeParams = {}): PropertyDecorator {
     return (target: Record<string, any>, key: string | symbol) => {
         const stringKey = key.toString();
-
-        // sort parameters
-        if (typeFunc && !(typeFunc instanceof Function) && !params) params = typeFunc;
-        if (typeFunc && !(typeFunc instanceof Function)) typeFunc = undefined;
-        if (!params || !(params instanceof Object)) params = {};
-
-        const installColumn = () => {
-            const relation = params?.hasRelation;
-            let isPrimary = false;
-
-            if (params?.isViewColumn) return ViewColumn(params)(target, key);
-
-            if (!relation) {
-                if (isFunction(typeFunc)) {
-                    const typeFuncValue = typeFunc();
-                    if (isObject(typeFuncValue) && "name" in typeFuncValue && typeFuncValue.name === "ID" || params?.primary) {
-                        if (isClientModel(target)) {
-                            PrimaryColumn("uuid", { nullable: false, unique: true, primary: true })(target, key);
-                        } else PrimaryGeneratedColumn("uuid")(target, key);
-                        isPrimary = true;
-                    } else if (!params?.isTreeParent && !params?.isTreeChildArray) {
-                        if (isPlainObject(typeFuncValue)) Column("simple-json", params)(target, key);
-                        if (isArray(typeFuncValue)) {
-                            const isPrimitiveArray = typeFuncValue.every((item) => {
-                                if (isObject(item) && "name" in item) return ["Number", "Boolean", "String"].includes(item.name);
-                                return false;
-                            });
-                            if (isPrimitiveArray) {
-                                Column("simple-array", params)(target, key);
-                            } else Column("simple-json", params || {})(target, key);
-                        }
-                    }
-                } else Column(params || {})(target, key);
-            } else {
-                if (relation.oneToOne) OneToOne.apply(target, relation.oneToOne)(target, key);
-                if (relation.oneToMany) OneToMany.apply(target, relation.oneToMany)(target, key);
-                if (relation.manyToOne) ManyToOne.apply(target, relation.manyToOne)(target, key);
-                if (relation.manyToMany) ManyToMany.apply(target, relation.manyToMany)(target, key);
-                if (relation.isRelationOwner) JoinColumn({ name: params?.name })(target, key);
-                isPrimary = Boolean((relation.oneToOne || relation.oneToMany || relation.manyToOne || relation.manyToMany)?.[2]?.primary);
-            }
-
-            if (!isPrimary) {
-                // TypeFunc independant columns which can be used additionally
-                if (params?.isTreeParent && !params?.isTreeChildArray) TreeParent()(target, key);
-                if (params?.isTreeChildArray && !params?.isTreeParent) TreeChildren({ cascade: ["insert", "update", "remove", "recover", "soft-remove"] })(target, key);
-                if (params?.isIndex) {
-                    if (typeof params.isIndex === "boolean") Index()(target, key);
-                    if (typeof params.isIndex === "string") Index(params.isIndex)(target, key);
-                }
-            }
-        };
-
-        if (isBDOModel(target)) {
-            // Decide which Field should be used
-            installColumn();
-            params = Object.assign({}, params, { defaultValue: params.default });
-            if (typeFunc && params) Field(typeFunc, params)(target, key);
-            else if (typeFunc) Field(typeFunc)(target, key);
-            else if (params) Field(params)(target, key);
-            else Field()(target, key);
-        }
-
         // Do general decorator stuff
-        const decoratorSettings = beforeDescriptor(target, stringKey, "definedAttributes", { typeFunc, params });
+        const decoratorSettings = beforeDescriptor(target, stringKey, "definedAttributes", { params });
         createDecoratorDescriptor(target, stringKey, "Attribute", decoratorSettings);
     };
 }
@@ -235,54 +101,7 @@ export function baseConstructor(name?: nameOptsIdx, params?: optsIdx, index = 0)
 
         const isAbstract = (params && (typeof params === "object" && params.isAbstract));
 
-        const installEntity = (theParams?: IBaseConstructorOpts) => {
-            if (isAbstract) return;
-
-            const mData = getMetadata(ctor, "definedBaseConstructors")?.get(ctor.name);
-            let entityToUse;
-            if (theParams?.viewOptions) {
-                entityToUse = ViewEntity(Object.assign(theParams.viewOptions, { name: theParams.collectionName, database: theParams.databaseName }));
-            } else if (mData?.params?.enableTableInheritance) {
-                entityToUse = ChildEntity();
-            } else entityToUse = Entity({ database: theParams?.databaseName, name: theParams?.collectionName, engine: "InnoDB" });
-            entityToUse(ctor);
-
-            if (theParams?.enableTableInheritance) TableInheritance({ column: "className" })(ctor);
-            if (theParams?.treeType) Tree(theParams.treeType)(ctor);
-            if (theParams?.multiColumnIndex) {
-                for (const index of theParams.multiColumnIndex) {
-                    if (index.name && index.fields && index.options) Index(index.name, index.fields, index.options)(ctor);
-                    if (!index.name && index.fields && index.options) Index(index.fields, index.options)(ctor);
-                    if (!index.name && index.fields && !index.options) Index(index.fields)(ctor);
-                }
-            }
-
-            AfterLoad()(ctor.prototype, "afterDatabaseLoadCallback");
-            BeforeInsert()(ctor.prototype, "beforeDatabaseInsertCallback");
-            BeforeUpdate()(ctor.prototype, "beforeDatabaseUpdateCallback");
-            BeforeRemove()(ctor.prototype, "beforeDatabaseRemoveCallback");
-            AfterInsert()(ctor.prototype, "afterDatabaseInsertCallback");
-            AfterUpdate()(ctor.prototype, "afterDatabaseUpdateCallback");
-            AfterRemove()(ctor.prototype, "afterDatabaseRemoveCallback");
-
-        };
-
         if (isBDOModel(ctor)) {
-            // Decide which ObjectType to use
-            if (name && (typeof name === "string") && params && (typeof params === "object")) {
-                ObjectType(name, params)(ctor);
-                installEntity(params);
-            } else if (name && (typeof name === "string")) {
-                ObjectType(name)(ctor);
-                installEntity();
-            } else if (params && (typeof params === "object")) {
-                ObjectType(params)(ctor);
-                installEntity(params);
-            } else {
-                ObjectType()(ctor);
-                installEntity();
-            }
-
             // set collection and database name
             if (params && (typeof params === "object")) {
                 const prevCollectionName = getMetadata(ctor, "collectionName");
@@ -304,13 +123,3 @@ export function baseConstructor(name?: nameOptsIdx, params?: optsIdx, index = 0)
         return BaseConstructor;
     };
 }
-
-export const query = Query;
-export const arg = Arg;
-export const args = Args;
-export const resolver = Resolver;
-export const root = Root;
-export const mutation = Mutation;
-export const subscription = Subscription;
-export const pubSub = PubSub;
-export const inputType = InputType;

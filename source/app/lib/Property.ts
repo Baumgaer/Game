@@ -99,7 +99,6 @@ export class Property<T extends Record<string, any> = any, K extends DefNonFuncP
 
         if (params && params.params) parameters = params.params;
         Object.assign(this, parameters);
-        this.typeFunc = params && params.typeFunc;
 
         const capitalizedProp = ucFirst(property as string);
         const onTypeCheckFail = `on${capitalizedProp}TypeCheckFail`;

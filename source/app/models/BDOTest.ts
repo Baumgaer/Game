@@ -30,7 +30,7 @@ export function BDOTestFactory<TBase extends Constructor<BDOModel>>(ctor: TBase)
          *
          * @memberof BDOTest
          */
-        @watched() @attribute((_type) => [String]) public tester: string[] = [];
+        @watched() @attribute() public tester: string[] = [];
 
         protected beforeDatabaseInsertCallback() {
             console.log(this.id, this.className); // eslint-disable-line

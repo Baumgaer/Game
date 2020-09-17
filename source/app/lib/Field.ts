@@ -1,8 +1,5 @@
-import { NullableListOptions, ReturnTypeFunc } from "type-graphql/dist/decorators/types";
-import { getDesignType } from "~bdo/utils/metadata";
-import { isArray, isPrimitive, isObject, getProxyTarget, isValue, isPrimitiveWrapper, isPrimitiveWrapperArray } from "~bdo/utils/util";
+import { isArray, isObject, getProxyTarget } from "~bdo/utils/util";
 import { isBDOModel, diffChangedObject } from "~bdo/utils/framework";
-import { TypeError } from "~bdo/lib/Errors";
 import { Modification } from '~bdo/lib/Modification';
 import onChange from "on-change";
 
@@ -15,15 +12,6 @@ export interface IFieldParams {
      * @memberof IFieldParams
      */
     disableTypeGuard?: boolean;
-
-    /**
-     * Decides wether to be able to set values null or undefined on a property.
-     * It is also used to generate a graphQL schema when used in an attribute.
-     *
-     * @default false
-     * @memberof IFieldParams
-     */
-    nullable?: boolean | NullableListOptions;
 }
 
 /**
@@ -60,23 +48,6 @@ export abstract class Field<T extends Record<string, any> = any, K extends DefNo
      * @memberof Field
      */
     public disableTypeGuard?: boolean;
-
-    /**
-     * @inheritdoc
-     *
-     * @memberof Field
-     */
-    public nullable?: boolean | NullableListOptions;
-
-    /**
-     * A function which returns a more specific type than the design:type from
-     * typescript.
-     * With this you can define tuples or infer types inside an array or objects
-     * which are not a model.
-     *
-     * @memberof Field
-     */
-    public typeFunc?: ReturnTypeFunc;
 
     /**
      * The proxy handler which should be used instead of the own handler
@@ -127,57 +98,15 @@ export abstract class Field<T extends Record<string, any> = any, K extends DefNo
      * Checks if the given type is the required type and generates an error if not.
      * returns undefined if everything is OK and an error else.
      *
-     * @param value The value which should be checked for types
+     * @param _value The value which should be checked for types
      * @returns undefined if no error occurred and an error else
      * @memberof Field
      */
-    public typeGuard(value?: T[K] | Modification<any>) {
+    public typeGuard(_value?: T[K] | Modification<any>): Error | undefined {
         if (this.disableTypeGuard) return;
-        let valueToPass = value;
-        if (value instanceof Modification) valueToPass = value.valueOf();
-
-        const typeFuncResult = this.typeFunc && this.typeFunc();
-        const designType = getDesignType(this.object, this.property.toString());
-        const typeError = new TypeError(`${valueToPass} is not type of ${designType.className || designType.name}`);
-
+        // let valueToPass = value;
+        // if (value instanceof Modification) valueToPass = value.valueOf();
         let error;
-
-        if (!this.nullable && !isValue(valueToPass)) error = typeError;
-
-        if (!error) {
-            if (isPrimitive(valueToPass)) {
-                if (typeof valueToPass !== designType.name.toLowerCase()) {
-                    if (!this.nullable || isValue(valueToPass)) error = typeError;
-                }
-            } else if (!(valueToPass instanceof designType)) {
-                error = typeError;
-            } else {
-                if (isArray(typeFuncResult) && isArray(valueToPass)) {
-
-                    const notAssignableError = new TypeError(`${valueToPass} is not assignable to type ${JSON.stringify(typeFuncResult)}`);
-
-                    if (typeFuncResult.length === 1) {
-                        if (isPrimitiveWrapperArray(typeFuncResult)) {
-                            if (!valueToPass.every((item: Unpacked<typeof valueToPass>) => {
-                                return typeof item === typeFuncResult[0].name.toLowerCase() || item === undefined;
-                            })) error = notAssignableError;
-                        } else if (!valueToPass.every((item: Unpacked<typeof valueToPass>) => {
-                            return item instanceof <any>typeFuncResult[0] || item === undefined;
-                        })) error = notAssignableError;
-                    } else {
-                        if (typeFuncResult.length !== valueToPass.length) error = notAssignableError;
-                        const arrayCheckResult = valueToPass.every((item: Unpacked<typeof valueToPass>, index: number) => {
-                            const currentType = typeFuncResult[index];
-                            if (isPrimitiveWrapper(currentType)) {
-                                return typeof item === currentType.name;
-                            } else return item instanceof <any>currentType;
-                        });
-                        if (!arrayCheckResult) error = notAssignableError;
-                    }
-
-                }
-            }
-        }
         return error;
     }
 

@@ -281,9 +281,8 @@ export function BaseComponentFactory<TBase extends Constructor<HTMLElement>>(HTM
             if (this.properties && this.properties.has(qualifiedName)) {
                 throw new Error(`"${qualifiedName}" can't be removed as attribute because it is a defined property`);
             }
-            const attribute = this.attributes.get(qualifiedName);
             super.removeAttribute(qualifiedName);
-            if (attribute?.nullable) (<Record<string, any>>this)[qualifiedName] = undefined;
+            (<Record<string, any>>this)[qualifiedName] = undefined;
         }
 
         /**

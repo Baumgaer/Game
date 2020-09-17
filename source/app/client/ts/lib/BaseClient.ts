@@ -13,7 +13,6 @@ declare type states =
     | 'loadConfig'
     | 'setupClient'
     | 'routeCollection'
-    | 'resolverCollection'
     | 'ready'
     | 'started'
     | 'stopping'
@@ -46,10 +45,6 @@ export abstract class BaseClient {
             this.state = 'routeCollection';
             logger.info(`Collecting routes of ${global.process.env.NAME}`);
             await this.routeCollection();
-        }).then(async () => {
-            this.state = 'resolverCollection';
-            logger.info(`Collecting resolvers of ${global.process.env.NAME}`);
-            await this.resolverCollection();
         }).then(() => {
             this.state = "ready";
             logger.info(`${global.process.env.NAME} is ready for start`);
@@ -94,10 +89,6 @@ export abstract class BaseClient {
         }
         clRoute.routerNameSpace = toURIPathPart(clRoute.routerNameSpace);
         this.app.use(clRoute.routerNameSpace, clRoute.router);
-    }
-
-    protected async resolverCollection() {
-        // const context = require.context("./../routes", true, /.+\.ts/, "sync");
     }
 
     protected async gracefulShutdown() {

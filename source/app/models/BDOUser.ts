@@ -22,11 +22,11 @@ export function BDOUserFactory<TBase extends Constructor<BDOModel>>(ctor: TBase)
 
         @attribute() public eMail!: string;
 
-        @attribute({ nullable: true }) public firstName?: string;
+        @attribute() public firstName?: string;
 
-        @attribute({ nullable: true }) public lastName?: string;
+        @attribute() public lastName?: string;
 
-        @attribute((_type) => [String]) public otherNames: string[] = [];
+        @attribute() public otherNames: string[] = [];
     }
     return BDOUser;
 }

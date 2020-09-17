@@ -16,7 +16,7 @@ interface MyTest {
 @baseConstructor()
 export class Test1 extends BDOTest1Factory(Test) {
 
-    @attribute({ autoSave: 100, collation: "lalala", doNotPersist: true }) public testTesten!: MyTest;
+    @attribute({ autoSave: 100, doNotPersist: true }) public testTesten!: MyTest;
 
     @attribute() public aTest!: Test1 & MyTest;
 

@@ -6,7 +6,6 @@ import { Request, Response } from 'express';
 import { Logger } from '~server/lib/Logger';
 import { RedisClientManager } from '~server/lib/RedisClientManager';
 import { Redis } from '~server/lib/Redis';
-import { graphql, GraphQLSchema } from 'graphql';
 import { ConfigManager } from '~server/lib/ConfigManager';
 import { ucFirst } from "~bdo/utils/util";
 
@@ -126,13 +125,12 @@ export abstract class WebSocketServer extends BaseServer {
      * Calls the graphQL api and sends the result to the asking client
      *
      * @protected
-     * @param query The graphql query which should be processed
-     * @param socket The socket of the current user
+     * @param _query The graphql query which should be processed
+     * @param _socket The socket of the current user
      * @memberof WebSocketServer
      */
-    protected async fetchAPI(query: string, socket: ws): Promise<void> {
-        const result = await graphql(<GraphQLSchema>this.apiSchema, query);
-        socket.send(JSON.stringify(result));
+    protected async fetchAPI(_query: string, _socket: ws): Promise<void> {
+        throw new Error("not implemented");
     }
 
     /**

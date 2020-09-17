@@ -1,5 +1,4 @@
 import { Property, IPropertyParams } from "~bdo/lib/Property";
-import { AdvancedOptions } from "type-graphql/dist/decorators/types";
 import { Modification } from "~bdo/lib/Modification";
 import { constructTypeOfHTMLAttribute, getProxyTarget, isFunction, isObject, isArray, isValue } from '~bdo/utils/util';
 import { IWatchAttrPropSettings, isComponent, BaseComponentInstance, isBDOModel } from "~bdo/utils/framework";
@@ -15,7 +14,7 @@ type prop<T> = DefNonFuncPropNames<T>;
  * @interface IAttributeParams
  * @see https://typegraphql.ml/docs/introduction.html
  */
-export interface IAttributeParams extends IPropertyParams, AdvancedOptions {
+export interface IAttributeParams extends IPropertyParams {
     /**
      * If true the value will not be sent to server if value is set
      * or save() will be called. Only effects the behavior of a model.

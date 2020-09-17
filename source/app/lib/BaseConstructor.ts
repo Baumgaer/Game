@@ -2,11 +2,6 @@ import { Binding } from "~bdo/lib/Binding";
 import { getMetadata, defineMetadata } from "~bdo/utils/metadata";
 import { isFunction } from "~bdo/utils/util";
 import { isComponent, IGetNamespaceStorageAddition, BaseComponentInstance, canGetNamespacedStorage } from "~bdo/utils/framework";
-import { ObjectTypeOptions } from "type-graphql/dist/decorators/ObjectType";
-import { ViewEntityOptions } from "typeorm/decorator/options/ViewEntityOptions";
-import { EntityOptions } from "typeorm/decorator/options/EntityOptions";
-import { IndexOptions } from "typeorm/decorator/options/IndexOptions";
-import { TreeType } from "typeorm/metadata/types/TreeTypes";
 
 export interface IBaseConstructorCtor<T = any> extends IGetNamespaceStorageAddition<T> {
 
@@ -42,7 +37,7 @@ export interface IBaseConstructorCtor<T = any> extends IGetNamespaceStorageAddit
  * @interface IBaseConstructorOpts
  * @extends ObjectOptions
  */
-export interface IBaseConstructorOpts extends ObjectTypeOptions, Omit<EntityOptions, "name" | "database" | "engine"> {
+export interface IBaseConstructorOpts {
 
     /**
      * Defines the name of the collection where a model is saved in.
@@ -63,33 +58,11 @@ export interface IBaseConstructorOpts extends ObjectTypeOptions, Omit<EntityOpti
     databaseName?: string;
 
     /**
-     * Enables inheritance for entities derived from this entity which are stored in same table
+     * Used to avoid initializing a base constructor on an abstract class
      *
      * @memberof IBaseConstructorOpts
      */
-    enableTableInheritance?: boolean;
-
-    /**
-     * Indicates if a model should be used as a view in the database
-     *
-     * @memberof IBaseConstructorOpts
-     */
-    viewOptions?: Omit<ViewEntityOptions, "name" | "database">;
-
-    /**
-     * Declares the entity as a tree which should have parent and children.
-     * Optimized for navigation
-     *
-     * @memberof IBaseConstructorOpts
-     */
-    treeType?: TreeType;
-
-    /**
-     * Enables the definition of intices which uses multiple columns
-     *
-     * @memberof IBaseConstructorOpts
-     */
-    multiColumnIndex?: { name?: string, fields: string[], options?: IndexOptions }[]
+    isAbstract?: boolean;
 }
 
 /**

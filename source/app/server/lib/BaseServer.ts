@@ -7,20 +7,16 @@ import expressSession from 'express-session';
 import connectRedis from 'connect-redis';
 import ms from "ms";
 import { v4 as uuidV4 } from "uuid";
-import { graphqlHTTP } from 'express-graphql';
-import { buildSchema } from 'type-graphql';
 import { resolve } from 'path';
 import { path as rootPath } from 'app-root-path';
 import { createServer, Server } from 'http';
 import { AddressInfo } from 'ws';
 import { createHash, HexBase64Latin1Encoding } from 'crypto';
-import { RedisPubSub as GraphQLRedisPubSub } from 'graphql-redis-subscriptions';
-import { GraphQLSchema } from 'graphql';
 import { ConfigManager } from '~server/lib/ConfigManager';
 import { RedisClientManager } from '~server/lib/RedisClientManager';
 import { Logger } from '~server/lib/Logger';
 import { walk } from '~root/utils/projectStructure';
-import { includesMemberOfList, toURIPathPart, isNonEmptyArray } from '~bdo/utils/util';
+import { includesMemberOfList, toURIPathPart } from '~bdo/utils/util';
 import { RedisClient } from 'redis';
 import { ServerRoute } from "~server/lib/ServerRoute";
 
@@ -34,7 +30,6 @@ declare type states =
     | 'loadConfig'
     | 'setupServer'
     | 'routeCollection'
-    | 'resolverCollection'
     | 'ready'
     | 'started'
     | 'stopping'
@@ -80,14 +75,6 @@ export abstract class BaseServer {
      */
     protected state: states = 'stopped';
 
-    /**
-     * Holds the parsed schema from type graphql with corresponding resolvers
-     *
-     * @protected
-     * @memberof BaseServer
-     */
-    protected apiSchema!: GraphQLSchema;
-
     constructor() {
         const gracefulShutdownHandler = () => {
             logger.info(`Shutting down ${process.env.NAME}`);
@@ -110,10 +97,6 @@ export abstract class BaseServer {
             this.state = 'routeCollection';
             logger.info(`Collecting routes of ${process.env.NAME}`);
             await this.routeCollection();
-        }).then(async () => {
-            this.state = 'resolverCollection';
-            logger.info(`Collecting resolvers of ${process.env.NAME}`);
-            await this.resolverCollection();
         }).then(() => {
             this.state = "ready";
             logger.info(`${process.env.NAME} is ready for start`);
@@ -262,36 +245,6 @@ export abstract class BaseServer {
         if (!clRoute.isServerRoute) throw new Error(`${file} is not instance of ~server/lib/ServerRoute`);
         clRoute.routerNameSpace = toURIPathPart(clRoute.routerNameSpace);
         this.app.use(clRoute.routerNameSpace, clRoute.router);
-    }
-
-    /**
-     * 3. collects all available resolvers and initializes them
-     *
-     * @protected
-     * @returns {Promise<void>}
-     * @memberof BaseServer
-     */
-    protected async resolverCollection(): Promise<void> {
-        // Setup the API
-        const pathsConfig = await configManager.get('paths');
-        // Next line has to be ignored by eslint because type-graphql expects a function array
-        const resolvers: AnyFunction[] = [];
-        const [subscriber, publisher] = await Promise.all([
-            redisClientManager.createThirdPartyClient('graphQLSubscriber'),
-            redisClientManager.createThirdPartyClient('graphQLPublisher'),
-            walk(pathsConfig.resolvers, async (file) => {
-                resolvers.push((await import(file)).default);
-            })
-        ]);
-
-        if (isNonEmptyArray(resolvers)) {
-            const pubSub = new GraphQLRedisPubSub({ publisher, subscriber });
-            this.apiSchema = await buildSchema({ resolvers, pubSub, skipCheck: true });
-            this.app.use(pathsConfig.apiEntryPoint, graphqlHTTP({
-                schema: this.apiSchema,
-                graphiql: process.env.NODE_ENV === 'development' ? true : false
-            }));
-        } else logger.info("No resolvers provided! Skipping build of API");
     }
 
     /**

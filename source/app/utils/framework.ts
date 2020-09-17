@@ -16,8 +16,6 @@ import type { BaseComponentFactory } from "~client/lib/BaseComponent";
 import type { BaseControllerFactory } from "~client/lib/BaseController";
 import type { getNamespacedStorage } from "~client/utils/util";
 
-import type { ReturnTypeFunc } from "type-graphql/dist/decorators/types";
-
 type defPropAttrWatchConst = "definedProperties" | "definedAttributes" | "definedWatchers" | "definedBaseConstructors";
 type AttrPropWatchConst = "Attribute" | "Property" | "Watched" | "BaseConstructor";
 type DecoratorTypeParams<T> = T extends "BaseConstructor" ?
@@ -40,14 +38,7 @@ export interface IGetNamespaceStorageAddition<T> {
     getNamespacedStorage: <K extends DefNonFuncPropNames<T>, P extends DefNonFuncPropNames<T>>(key: K, nsProp?: P, forceNS?: string) => ReturnType<typeof getNamespacedStorage>;
 }
 
-export interface IWatchAttrPropSettings<T extends defPropAttrWatchConst | IAttributeParams | IPropertyParams | IWatchedParams> {
-    /**
-     * The function which returns the real type
-     *
-     * @memberof IWatchAttrPropSettings
-     */
-    typeFunc?: ReturnTypeFunc;
-
+export interface IWatchAttrPropSettings<T extends defPropAttrWatchConst | IAttributeParams | IPropertyParams | IWatchedParams | IBaseConstructorOpts> {
     /**
      * Parameters for the corresponding decorator
      *

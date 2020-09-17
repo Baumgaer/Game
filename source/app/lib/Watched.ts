@@ -213,11 +213,7 @@ export class Watched<T extends Record<string, any> = any, K extends DefNonFuncPr
         if (takeoverTypeGuard) {
             subObject.disableTypeGuard = true;
             this.disableTypeGuard = false;
-            this.typeFunc = subObject.typeFunc?.bind(this);
-        } else {
-            this.disableTypeGuard = true;
-            this.typeFunc = undefined;
-        }
+        } else this.disableTypeGuard = true;
 
         subObject.proxyHandlerReplacement = this.proxyHandler.bind(this);
         this.subObject = subObject;
