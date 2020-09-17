@@ -6,9 +6,13 @@ services:
         entrypoint: "npx nodemon -L --inspect=0.0.0.0:9001 out/app/GameServer.js"
         ports:
             - 9001:9001
+        deploy:
+            replicas: 1
 
     webServer:
         # paths relative to image root
         entrypoint: "npx nodemon -L --inspect=0.0.0.0:9002 out/app/WebServer.js"
         ports:
             - 9002:9002
+        deploy:
+            replicas: 1

@@ -6,9 +6,9 @@ node_modules
 .nyc_output
 
 # Development configuration
-out/app/config/development/**/*.ini
-out/app/client/config/development/**/*.ini
-out/app/server/config/development/**/*.ini
+out/app/config/development/**/*.yml
+out/app/client/config/development/**/*.yml
+out/app/server/config/development/**/*.yml
 
 # Hardlinks client section
 source/app/client/audios/**/*
