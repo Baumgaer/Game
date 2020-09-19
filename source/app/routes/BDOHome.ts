@@ -1,4 +1,4 @@
-import { BDORoute } from '~bdo/lib/BDORoute';
+import { BDORoute, minimumAccessRights } from '~bdo/lib/BDORoute';
 
 /**
  * constructs the base for the home route on server and client
@@ -20,7 +20,6 @@ export function BDOHomeFactory<TBase extends Constructor<BDORoute>>(ctor: TBase)
          * @inheritdoc
          *
          * @static
-         * @type {string[]}
          * @memberof BDOHome
          */
         public static attachToServers: string[] = ["WebServer"];
@@ -31,6 +30,14 @@ export function BDOHomeFactory<TBase extends Constructor<BDORoute>>(ctor: TBase)
          * @memberof BDOHome
          */
         public routerNameSpace = '/';
+
+        /**
+         * @inheritdoc
+         *
+         * @protected
+         * @memberof BDOHome
+         */
+        protected access: minimumAccessRights = "public";
 
         /**
          * @inheritdoc

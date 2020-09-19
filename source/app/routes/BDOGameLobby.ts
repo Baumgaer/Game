@@ -21,7 +21,6 @@ export function BDOGameLobbyFactory<TBase extends Constructor<BDORoute>>(ctor: T
          * @inheritdoc
          *
          * @static
-         * @type {string[]}
          * @memberof GameLobby
          */
         public static attachToServers: string[] = ["GameServer"];

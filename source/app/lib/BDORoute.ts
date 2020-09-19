@@ -3,6 +3,8 @@ import { Template } from 'nunjucks';
 import { isString, isObject } from '~bdo/utils/util';
 import { templateEnvironment } from '~bdo/utils/environment';
 
+export type minimumAccessRights = "loggedout" | "public" | "loggedin" | "admin";
+
 /**
  * Provides basic functionality for ALL routes on server and client and
  * especially provides a template for client and server route.
@@ -64,6 +66,14 @@ export abstract class BDORoute {
     protected jsonOnly: boolean = false;
 
     /**
+     * Defines the minimum access rights for the corresponding route
+     *
+     * @protected
+     * @memberof BDORoute
+     */
+    protected access: minimumAccessRights = "loggedin";
+
+    /**
      * Renders the template depending on its format (Template or string) and
      * passes the templateParams to it.
      *
@@ -97,6 +107,34 @@ export abstract class BDORoute {
     }
 
     /**
+     * Checks the data given by a request and prevents saving data in case of
+     * an error.
+     *
+     * @protected
+     * @param _request The request given by http server or a fake request in Frontend
+     * @param _response The response used by the http server to transmit data to the client or redirect on client side
+     * @param _next The function which will trigger the next middleware function
+     * @returns true if the access rights have passed all conditions
+     * @memberof BDORoute
+     */
+    protected async checkData(_request: Request, _response: Response, _next: NextFunction): Promise<Error | undefined> {
+        return;
+    }
+
+    /**
+     * Checks if the corresponding access rights are defined on request participant
+     *
+     * @protected
+     * @abstract
+     * @param request
+     * @param response
+     * @param next
+     * @returns true if the access rights have passed all conditions
+     * @memberof BDORoute
+     */
+    protected abstract accessGranted(request: Request, response: Response, next: NextFunction): Promise<boolean>;
+
+    /**
      * Handles the get requests with access checking, template params and response type determination
      *
      * @protected
@@ -107,9 +145,19 @@ export abstract class BDORoute {
      * @returns A Promise indicating finished request
      * @memberof BDORoute
      */
-    protected abstract handleGet(
-        request: Request,
-        response: Response,
-        next: NextFunction
-    ): Promise<void>;
+    protected abstract handleGet(request: Request, response: Response, next: NextFunction): Promise<void>;
+
+    /**
+     * Handles the post requests with access checking, type checking, template
+     * params and response type determination.
+     *
+     * @protected
+     * @abstract
+     * @param request The request given by http server or a fake request in Frontend
+     * @param response The response used by the http server to transmit data to the client or redirect on client side
+     * @param next The function which will trigger the next middleware function
+     * @returns A Promise indicating finished request
+     * @memberof BDORoute
+     */
+    protected abstract handlePost(request: Request, response: Response, next: NextFunction): Promise<void>;
 }

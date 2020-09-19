@@ -19,7 +19,6 @@ export function BDOConfigFactory<TBase extends Constructor<BDORoute>>(ctor: TBas
         /**
          * @inheritdoc
          *
-         * @type {string[]}
          * @memberof Config
          */
         public routes: string[] = ["/:name"];

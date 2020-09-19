@@ -3,7 +3,7 @@ import { merge, toURIPathPart } from '~bdo/utils/util';
 import { Logger } from '~client/lib/Logger';
 import NightHawk from "nighthawk";
 
-import type { Request } from "express";
+import type { NextFunction, Request, Response } from "express";
 
 const logger = new Logger();
 
@@ -20,7 +20,6 @@ export class ClientRoute extends BDORoute {
     /**
      * This is for better identification of client routes and instance check
      *
-     * @type {boolean}
      * @memberof ClientRoute
      */
     public readonly isClientRoute: boolean = true;
@@ -61,11 +60,36 @@ export class ClientRoute extends BDORoute {
      * @inheritdoc
      *
      * @protected
-     * @returns {Promise<void>}
      * @memberof ClientRoute
      */
-    protected async handleGet(request: Request): Promise<void> {
+    protected async handleGet(request: Request, _response: Response, next: NextFunction): Promise<void> {
+        if (!await this.accessGranted(request)) return next();
         logger.log(merge(await this.templateParamsFromServer(), await this.templateParams(request)));
+    }
+
+    /**
+     * @inheritdoc
+     *
+     * @protected
+     * @memberof ClientRoute
+     */
+    protected async handlePost(request: Request, response: Response, next: NextFunction) {
+        if (!await this.accessGranted(request)) return next();
+        response.end();
+    }
+
+
+    /**
+     * @inheritdoc
+     *
+     * @protected
+     * @param _request The request given by the http server
+     * @returns true if granted and false else
+     * @memberof ServerRoute
+     */
+    protected async accessGranted(_request: Request) {
+        if (this.access === 'public') return true;
+        return false;
     }
 
     /**
@@ -79,7 +103,7 @@ export class ClientRoute extends BDORoute {
     private async templateParamsFromServer(): Promise<IndexStructure> {
         let urlToAskFor = location.pathname;
         if (!urlToAskFor) urlToAskFor = `/`;
-        const headers = new Headers({ 'X-Game-As-JSON': 'true' });
+        const headers = new Headers({ 'Content-Type': 'application/json' });
         return (await fetch(urlToAskFor, { headers })).json();
     }
 }

@@ -3,6 +3,7 @@ import { merge, toURIPathPart } from '~bdo/utils/util';
 import { globalTemplateVars } from '~server/utils/environment';
 import { BDORoute } from '~bdo/lib/BDORoute';
 import { BaseServer } from "~server/lib/BaseServer";
+import httpError from "http-errors";
 
 /**
  * Provides basic functionality of a route for the express router and encapsulates
@@ -16,7 +17,7 @@ export class ServerRoute extends BDORoute {
     /**
      * This is for better identification of server routes and instance check
      *
-     * @memberof BaseRoute
+     * @memberof ServerRoute
      */
     public readonly isServerRoute: boolean = true;
 
@@ -25,7 +26,7 @@ export class ServerRoute extends BDORoute {
      *
      * @readonly
      * @type {Router}
-     * @memberof BaseRoute
+     * @memberof ServerRoute
      */
     public get router(): Router {
         const expressRouter = Router();
@@ -45,7 +46,7 @@ export class ServerRoute extends BDORoute {
      *
      * @protected
      * @type {BaseServer}
-     * @memberof BaseRoute
+     * @memberof ServerRoute
      */
     protected serverInstance!: BaseServer;
 
@@ -61,7 +62,7 @@ export class ServerRoute extends BDORoute {
      * @abstract
      * @param request The request given by the http server
      * @returns An object with key => value used for templates to fill variables
-     * @memberof BaseRoute
+     * @memberof ServerRoute
      */
     protected async templateParams(request: Request): Promise<IndexStructure> {
         return super.templateParams(request);
@@ -74,78 +75,94 @@ export class ServerRoute extends BDORoute {
      * @param request The request given by the http server
      * @param response The response given by the http server
      * @param next A function which calls the next middleware function
-     * @memberof BaseRoute
+     * @memberof ServerRoute
      */
-    protected async handleGet(request: Request, response: Response, next: NextFunction): Promise<void> {
+    protected async handleGet(request: Request, response: Response, next: NextFunction) {
         let templateParams: IndexStructure;
         let content: string | null = null;
+
+        if (!await this.accessGranted(request)) return next(new httpError.Unauthorized(`Route access is set to ${this.access}`));
 
         try {
             templateParams = await this.templateParams(request);
             merge(templateParams, globalTemplateVars, { responseLocals: response.locals });
         } catch (error) {
-            return next(error);
+            return next(new httpError.InternalServerError(String(error)));
         }
 
         if (!this.jsonOnly) content = this.renderTemplate(templateParams);
-        if (request.header("X-Game-As-JSON") || !content || this.jsonOnly) {
-            response.setHeader('Content-Type', 'Application/json');
+        if (request.header("Content-Type") === "application/json" || !content || this.jsonOnly) {
+            response.setHeader('Content-Type', 'application/json');
             response.json(templateParams);
             return;
         }
-        response.setHeader('Content-Type', 'text/html');
+        if (!response.getHeader("Content-Type")) response.setHeader('Content-Type', 'text/html');
         response.send(content);
     }
 
     /**
-     * Handles the HTTP post requests
+     * @inheritdoc
      *
-     * @private
-     * @param _request The request given by the http server
-     * @param _response The response given by the http server
-     * @param _next A function which calls the next middleware function
-     * @memberof BaseRoute
+     * @protected
+     * @param request The request given by the http server
+     * @param response The response given by the http server
+     * @param next A function which calls the next middleware function
+     * @memberof ServerRoute
      */
-    private async handlePost(_request: Request, _response: Response, _next: NextFunction): Promise<void> {
-        throw new Error("Not implemented");
+    protected async handlePost(request: Request, response: Response, next: NextFunction) {
+        if (!await this.accessGranted(request)) return this.handleGet(request, response, next);
+        return response.end();
     }
 
     /**
      * Handles HTTP put requests
      *
-     * @private
+     * @protected
      * @param _request The request given by the http server
      * @param _response The response given by the http server
      * @param _next A function which calls the next middleware function
-     * @memberof BaseRoute
+     * @memberof ServerRoute
      */
-    private async handlePut(_request: Request, _response: Response, _next: NextFunction): Promise<void> {
+    protected async handlePut(_request: Request, _response: Response, _next: NextFunction): Promise<void> {
         throw new Error("Not implemented");
     }
 
     /**
      * Handles HTTP Patch requests
      *
-     * @private
+     * @protected
      * @param _request The request given by the http server
      * @param _response The response given by the http server
      * @param _next A function which calls the next middleware function
-     * @memberof BaseRoute
+     * @memberof ServerRoute
      */
-    private async handlePatch(_request: Request, _response: Response, _next: NextFunction): Promise<void> {
+    protected async handlePatch(_request: Request, _response: Response, _next: NextFunction): Promise<void> {
         throw new Error("Not implemented");
     }
 
     /**
      * Handles HTTP delete requests
      *
-     * @private
+     * @protected
      * @param _request The request given by the http server
      * @param _response The response given by the http server
      * @param _next A function which calls the next middleware function
-     * @memberof BaseRoute
+     * @memberof ServerRoute
      */
-    private async handleDelete(_request: Request, _response: Response, _next: NextFunction): Promise<void> {
+    protected async handleDelete(_request: Request, _response: Response, _next: NextFunction): Promise<void> {
         throw new Error("Not implemented");
+    }
+
+    /**
+     * @inheritdoc
+     *
+     * @protected
+     * @param _request The request given by the http server
+     * @returns true if granted and false else
+     * @memberof ServerRoute
+     */
+    protected async accessGranted(_request: Request) {
+        if (this.access === 'public') return true;
+        return false;
     }
 }
