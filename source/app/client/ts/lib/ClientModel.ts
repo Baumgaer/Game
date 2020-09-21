@@ -33,6 +33,10 @@ export class ClientModel extends BDOModel {
      */
     @property() public readonly isClientModel: boolean = true;
 
+    constructor(_params?: ConstParams<ClientModel>) {
+        super();
+    }
+
     /**
      * @see getNamespacedStorage
      *

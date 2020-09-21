@@ -91,13 +91,12 @@ export function baseConstructorFactory<T extends Constructor<IBaseConstructorCto
         public static readonly className = Object.getPrototypeOf(BaseConstructor).name;
 
         /**
-         * Determines the original type of this model - set by the
-         * baseConstructor - for the GraphQL resolver
+         * @inheritdoc
          *
          * @static
          * @memberof BaseConstructor
          */
-        public static readonly graphQLType = ctor;
+        public static readonly collectionName: string = getMetadata(BaseConstructor, "collectionName") as string;
 
         /**
          * @inheritdoc
@@ -105,15 +104,7 @@ export function baseConstructorFactory<T extends Constructor<IBaseConstructorCto
          * @static
          * @memberof BaseConstructor
          */
-        public static readonly collectionName?: string = getMetadata(BaseConstructor, "collectionName");
-
-        /**
-         * @inheritdoc
-         *
-         * @static
-         * @memberof BaseConstructor
-         */
-        public static readonly databaseName?: string = getMetadata(BaseConstructor, "databaseName");
+        public static readonly databaseName: string = getMetadata(BaseConstructor, "databaseName") as string;
 
         /**
          * Sets a BaseComponent into procedural construction mode which disables

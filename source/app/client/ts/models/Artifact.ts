@@ -14,8 +14,8 @@ export class Artifact extends BDOArtifactFactory(ClientModel) {
 
     @attribute() public creator!: User;
 
-    constructor(_params?: ConstParams<Artifact>) {
-        super();
+    constructor(params?: ConstParams<Artifact>) {
+        super(params);
     }
 
 }

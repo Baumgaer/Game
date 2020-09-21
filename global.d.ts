@@ -1,6 +1,8 @@
+declare type AnyFunction = (...args: any[]) => unknown;
+
 // Constructor type
 declare type Constructor<T = Record<string, any>> = new (...args: any[]) => T;
-declare type AbstractConstructor<T = Record<string, any>> = AnyFunction & { prototype: T };
+declare type AbstractConstructor<T = Record<string, any>> = Constructor<T> & { prototype: T };
 
 // Next two type decide wether a property is writable or not
 declare type IfNotEquals<X, Y, A, B> = (<T>() => T extends X ? 1 : 2) extends (<T>() => T extends Y ? 1 : 2) ? B : A;
@@ -9,8 +11,10 @@ declare type NoneWritableKeysOf<T> = { [P in keyof T]: IfNotEquals<{ [Q in P]: T
 // Filer all properties out which are not a function
 declare type FuncPropNames<T> = { [K in keyof T]: T[K] extends AnyFunction ? K : never }[keyof T];
 
-// Filters all properties out which are undefined or a function
+// Filters all properties out which are undefined or a function and returns a list of the corresponding property names
 declare type NonFuncPropNames<T> = { [K in keyof T]: T[K] extends (...args: any) => any ? never : K }[keyof T];
+// Filters all properties out which are undefined or a function
+declare type NonFunctionProps<T> = Pick<T, NonFuncPropNames<T>>;
 // Filters all properties out which are a function and not undefined
 declare type DefNonFuncPropNames<T> = Exclude<NonFuncPropNames<T>, undefined>
 
@@ -34,8 +38,6 @@ type EachOfTmp<T> = { [K in keyof T]: { _: { [X in K]: T[K] }; } };
 declare type OneOf<T> = EachOfTmp<T>[keyof T]["_"] & Partial<T>;
 
 declare type NonEmptyArray<T> = [T, ...T[]];
-
-declare type AnyFunction = (...args: any[]) => unknown;
 
 // Collects all properties of a class except native functions and readonly properties and wraps them in an object with their types
 declare type ConstParams<T> = Partial<
@@ -94,15 +96,11 @@ namespace Express {
 }
 
 interface Window {
-    router: import('navigo');
-    localStorage: import('node-localstorage'),
     cspScriptNonce: string
 }
 
 namespace NodeJS { // eslint-disable-line
-    interface Global {
-        localStorage: import('node-localstorage').LocalStorage
-    }
+    // interface Global { }
 }
 
 type CSSStyleDeclaration = import('csstype').Properties

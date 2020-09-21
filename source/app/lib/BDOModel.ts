@@ -31,13 +31,13 @@ export abstract class BDOModel implements IBaseConstructorOpts {
     }
 
     /**
-     * Determines the original type of this model - set by the
-     * baseConstructor - for the GraphQL resolver
+     * Determines the original type name of this model - set by the
+     * baseConstructor - for Type safety
      *
      * @static
      * @memberof BDOModel
      */
-    public static readonly graphQLType: any = Object.getPrototypeOf(BDOModel.constructor);
+    public static readonly className: string;
 
     /**
      * @inheritdoc
@@ -45,7 +45,7 @@ export abstract class BDOModel implements IBaseConstructorOpts {
      * @static
      * @memberof BDOModel
      */
-    public static readonly collectionName?: string;
+    public static readonly collectionName: string;
 
     /**
      * @inheritdoc
@@ -53,7 +53,7 @@ export abstract class BDOModel implements IBaseConstructorOpts {
      * @static
      * @memberof BDOModel
      */
-    public static readonly databaseName?: string;
+    public static readonly databaseName: string;
 
     /**
      * This is just a BDOModel identifier in case you want to know if a not

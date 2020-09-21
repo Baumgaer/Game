@@ -244,3 +244,22 @@ export function isNonEmptyArray<T>(arr: T[]): arr is NonEmptyArray<T> {
 export function isValue<T>(value: T | null | undefined): value is T {
     return !isUndefined(value) && !isNull(value);
 }
+
+/**
+ * Extracts the name, extension or both of a file in a path on server and client side
+ *
+ * @param path Tha path to extract the part from
+ * @param part The part to extract. (Default: name)
+ * @returns The requested part
+ */
+export function getFilePartsFromPath(path: string, part: "name" | "extension" | "both" = "name") {
+    // Replace "\" with "/" and get last one which should be the base name
+    const baseName = path.split("\\").join("/").split("/").pop();
+    if (!baseName) return "";
+    const re = /(?:\.([^.]+))?$/;
+    const parts = re.exec(baseName);
+    if (!parts || !parts.length) return "";
+    if (part === "name") return parts[0];
+    else if (part === "extension") return parts[1];
+    else return parts.join(".");
+}
