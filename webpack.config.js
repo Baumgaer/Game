@@ -15,9 +15,6 @@ const EventHooksPlugin = require('event-hooks-webpack-plugin');
 const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 
-const projectStructureUtils = require('./out/utils/projectStructure');
-const componentsDir = path.resolve(arp.path, "source", "app", "client", "ts", "components");
-
 module.exports = (_env, options) => {
 
     console.log("operating in mode", options.mode);
@@ -137,14 +134,8 @@ module.exports = (_env, options) => {
                     profile: true
                 }
             }),
-            new webpack.NormalModuleReplacementPlugin(/type-graphql$/, resource => {
-                resource.request = resource.request.replace(/type-graphql/, "type-graphql/dist/browser-shim");
-            }),
             new webpack.NormalModuleReplacementPlugin(/nunjucks$/, resource => {
                 resource.request = resource.request.replace(/nunjucks/, "nunjucks/browser/nunjucks-slim");
-            }),
-            new webpack.NormalModuleReplacementPlugin(/typeorm$/, function (result) {
-                result.request = result.request.replace(/typeorm/, "typeorm/browser");
             }),
             new webpack.ProvidePlugin({
                 'window.SQL': 'sql.js/dist/sql-wasm.js',
