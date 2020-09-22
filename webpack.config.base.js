@@ -55,9 +55,9 @@ module.exports = (_env, options) => {
                 //less path resolve. "~" is replaced by less-loader
                 "static": path.resolve(arp.path, "source", "app", "client"),
                 //views path resolve
-                "~static/views": path.resolve(arp.path, "out", "app", "client", "views"),
-                "~bdo/views": path.resolve(arp.path, "out", "app", "views"),
-                "~server/views": path.resolve(arp.path, "out", "app", "server", "views")
+                "~static/views": path.resolve(arp.path, "source", "app", "client", "views"),
+                "~bdo/views": path.resolve(arp.path, "source", "app", "views"),
+                "~server/views": path.resolve(arp.path, "source", "app", "server", "views")
             },
             // Add `.ts` and `.tsx` as a resolvable extension.
             plugins: [

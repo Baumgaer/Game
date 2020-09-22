@@ -15,18 +15,13 @@ source/app/client/audios/**/*
 source/app/client/config/**/*
 source/app/client/css/**/*
 source/app/client/images/**/*
-source/app/client/locales/**/*
 source/app/client/videos/**/*
-source/app/client/views/**/*
 
 # Hardlinks BDO section
 source/app/config/**/*
-source/app/tools/**/*
-source/app/views/**/*
 
 # Hardlinks server section
 source/app/server/config/**/*
-source/app/server/views/**/*
 
 # Variable content
 var/*/*
