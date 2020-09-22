@@ -7,14 +7,14 @@
         "start": "docker-compose -f ./out/app/config/docker-compose.yml -f ./out/app/config/development/docker-compose.yml -f ./out/app/server/config/docker-compose.yml -f ./out/app/server/config/development/docker-compose.yml  up --build",
         "build": "npm run build:infra && grunt compile:config && npm run build:server && npm run build:client && grunt cleanup",
         "build:server": "tsc -p ./tsconfig.json",
-        "build:client": "webpack --progress --mode development --config webpack.config.js",
+        "build:client": "webpack --progress --mode development --config webpack.config.client.js",
         "build:infra": "tsc -p ./tsconfig.infra.json",
         "dev": "grunt compile cleanup && concurrently \"npm run dev:server\" \"npm run dev:client\" \"grunt watchChokidar\"",
         "dev:server": "tsc -w -p ./tsconfig.json",
-        "dev:client": "webpack --watch --color --mode development --config webpack.config.js",
+        "dev:client": "webpack --watch --color --mode development --config webpack.config.client.js",
         "dev:cli": "node ./out/game-dev-cli.js",
         "prod": "grunt compile && npm run prod:server && npm run prod:client && grunt cleanup",
-        "prod:client": "webpack --progress --mode production --config webpack.config.js",
+        "prod:client": "webpack --progress --mode production --config webpack.config.client.js",
         "prod:server": "tsc -p ./tsconfig.json"
     },
     "keywords": [
