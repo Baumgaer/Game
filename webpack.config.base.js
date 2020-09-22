@@ -136,41 +136,46 @@ module.exports = (_env, options) => {
                     },
                     sourceMap: false
                 }
-            })],
-            splitChunks: !isDevelopment ? {
-                cacheGroups: {
-                    vendor: {
-                        test: /[\\/]node_modules[\\/]/,
-                        name: "vendor",
-                        chunks: "all",
-                        reuseExistingChunk: true
-                    },
-                    templates: {
-                        test: /\.njk/,
-                        name: "templates",
-                        enforce: true,
-                        chunks: "initial"
-                    },
-                    lib: {
-                        test: /[\\/]lib[\\/]/,
-                        name: "lib",
-                        chunks: "initial"
-                    },
-                    styles: {
-                        test: /\.less/,
-                        name: "styles",
-                        enforce: true,
-                        chunks: "initial"
-                    }
-                }
-            } : false
+            })]
         }
     };
 
     ///////////////////////////////////
     // EXTEND BUILD PLUGINS
     // @ts-expect-error
-    if (!isDevelopment) settings.plugins.concat([new BundleAnalyzerPlugin()]);
+    if (!isDevelopment) settings.plugins = settings.plugins.concat([new BundleAnalyzerPlugin()]);
+
+    ///////////////////////////////////
+    // EXTEND OPTIMIZATION OPTIONS
+    if (!isDevelopment) {
+        settings.optimization.splitChunks = {
+            cacheGroups: {
+                vendor: {
+                    test: /[\\/]node_modules[\\/]/,
+                    name: "vendor",
+                    chunks: "all",
+                    reuseExistingChunk: true
+                },
+                templates: {
+                    test: /\.njk/,
+                    name: "templates",
+                    enforce: true,
+                    chunks: "initial"
+                },
+                lib: {
+                    test: /[\\/]lib[\\/]/,
+                    name: "lib",
+                    chunks: "initial"
+                },
+                styles: {
+                    test: /\.less/,
+                    name: "styles",
+                    enforce: true,
+                    chunks: "initial"
+                }
+            }
+        };
+    }
 
     ///////////////////////////////////
     // EXTEND WATCH OPTIONS
