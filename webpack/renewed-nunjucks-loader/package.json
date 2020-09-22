@@ -1,0 +1,10 @@
+{
+    "name": "renewed-nunjucks-loader",
+    "version": "1.0.0",
+    "main": "./index.js",
+    "dependencies": {
+        "loader-utils": "^2.0.0",
+        "nunjucks": "^3.2.2",
+        "slash": "^3.0.0"
+    }
+}

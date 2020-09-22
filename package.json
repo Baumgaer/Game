@@ -104,6 +104,7 @@
         "nodemon": "^2.0.4",
         "nunjucks-loader": "^3.0.0",
         "nyc": "^15.1.0",
+        "renewed-nunjucks-loader": "file:./webpack/renewed-nunjucks-loader",
         "rimraf": "^3.0.2",
         "rxjs": "^6.6.3",
         "source-map-loader": "^1.1.0",

@@ -190,9 +190,9 @@ module.exports = (_env, options) => {
                 query: { basenameAsNamespace: true }
             }, {
                 test: /\.(njk|nunjucks)$/,
-                use: [cacheLoaderSettings("templates"), threadLoaderSettings(), {
-                    loader: 'nunjucks-loader',
-                    query: {
+                use: [{
+                    loader: 'renewed-nunjucks-loader',
+                    options: {
                         sourceMap: 'inline',
                         config: path.resolve(arp.path, "nunjucks.config.js"),
                         quiet: true
