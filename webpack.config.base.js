@@ -4,6 +4,7 @@ const path = require('path');
 const arp = require('app-root-path');
 
 const TerserPlugin = require('terser-webpack-plugin');
+const FilterWarningsPlugin = require('webpack-filter-warnings-plugin');
 const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
 const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
 const TsconfigPathsPlugin = require('tsconfig-paths-webpack-plugin').TsconfigPathsPlugin;
@@ -47,7 +48,7 @@ module.exports = (_env, options) => {
             //chunkFilename: '[name].bundle.js',
             pathinfo: !isDevelopment
         },
-        devtool: isDevelopment ? 'cheap-eval-source-map' : '', // use cheap-eval-source-map when sourcemaps are broken
+        devtool: isDevelopment ? 'inline-source-map' : '', // use cheap-eval-source-map when sourcemaps are broken
         resolve: {
             extensions: [".ts", ".tsx", ".js", ".njk", ".less"],
             alias: {
@@ -77,6 +78,11 @@ module.exports = (_env, options) => {
                     },
                     profile: true
                 }
+            }),
+            new FilterWarningsPlugin({
+                exclude: [
+                    /Critical dependency: the request of a dependency is an expression/
+                ]
             })
         ],
         module: {

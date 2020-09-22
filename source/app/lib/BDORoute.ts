@@ -1,7 +1,6 @@
 import { Request, Response, NextFunction, Router } from 'express';
 import { Template } from 'nunjucks';
-import { isString, isObject } from '~bdo/utils/util';
-import { templateEnvironment } from '~bdo/utils/environment';
+import template from "~bdo/views/BDODefaultTemplate.njk";
 
 export type minimumAccessRights = "loggedout" | "public" | "loggedin" | "admin";
 
@@ -54,7 +53,7 @@ export abstract class BDORoute {
      * @protected
      * @memberof BaseRoute
      */
-    protected templateString: string | Template = '<div></div>';
+    protected templateString: Template = template;
 
     /**
      * If true there will no template be rendered and only the template params
@@ -83,14 +82,7 @@ export abstract class BDORoute {
      * @memberof BDORoute
      */
     protected renderTemplate(templateParams: IndexStructure): string | null {
-        let stringToParse = null;
-        if (isString(this.templateString)) {
-            stringToParse = templateEnvironment.renderString(this.templateString, templateParams);
-        }
-        if (isObject(this.templateString)) {
-            stringToParse = (<Template>this.templateString).render(templateParams);
-        }
-        return stringToParse;
+        return this.templateString.render(templateParams);
     }
 
     /**

@@ -15,7 +15,6 @@ import { createHash, HexBase64Latin1Encoding } from 'crypto';
 import { ConfigManager } from '~server/lib/ConfigManager';
 import { RedisClientManager } from '~server/lib/RedisClientManager';
 import { Logger } from '~server/lib/Logger';
-import { walk } from '~root/utils/projectStructure';
 import { includesMemberOfList, toURIPathPart } from '~bdo/utils/util';
 import { RedisClient } from 'redis';
 import { ServerRoute } from "~server/lib/ServerRoute";
@@ -226,23 +225,22 @@ export abstract class BaseServer {
      * @memberof BaseServer
      */
     protected async routeCollection(): Promise<void> {
-        const config = await configManager.get('paths');
-        walk(resolve(rootPath, config.routes), this.singleRouteCollection.bind(this));
+        const context = require.context("./../routes", true, /.+\.ts/, "sync");
+        context.keys().forEach((key) => this.singleRouteCollection(context(key).default));
     }
 
     /**
      * Initializes a single route based on its file
      *
      * @protected
-     * @param file The path to the file which should be imported as a route
+     * @param route The path to the file which should be imported as a route
      * @returns A definitely resolving promise
      * @memberof BaseServer
      */
-    protected async singleRouteCollection(file: string): Promise<void> {
-        const Route = (await import(file)).default;
-        if (!includesMemberOfList(<string[]>Route.attachToServers, [<string>process.env.NAME, '*'])) return;
-        const clRoute: ServerRoute = new Route(this);
-        if (!clRoute.isServerRoute) throw new Error(`${file} is not instance of ~server/lib/ServerRoute`);
+    protected async singleRouteCollection(route: typeof ServerRoute): Promise<void> {
+        if (!includesMemberOfList(<string[]>route.attachToServers, [<string>process.env.NAME, '*'])) return;
+        const clRoute: ServerRoute = new route(this);
+        if (!clRoute.isServerRoute) throw new Error(`${route.constructor.name} is not instance of ~server/lib/ServerRoute`);
         clRoute.routerNameSpace = toURIPathPart(clRoute.routerNameSpace);
         this.app.use(clRoute.routerNameSpace, clRoute.router);
     }

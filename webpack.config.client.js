@@ -6,7 +6,6 @@ const fs = require('graceful-fs');
 const rimraf = require('rimraf');
 const lodash = require("lodash");
 
-const FilterWarningsPlugin = require('webpack-filter-warnings-plugin');
 const lessPluginCleanCSS = require('less-plugin-clean-css');
 const EventHooksPlugin = require('event-hooks-webpack-plugin');
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
@@ -50,11 +49,6 @@ module.exports = (env, options) => {
     settings.plugins = settings.plugins.concat([
         new webpack.NormalModuleReplacementPlugin(/nunjucks$/, resource => {
             resource.request = resource.request.replace(/nunjucks/, "nunjucks/browser/nunjucks-slim");
-        }),
-        new FilterWarningsPlugin({
-            exclude: [
-                /Critical dependency: the request of a dependency is an expression/
-            ]
         }),
         new CleanWebpackPlugin({
             protectWebpackAssets: true,
