@@ -1,4 +1,5 @@
 import { BDORoute } from '~bdo/lib/BDORoute';
+import { BaseClient } from "~client/lib/BaseClient";
 import { merge, toURIPathPart } from '~bdo/utils/util';
 import { Logger } from '~client/lib/Logger';
 import NightHawk from "nighthawk";
@@ -22,7 +23,26 @@ export class ClientRoute extends BDORoute {
      *
      * @memberof ClientRoute
      */
-    public readonly isClientRoute: boolean = true;
+    public static readonly isClientRoute: boolean = true;
+
+    /**
+     * @see ClientRoute.isClientRoute
+     *
+     * @memberof ClientRoute
+     */
+    public readonly isClientRoute = ClientRoute.isClientRoute;
+
+    /**
+     * @inheritdoc
+     *
+     * @protected
+     * @memberof ClientRoute
+     */
+    protected environmentInstance!: BaseClient;
+
+    constructor(clientInstance: BaseClient) {
+        super(clientInstance);
+    }
 
     /**
      * @inheritdoc

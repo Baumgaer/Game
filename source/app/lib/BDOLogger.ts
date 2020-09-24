@@ -9,7 +9,7 @@ export type printEnvironments = 'console' | 'file' | 'browser';
 /**
  * Prints nice formatted strings to console and file and adds some useful information.
  */
-export abstract class BDOLogger {
+export class BDOLogger {
     /**
      * The file to write logging in
      *
@@ -191,20 +191,29 @@ export abstract class BDOLogger {
     /**
      * Creates the information added header for every log
      *
-     * @private
+     * @protected
      * @param logLevel The log level which effects the colorization
-     * @param printEnv The environment where to print a message
+     * @param _printEnv The environment where to print a message
+     * @returns The ready to use header
      * @memberof BDOLogger
      */
-    protected abstract getHeader(logLevel: logLevels, printEnv?: printEnvironments): string | string[];
+    protected getHeader(logLevel: logLevels, _printEnv?: printEnvironments): string | string[] {
+        const procInfo = this.getProcInfo();
+        const currentTime = this.currentTime();
+        const upperLogLevel = logLevel.toUpperCase();
+        const logPoint = this.getLogPoint();
+        return `[${upperLogLevel} - ${procInfo} - ${currentTime} - ${logPoint}]`;
+    }
 
     /**
      * Writes the message to configured log file
      *
      * @protected
-     * @param logLevel The log level which effects the colorization
-     * @param message The message which should be written to file
+     * @param _logLevel The log level which effects the colorization
+     * @param _message The message which should be written to file
      * @memberof BDOLogger
      */
-    protected abstract writeToFile(logLevel: logLevels, message: any): void;
+    protected writeToFile(_logLevel: logLevels, _message: any) {
+        // Nothing to do here because we don't know in which environment we are
+    }
 }

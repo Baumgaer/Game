@@ -3,6 +3,7 @@ const os = require('os');
 const path = require('path');
 const arp = require('app-root-path');
 
+const webpack = require("webpack");
 const TerserPlugin = require('terser-webpack-plugin');
 const FilterWarningsPlugin = require('webpack-filter-warnings-plugin');
 const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
@@ -44,9 +45,7 @@ module.exports = (_env, options) => {
 
     const settings = {
         output: {
-            filename: "[name].js",
-            //chunkFilename: '[name].bundle.js',
-            pathinfo: !isDevelopment
+            filename: "[name].js"
         },
         devtool: isDevelopment ? 'inline-source-map' : '', // use cheap-eval-source-map when sourcemaps are broken
         resolve: {
@@ -68,6 +67,11 @@ module.exports = (_env, options) => {
             ]
         },
         plugins: [
+            new webpack.DefinePlugin({
+                ENVIRONMENTAL_ROUTES_PATH: JSON.stringify(path.resolve(arp.path, options.scriptDir, "routes")),
+                ENVIRONMENTAL_MODELS_PATH: JSON.stringify(path.resolve(arp.path, options.scriptDir, "models")),
+                ENVIRONMENTAL_INTERFACES_PATH: JSON.stringify(path.resolve(arp.path, options.scriptDir, "interfaces"))
+            }),
             new ForkTsCheckerWebpackPlugin({
                 async: true,
                 typescript: {
@@ -148,7 +152,7 @@ module.exports = (_env, options) => {
 
     ///////////////////////////////////
     // EXTEND BUILD PLUGINS
-    // @ts-expect-error
+
     if (!isDevelopment) settings.plugins = settings.plugins.concat([new BundleAnalyzerPlugin()]);
 
     ///////////////////////////////////
@@ -159,8 +163,7 @@ module.exports = (_env, options) => {
                 vendor: {
                     test: /[\\/]node_modules[\\/]/,
                     name: "vendor",
-                    chunks: "all",
-                    reuseExistingChunk: true
+                    chunks: "all"
                 },
                 templates: {
                     test: /\.njk/,
@@ -171,7 +174,8 @@ module.exports = (_env, options) => {
                 lib: {
                     test: /[\\/]lib[\\/]/,
                     name: "lib",
-                    chunks: "initial"
+                    chunks: "initial",
+                    reuseExistingChunk: true
                 },
                 styles: {
                     test: /\.less/,

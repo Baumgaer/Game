@@ -1,6 +1,8 @@
 import { Request, Response, NextFunction, Router } from 'express';
-import { Template } from 'nunjucks';
+import { BaseEnvironment } from "~bdo/lib/BaseEnvironment";
 import template from "~bdo/views/BDODefaultTemplate.njk";
+
+import type { Template } from 'nunjucks';
 
 export type minimumAccessRights = "loggedout" | "public" | "loggedin" | "admin";
 
@@ -13,6 +15,13 @@ export type minimumAccessRights = "loggedout" | "public" | "loggedin" | "admin";
 export abstract class BDORoute {
 
     /**
+     * This is for better identification of BDO routes and instance check
+     *
+     * @memberof BDORoute
+     */
+    public static readonly isBDORoute: boolean = true;
+
+    /**
      * Defines which servers have to use this route.
      * "*" means that all servers should use this route.
      * If only a specific number of server should use this route, define their
@@ -22,6 +31,13 @@ export abstract class BDORoute {
      * @memberof BaseRoute
      */
     public static attachToServers: string[] = ['*'];
+
+    /**
+     * @see BDORoute.isBDORoute
+     *
+     * @memberof BDORoute
+     */
+    public readonly isBDORoute: boolean = true;
 
     /**
      * Namespace for the express router as entry point
@@ -71,6 +87,18 @@ export abstract class BDORoute {
      * @memberof BDORoute
      */
     protected access: minimumAccessRights = "loggedin";
+
+    /**
+     * Holds a reference to the current environment instance
+     *
+     * @protected
+     * @memberof ServerRoute
+     */
+    protected environmentInstance: BaseEnvironment;
+
+    constructor(environment: BaseEnvironment) {
+        this.environmentInstance = environment;
+    }
 
     /**
      * Renders the template depending on its format (Template or string) and

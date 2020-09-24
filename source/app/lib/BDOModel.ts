@@ -69,7 +69,7 @@ export abstract class BDOModel implements IBaseConstructorOpts {
      *
      * @memberof BDOModel
      */
-    @property() public readonly isBDOModel: boolean = true;
+    @property() public readonly isBDOModel = BDOModel.isBDOModel;
 
     /**
      * @see BDOModel.collectionName

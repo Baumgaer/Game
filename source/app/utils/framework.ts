@@ -7,11 +7,16 @@ import { merge, isFunction } from "~bdo/utils/util";
 import { isBrowser } from "~bdo/utils/environment";
 import { getMetadata, defineMetadata, getWildcardMetadata, defineWildcardMetadata } from "~bdo/utils/metadata";
 import { baseConstructorFactory, IBaseConstructorOpts } from "~bdo/lib/BaseConstructor";
-import { BDOModel } from "~bdo/lib/BDOModel";
 import getValue from "get-value";
 
+import type { BDOModel } from "~bdo/lib/BDOModel";
 import type { ClientModel } from "~client/lib/ClientModel";
 import type { ServerModel } from "~server/lib/ServerModel";
+
+import type { BDORoute } from "~bdo/lib/BDORoute";
+import type { ServerRoute } from "~server/lib/ServerRoute";
+import type { ClientRoute } from "~client/lib/ClientRoute";
+
 import type { BaseComponentFactory } from "~client/lib/BaseComponent";
 import type { BaseControllerFactory } from "~client/lib/BaseController";
 import type { getNamespacedStorage } from "~client/utils/util";
@@ -271,15 +276,36 @@ export function isComponent<T = BaseComponent>(value: any): value is T {
 }
 
 /**
- * Checks if a string corresponds to a reference string like in a database
+ * Checks if the given value is any route
  *
- * @param value Something which could be a reference string
- * @returns true if value is a reference string and false else
+ * @param value The value to check if is any route
+ * @returns true if is any route and false else
  */
-export function isReferenceString(value: unknown): value is string {
-    if (typeof value !== "string") return false;
-    const refRegEx = /_reference:[A-Z|0-9|_|$]*:[A-Z|0-9|\-|_]*/gi;
-    return Boolean(value.match(refRegEx)).valueOf();
+export function isBDORoute(value: any): value is BDORoute {
+    if (value.isBDORoute) return true;
+    return false;
+}
+
+/**
+ * Checks if the given value is server route
+ *
+ * @param value The value to check if is server route
+ * @returns true if is server route and false else
+ */
+export function isServerRoute(value: any): value is ServerRoute {
+    if (isBDORoute(value) && "isServerRoute" in value) return true;
+    return false;
+}
+
+/**
+ * Checks if the given value is client route
+ *
+ * @param value The value to check if is client route
+ * @returns true if is client route and false else
+ */
+export function isClientRoute(value: any): value is ClientRoute {
+    if (isBDORoute(value) && "isClientRoute" in value) return true;
+    return false;
 }
 
 /**

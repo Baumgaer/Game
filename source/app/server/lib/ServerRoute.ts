@@ -19,7 +19,14 @@ export class ServerRoute extends BDORoute {
      *
      * @memberof ServerRoute
      */
-    public readonly isServerRoute: boolean = true;
+    public static readonly isServerRoute: boolean = true;
+
+    /**
+     * @see ServerRoute.isServerRoute
+     *
+     * @memberof ServerRoute
+     */
+    public readonly isServerRoute = ServerRoute.isServerRoute;
 
     /**
      * @inheritdoc
@@ -42,17 +49,15 @@ export class ServerRoute extends BDORoute {
     }
 
     /**
-     * Holds a reference to the current server instance
+     * @inheritdoc
      *
      * @protected
-     * @type {BaseServer}
      * @memberof ServerRoute
      */
-    protected serverInstance!: BaseServer;
+    protected environmentInstance!: BaseServer;
 
     constructor(serverInstance: BaseServer) {
-        super();
-        this.serverInstance = serverInstance;
+        super(serverInstance);
     }
 
     /**

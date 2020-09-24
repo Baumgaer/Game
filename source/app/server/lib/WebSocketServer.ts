@@ -67,8 +67,8 @@ export abstract class WebSocketServer extends BaseServer {
      * @returns {Promise<void>}
      * @memberof WebSocketServer
      */
-    protected async setupServer(): Promise<void> {
-        super.setupServer();
+    protected async setup(): Promise<void> {
+        super.setup();
 
         [pub, sub] = await Promise.all([
             redisClientManager.createClient('websocketPublisher'),

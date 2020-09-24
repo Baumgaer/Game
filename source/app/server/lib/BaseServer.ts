@@ -12,12 +12,12 @@ import { path as rootPath } from 'app-root-path';
 import { createServer, Server } from 'http';
 import { AddressInfo } from 'ws';
 import { createHash, HexBase64Latin1Encoding } from 'crypto';
+
+import { BaseEnvironment } from "~bdo/lib/BaseEnvironment";
 import { ConfigManager } from '~server/lib/ConfigManager';
 import { RedisClientManager } from '~server/lib/RedisClientManager';
 import { Logger } from '~server/lib/Logger';
-import { includesMemberOfList, toURIPathPart } from '~bdo/utils/util';
 import { RedisClient } from 'redis';
-import { ServerRoute } from "~server/lib/ServerRoute";
 
 const configManager = ConfigManager.getInstance();
 const redisClientManager = RedisClientManager.getInstance();
@@ -25,22 +25,13 @@ const logger = new Logger({
     logLevel: 'debug'
 });
 
-declare type states =
-    | 'loadConfig'
-    | 'setupServer'
-    | 'routeCollection'
-    | 'ready'
-    | 'started'
-    | 'stopping'
-    | 'stopped';
-
 /**
  * Provides the base functionality of all servers including safety, middlewares,
  * route iteration, error handling, basic startup and basic graceful shutdown.
  *
  * @abstract
  */
-export abstract class BaseServer {
+export abstract class BaseServer extends BaseEnvironment {
     /**
      * The application which handles the routing and serving and so on
      *
@@ -65,16 +56,8 @@ export abstract class BaseServer {
      */
     protected sessionParser?: express.RequestHandler;
 
-    /**
-     * Represents the current state of the server depending on the currently
-     * running life cycle function.
-     *
-     * @protected
-     * @memberof BaseServer
-     */
-    protected state: states = 'stopped';
-
     constructor() {
+        super();
         const gracefulShutdownHandler = () => {
             logger.info(`Shutting down ${process.env.NAME}`);
             this.gracefulShutdown();
@@ -91,39 +74,22 @@ export abstract class BaseServer {
             this.state = 'stopped';
             logger.info(`${process.env.NAME} stopped`);
         });
-        this.state = 'setupServer';
-        this.setupServer().then(async () => {
-            this.state = 'routeCollection';
-            logger.info(`Collecting routes of ${process.env.NAME}`);
-            await this.routeCollection();
-        }).then(() => {
-            this.state = "ready";
-            logger.info(`${process.env.NAME} is ready for start`);
-        });
     }
 
     /**
-     * Starts the ready configured server
+     * @inheritdoc
      *
-     * @public
-     * @returns {Promise<void>}
+     * @returns An indicator promise for startup
      * @memberof BaseServer
      */
-    public async start(): Promise<Server> {
-        logger.info(`Start of ${process.env.NAME} requested`);
-        await new Promise((resolver) => {
-            const interval = setInterval(() => {
-                if (this.state === 'ready') {
-                    clearInterval(interval);
-                    resolver();
-                }
-            });
-        });
-        return new Promise<Server>((resolver) => {
+    public async start() {
+        await super.start();
+        return new Promise((resolver) => {
             try {
                 let port = 8080;
                 if (process.env.PORT) port = parseInt(process.env.PORT, 10);
-                resolver(this.server.listen(port, "0.0.0.0"));
+                this.server.listen(port, "0.0.0.0");
+                resolver(this);
             } catch (error) {
                 logger.error(error);
                 process.exit(1);
@@ -151,8 +117,8 @@ export abstract class BaseServer {
      * @returns {Promise<void>}
      * @memberof BaseServer
      */
-    protected async setupServer(): Promise<void> {
-        logger.info(`Setting up ${process.env.NAME}`);
+    protected async setup(): Promise<void> {
+        await super.setup();
         const [config, passwords, databases, paths, redisStoreClient] = await Promise.all([
             configManager.get('config'),
             configManager.get('passwords'),
@@ -215,34 +181,6 @@ export abstract class BaseServer {
         // Setup static files directory
         this.app.use(expressStatic(resolve(rootPath, paths.staticFiles)));
         this.app.use(expressStatic(resolve(rootPath, "node_modules", "sql.js", "dist")));
-    }
-
-    /**
-     * 2. collects all available routes and initializes them
-     *
-     * @protected
-     * @returns {Promise<void>}
-     * @memberof BaseServer
-     */
-    protected async routeCollection(): Promise<void> {
-        const context = require.context("./../routes", true, /.+\.ts/, "sync");
-        context.keys().forEach((key) => this.singleRouteCollection(context(key).default));
-    }
-
-    /**
-     * Initializes a single route based on its file
-     *
-     * @protected
-     * @param route The path to the file which should be imported as a route
-     * @returns A definitely resolving promise
-     * @memberof BaseServer
-     */
-    protected async singleRouteCollection(route: typeof ServerRoute): Promise<void> {
-        if (!includesMemberOfList(<string[]>route.attachToServers, [<string>process.env.NAME, '*'])) return;
-        const clRoute: ServerRoute = new route(this);
-        if (!clRoute.isServerRoute) throw new Error(`${route.constructor.name} is not instance of ~server/lib/ServerRoute`);
-        clRoute.routerNameSpace = toURIPathPart(clRoute.routerNameSpace);
-        this.app.use(clRoute.routerNameSpace, clRoute.router);
     }
 
     /**

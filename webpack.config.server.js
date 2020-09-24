@@ -4,6 +4,7 @@ const path = require('path');
 const lodash = require("lodash");
 
 const nodeExternals = require('webpack-node-externals');
+const webpack = require("webpack");
 
 const webpackConfigBase = require("./webpack.config.base");
 
@@ -14,7 +15,8 @@ module.exports = (env, options) => {
 
     lodash.merge(options, {
         cacheDir: "./var/buildcache/backend",
-        tsConfigPath: "./tsconfig.json"
+        tsConfigPath: "./tsconfig.json",
+        scriptDir: "./source/app/server"
     });
 
     ///////////////////////////////////
@@ -44,7 +46,7 @@ module.exports = (env, options) => {
 
     ///////////////////////////////////
     // EXTEND BUILD PLUGINS
-
+    // @ts-ignore
     settings.plugins = settings.plugins.concat([]);
 
     ///////////////////////////////////

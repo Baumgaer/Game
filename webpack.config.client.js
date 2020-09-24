@@ -18,7 +18,8 @@ module.exports = (env, options) => {
     // CONFIGURE ENVIRONMENT
     lodash.merge(options, {
         cacheDir: "./var/buildcache/frontend",
-        tsConfigPath: "./source/app/client/ts/tsconfig.json"
+        tsConfigPath: "./source/app/client/ts/tsconfig.json",
+        scriptDir: "./source/app/client/ts"
     });
 
     ///////////////////////////////////
@@ -45,7 +46,7 @@ module.exports = (env, options) => {
 
     ///////////////////////////////////
     // EXTEND BUILD PLUGINS
-    // @ts-expect-error
+
     settings.plugins = settings.plugins.concat([
         new webpack.NormalModuleReplacementPlugin(/nunjucks$/, resource => {
             resource.request = resource.request.replace(/nunjucks/, "nunjucks/browser/nunjucks-slim");

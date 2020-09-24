@@ -99,6 +99,8 @@ interface Window {
     cspScriptNonce: string
 }
 
+declare const ENVIRONMENTAL_ROUTES_PATH: string;
+
 namespace NodeJS { // eslint-disable-line
     // interface Global { }
 }
