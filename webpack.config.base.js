@@ -5,6 +5,7 @@ const arp = require('app-root-path');
 
 const webpack = require("webpack");
 const TerserPlugin = require('terser-webpack-plugin');
+const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 const FilterWarningsPlugin = require('webpack-filter-warnings-plugin');
 const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
 const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
@@ -52,11 +53,7 @@ module.exports = (_env, options) => {
             extensions: [".ts", ".tsx", ".js", ".njk", ".less"],
             alias: {
                 //less path resolve. "~" is replaced by less-loader
-                "static": path.resolve(arp.path, "source", "app", "client"),
-                //views path resolve
-                "~static/views": path.resolve(arp.path, "source", "app", "client", "views"),
-                "~bdo/views": path.resolve(arp.path, "source", "app", "views"),
-                "~server/views": path.resolve(arp.path, "source", "app", "server", "views")
+                "static": path.resolve(arp.path, "source", "app", "client")
             },
             // Add `.ts` and `.tsx` as a resolvable extension.
             plugins: [
@@ -71,6 +68,11 @@ module.exports = (_env, options) => {
                 ENVIRONMENTAL_ROUTES_PATH: JSON.stringify(path.resolve(arp.path, options.scriptDir, "routes")),
                 ENVIRONMENTAL_MODELS_PATH: JSON.stringify(path.resolve(arp.path, options.scriptDir, "models")),
                 ENVIRONMENTAL_INTERFACES_PATH: JSON.stringify(path.resolve(arp.path, options.scriptDir, "interfaces"))
+            }),
+            new CleanWebpackPlugin({
+                protectWebpackAssets: true,
+                cleanOnceBeforeBuildPatterns: ["!*.md", "*.js"],
+                cleanStaleWebpackAssets: false
             }),
             new ForkTsCheckerWebpackPlugin({
                 async: true,

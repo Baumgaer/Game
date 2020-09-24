@@ -53,21 +53,53 @@ export function isSourceFile(filePath: string): boolean {
 }
 
 /**
+ * Executes the check of isOnClient/ServerSide() and isAppFile()
+ *
+ * @param filePath The file which has to be checked for environment
+ * @param environment The environment where the file should be
+ * @returns true if is in given environment and false else
+ */
+function isClientServerAppFile(filePath: string, environment: "" | "server" | "client"): boolean {
+    if (!isAbsolute(filePath)) filePath = resolve(rootPath, filePath);
+
+    const sourcePath = resolve(rootPath, 'source', 'app', environment);
+    const outPath = resolve(rootPath, 'out', 'app', environment);
+
+    const isASourceFile = isSourceFile(filePath) && filePath.includes(sourcePath);
+    const isAnOutFile = !isSourceFile(filePath) && filePath.includes(outPath);
+
+    if (isASourceFile || isAnOutFile) return true;
+    return false;
+}
+
+/**
  * Determines wether the file is on client side or not
  *
  * @param filePath The file which has to be checked for client side
  * @returns true if file is a client side file and false else
  */
 export function isOnClientSide(filePath: string): boolean {
-    if (!isAbsolute(filePath)) filePath = resolve(rootPath, filePath);
-    const sourceClientPath = resolve(rootPath, 'source', 'app', 'client');
-    const outClientPath = resolve(rootPath, 'out', 'app', 'client');
+    return isClientServerAppFile(filePath, "client");
+}
 
-    const isSourceClientFile = isSourceFile(filePath) && filePath.includes(sourceClientPath);
-    const isOutClientFile = !isSourceFile(filePath) && filePath.includes(outClientPath);
+/**
+ * Determines wether the file is on server side or not
+ *
+ * @param filePath The file which has to be checked for server side
+ * @returns true if file is a server side file and false else
+ */
+export function isOnServerSide(filePath: string): boolean {
+    return isClientServerAppFile(filePath, "server");
+}
 
-    if (isSourceClientFile || isOutClientFile) return true;
-    return false;
+/**
+ * Determines wether the file is an app file or not
+ *
+ * @param filePath The file which has to be checked for an app file
+ * @returns true if file is an app file and false else
+ */
+export function isAppFile(filePath: string): boolean {
+    return isClientServerAppFile(filePath, "");
 }
 
 /**

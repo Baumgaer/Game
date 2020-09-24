@@ -5,7 +5,7 @@ import colors from 'colors';
 import {
     getCorrespondingFile,
     isSourceFile,
-    isOnClientSide,
+    isAppFile,
     cleanEmptyFoldersRecursively
 } from './../utils/projectStructure';
 
@@ -34,7 +34,7 @@ module.exports = (grunt: IGrunt): void => {
             let fileToDelete = null;
             if (isSource && exists) fileToDelete = correspondingFile;
             if (!isSource && !exists) fileToDelete = currentFile;
-            if (isOnClientSide(currentFile)) fileToDelete = null;
+            if (isAppFile(currentFile)) fileToDelete = null;
             if (fileToDelete) {
                 grunt.log.ok(`${colors.cyan.bold('Cleanup')}: ${currentFile} ${colors.cyan('=>')} ${fileToDelete}`);
                 unlinkSync(fileToDelete);

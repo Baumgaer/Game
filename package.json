@@ -5,7 +5,7 @@
     "scripts": {
         "test": "nyc --exclude-after-remap=false mocha --config ./.mocharc.yml",
         "start": "docker-compose -f ./out/app/config/docker-compose.yml -f ./out/app/config/development/docker-compose.yml -f ./out/app/server/config/docker-compose.yml -f ./out/app/server/config/development/docker-compose.yml  up --build",
-        "build": "npm run build:infra && grunt compile:config && npm run build:server && npm run build:client && grunt cleanup",
+        "build": "npm run build:infra && grunt compile && npm run build:server && npm run build:client && grunt cleanup",
         "build:server": "webpack --progress --mode development --config webpack.config.server.js",
         "build:client": "webpack --progress --mode development --config webpack.config.client.js",
         "build:infra": "tsc -p ./tsconfig.infra.json",

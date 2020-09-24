@@ -3,12 +3,10 @@ const arp = require('app-root-path');
 const path = require('path');
 const webpack = require('webpack');
 const fs = require('graceful-fs');
-const rimraf = require('rimraf');
 const lodash = require("lodash");
 
 const lessPluginCleanCSS = require('less-plugin-clean-css');
 const EventHooksPlugin = require('event-hooks-webpack-plugin');
-const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 
 const webpackConfigBase = require("./webpack.config.base");
 
@@ -51,16 +49,14 @@ module.exports = (env, options) => {
         new webpack.NormalModuleReplacementPlugin(/nunjucks$/, resource => {
             resource.request = resource.request.replace(/nunjucks/, "nunjucks/browser/nunjucks-slim");
         }),
-        new CleanWebpackPlugin({
-            protectWebpackAssets: true,
-            cleanOnceBeforeBuildPatterns: ["!*.md", "*.bundle.js"],
-            cleanStaleWebpackAssets: false
-        }),
         new EventHooksPlugin({
             done: () => {
-                // Cleanup annoying output of client because of type only imports triggered by ts-node...
-                const tsOutDir = path.resolve(arp.path, "out", "app", "client", "ts");
-                if (fs.existsSync(tsOutDir)) rimraf.sync(tsOutDir);
+                const source = path.resolve(arp.path, "node_modules", "source-map-support", "browser-source-map-support.js");
+                const target = path.resolve(arp.path, "out", "app", "client", "js", "browser-source-map-support.js");
+                fs.copyFile(source, target, (error) => {
+                    if (error) console.error(error);
+                    console.info("Copied Browser-source-map-support to client");
+                });
             }
         })
     ]);
