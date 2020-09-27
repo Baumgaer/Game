@@ -122,7 +122,18 @@ export abstract class BDORoute {
      * @returns the processed template parameters
      * @memberof BDORoute
      */
-    protected async templateParams(_request: Request): Promise<IndexStructure> {
+
+    /**
+     * Returns an object which keys matches the interpolations of the template.
+     *
+     * @protected
+     * @param _request The request given by the http server or a response from the http server
+     * @param _response The response used by the http server to transmit data to the client or redirect on client side
+     * @param _next The function which will trigger the next middleware function
+     * @returns the processed template parameters
+     * @memberof BDORoute
+     */
+    protected async templateParams(_request: Request, _response: Response, _next: NextFunction): Promise<IndexStructure> {
         return {};
     }
 

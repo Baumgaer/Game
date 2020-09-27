@@ -99,7 +99,12 @@ interface Window {
     cspScriptNonce: string
 }
 
+interface ServiceWorkerGlobalScope {
+    process: any
+}
+
 declare const ENVIRONMENTAL_ROUTES_PATH: string;
+declare const __webpack_hash__: string; // eslint-disable-line
 
 namespace NodeJS { // eslint-disable-line
     // interface Global { }

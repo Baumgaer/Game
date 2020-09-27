@@ -9,7 +9,6 @@ services:
             restart_policy:
                 condition: on-failure
                 max_attempts: 3
-                window: 120s
         restart: unless-stopped
 
     webServer:
@@ -20,7 +19,6 @@ services:
             restart_policy:
                 condition: on-failure
                 max_attempts: 3
-                window: 120s
         restart: unless-stopped
 
     redis:
@@ -29,7 +27,6 @@ services:
             restart_policy:
                 condition: on-failure
                 max_attempts: 3
-                window: 120s
         restart: unless-stopped
 
     arangoDB:
@@ -38,7 +35,6 @@ services:
             restart_policy:
                 condition: on-failure
                 max_attempts: 3
-                window: 120s
         restart: unless-stopped
 
     redisInsight:
@@ -47,5 +43,4 @@ services:
             restart_policy:
                 condition: on-failure
                 max_attempts: 3
-                window: 120s
         restart: unless-stopped

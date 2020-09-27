@@ -32,7 +32,8 @@ module.exports = (env, options) => {
             WebClient: [
                 path.resolve(arp.path, "node_modules/@webcomponents/webcomponentsjs/webcomponents-bundle.js"),
                 path.resolve(arp.path, "source", "app", "client", "ts", "WebClient.ts")
-            ]
+            ],
+            ServiceWorker: path.resolve(arp.path, "source", "app", "client", "ts", "ServiceWorker.ts")
         },
         output: {
             path: path.resolve(arp.path, "out", "app", "client", "js")

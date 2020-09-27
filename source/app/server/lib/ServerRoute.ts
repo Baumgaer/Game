@@ -69,8 +69,8 @@ export class ServerRoute extends BDORoute {
      * @returns An object with key => value used for templates to fill variables
      * @memberof ServerRoute
      */
-    protected async templateParams(request: Request): Promise<IndexStructure> {
-        return super.templateParams(request);
+    protected async templateParams(request: Request, response: Response, next: NextFunction): Promise<IndexStructure> {
+        return super.templateParams(request, response, next);
     }
 
     /**
@@ -86,10 +86,12 @@ export class ServerRoute extends BDORoute {
         let templateParams: IndexStructure;
         let content: string | null = null;
 
+        if (response.headersSent) return;
+
         if (!await this.accessGranted(request)) return next(new httpError.Unauthorized(`Route access is set to ${this.access}`));
 
         try {
-            templateParams = await this.templateParams(request);
+            templateParams = await this.templateParams(request, response, next);
             merge(templateParams, globalTemplateVars, { responseLocals: response.locals });
         } catch (error) {
             return next(new httpError.InternalServerError(String(error)));

@@ -64,6 +64,7 @@ module.exports = (_env, options) => {
             ]
         },
         plugins: [
+            new webpack.ExtendedAPIPlugin(),
             new webpack.DefinePlugin({
                 ENVIRONMENTAL_ROUTES_PATH: JSON.stringify(path.resolve(arp.path, options.scriptDir, "routes")),
                 ENVIRONMENTAL_MODELS_PATH: JSON.stringify(path.resolve(arp.path, options.scriptDir, "models")),

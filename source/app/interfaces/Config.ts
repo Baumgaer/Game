@@ -139,7 +139,6 @@
 }interface Restartpolicy {
   condition: string;
   max_attempts: number;
-  window: string;
 }interface Environment {
   NAME: string;
   PORT: number;
