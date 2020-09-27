@@ -37,3 +37,5 @@ out/lintRules/*.js
 out/*.js
 out/app/client/css/*.css
 out/app/client/css/**/*.css
+out/app/client/js/chunkManifest.json
+out/app/server/chunkManifest.json

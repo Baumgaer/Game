@@ -27,6 +27,9 @@
     </script>
     {% endblock %}
     {% block bodyMiddle %}{% endblock %}
+    {% for script in scripts %}
+    <script defer src="/js/{{script}}"></script>
+    {% endfor %}
     {% block bodyBottom %}{% endblock %}
 </body>
 

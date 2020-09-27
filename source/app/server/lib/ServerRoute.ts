@@ -4,6 +4,9 @@ import { globalTemplateVars } from '~server/utils/environment';
 import { BDORoute } from '~bdo/lib/BDORoute';
 import { BaseServer } from "~server/lib/BaseServer";
 import httpError from "http-errors";
+import { readFileSync } from "graceful-fs";
+import { path as rootPath } from "app-root-path";
+import { resolve as resolvePath } from "path";
 
 /**
  * Provides basic functionality of a route for the express router and encapsulates
@@ -56,8 +59,12 @@ export class ServerRoute extends BDORoute {
      */
     protected environmentInstance!: BaseServer;
 
+    private chunkManifest: Record<string, string[]>
+
     constructor(serverInstance: BaseServer) {
         super(serverInstance);
+        const chunkManifest = readFileSync(resolvePath(rootPath, "out", "app", "client", "js", "chunkManifest.json"));
+        this.chunkManifest = JSON.parse(chunkManifest.toString());
     }
 
     /**
@@ -70,7 +77,9 @@ export class ServerRoute extends BDORoute {
      * @memberof ServerRoute
      */
     protected async templateParams(request: Request, response: Response, next: NextFunction): Promise<IndexStructure> {
-        return super.templateParams(request, response, next);
+        const superParams = await super.templateParams(request, response, next);
+        superParams.scripts = this.chunkManifest[this.environmentInstance.clientName];
+        return superParams;
     }
 
     /**

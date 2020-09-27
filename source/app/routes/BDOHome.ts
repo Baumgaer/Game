@@ -1,4 +1,5 @@
 import { BDORoute, minimumAccessRights } from '~bdo/lib/BDORoute';
+import { Request, Response, NextFunction } from "express";
 
 /**
  * constructs the base for the home route on server and client
@@ -46,10 +47,11 @@ export function BDOHomeFactory<TBase extends Constructor<BDORoute>>(ctor: TBase)
          * @returns Additional template params for server and client
          * @memberof BDOHome
          */
-        protected async templateParams(): Promise<IndexStructure> {
-            return {
+        protected async templateParams(request: Request, response: Response, next: NextFunction): Promise<IndexStructure> {
+            const superParams = await super.templateParams(request, response, next);
+            return Object.assign({
                 title: 'endlich zu Hause =)'
-            };
+            }, superParams);
         }
     }
 

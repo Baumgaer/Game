@@ -32,6 +32,20 @@ const logger = new Logger({
  * @abstract
  */
 export abstract class BaseServer extends BaseEnvironment {
+
+    /**
+     * Defines the client name to be able to determine the scripts which
+     * should be shipped to the client. Follows the convenience to replace the
+     * "Server" in the servers name with "Client" and the rest matches.
+     *
+     * Example: The name of the server is WebServer and the clients name
+     * should be WebClient.
+     *
+     * @protected
+     * @memberof BaseServer
+     */
+    public clientName = this.constructor.name.replace("Server", "Client");
+
     /**
      * The application which handles the routing and serving and so on
      *

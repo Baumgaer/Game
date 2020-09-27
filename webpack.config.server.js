@@ -42,6 +42,9 @@ module.exports = (env, options) => {
             __filename: false,  // and __filename return blank or /
         },
         externals: [nodeExternals()], // Need this to avoid error when working with Express
+        optimization: {
+            splitChunks: false
+        }
     });
 
     ///////////////////////////////////

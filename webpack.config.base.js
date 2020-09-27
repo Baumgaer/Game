@@ -10,6 +10,7 @@ const FilterWarningsPlugin = require('webpack-filter-warnings-plugin');
 const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
 const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
 const TsconfigPathsPlugin = require('tsconfig-paths-webpack-plugin').TsconfigPathsPlugin;
+const ManifestPlugin = require('webpack-manifest-plugin');
 
 module.exports = (_env, options) => {
 
@@ -74,6 +75,17 @@ module.exports = (_env, options) => {
                 protectWebpackAssets: true,
                 cleanOnceBeforeBuildPatterns: ["!*.md", "*.js"],
                 cleanStaleWebpackAssets: false
+            }),
+            new ManifestPlugin({
+                fileName: "chunkManifest.json",
+                sort: (a, b) => {
+                    if (a < b) return 1;
+                    else if (a > b) return -1;
+                    else return 0;
+                },
+                generate: (_seed, _fileDescriptor, entryPoints) => {
+                    return entryPoints;
+                }
             }),
             new ForkTsCheckerWebpackPlugin({
                 async: true,
