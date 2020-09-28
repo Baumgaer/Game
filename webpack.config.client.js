@@ -17,7 +17,8 @@ module.exports = (env, options) => {
     lodash.merge(options, {
         cacheDir: "./var/buildcache/frontend",
         tsConfigPath: "./source/app/client/ts/tsconfig.json",
-        scriptDir: "./source/app/client/ts"
+        scriptDir: "./source/app/client/ts",
+        analyzerFileName: "frontend.json"
     });
 
     ///////////////////////////////////

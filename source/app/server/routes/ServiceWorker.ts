@@ -2,7 +2,7 @@ import { BDOServiceWorkerFactory } from '~bdo/routes/BDOServiceWorker';
 import { ServerRoute } from '~server/lib/ServerRoute';
 import { BaseServer } from "~server/lib/BaseServer";
 
-import { Request, Response } from "express";
+import { Request, Response, NextFunction } from "express";
 import { readFileSync } from "graceful-fs";
 import { path as rootPath } from "app-root-path";
 import { resolve as resolvePath } from "path";
@@ -31,8 +31,12 @@ export default class ServiceWorker extends BDOServiceWorkerFactory(ServerRoute) 
         this.templateString = new Template(fileBuffer.toString(), env);
     }
 
-    protected async templateParams(_request: Request, response: Response) {
+    protected async templateParams(request: Request, response: Response, next: NextFunction) {
+        const superParams = await super.templateParams(request, response, next);
+        superParams.scripts = this.chunkManifest.ServiceWorker.map((script) => `/js/${script}`);
+        const fileNameIndex = superParams.scripts.indexOf("ServiceWorker.js");
+        superParams.scripts.splice(fileNameIndex, 1);
         response.setHeader("Content-Type", "application/javascript");
-        return {};
+        return superParams;
     }
 }

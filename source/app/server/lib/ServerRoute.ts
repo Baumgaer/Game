@@ -59,7 +59,7 @@ export class ServerRoute extends BDORoute {
      */
     protected environmentInstance!: BaseServer;
 
-    private chunkManifest: Record<string, string[]>
+    protected chunkManifest: Record<string, string[]>
 
     constructor(serverInstance: BaseServer) {
         super(serverInstance);

@@ -168,7 +168,16 @@ module.exports = (_env, options) => {
     ///////////////////////////////////
     // EXTEND BUILD PLUGINS
 
-    if (!isDevelopment) settings.plugins = settings.plugins.concat([new BundleAnalyzerPlugin()]);
+    if (!isDevelopment) settings.plugins = settings.plugins.concat([new BundleAnalyzerPlugin({
+        analyzerMode: "static",
+        openAnalyzer: true,
+        generateStatsFile: true,
+        statsFilename: path.resolve(arp.path, "var", "webpack", "stats", options.analyzerFileName),
+        reportFilename: path.resolve(arp.path, "var", "webpack", "reports", options.analyzerFileName.split(".").map((pathPart, index, array) => {
+            if (index === array.length - 1) return "html";
+            return pathPart;
+        }).join("."))
+    })]);
 
     ///////////////////////////////////
     // EXTEND OPTIMIZATION OPTIONS
