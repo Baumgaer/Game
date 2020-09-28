@@ -5,7 +5,8 @@ WORKDIR /app
 COPY LICENSE.md ./
 COPY package-lock.json package.json ./
 
-RUN npm install
+RUN npm install --only=production
+RUN npm install nodemon -g
 
 COPY tsconfig.json tsconfig.base.json nodemon.json ./
 COPY out ./out

@@ -1,4 +1,3 @@
-import './../utils/requireOverride';
 import { install } from "source-map-support";
 import { WebSocketServer } from '~server/lib/WebSocketServer';  // eslint-disable-line
 import { Request } from 'express';

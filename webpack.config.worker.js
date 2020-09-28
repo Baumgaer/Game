@@ -3,9 +3,7 @@ const arp = require('app-root-path');
 const path = require('path');
 const lodash = require("lodash");
 
-const nodeExternals = require('webpack-node-externals');
-
-const webpackConfigBase = require("./webpack.config.base");
+const webpackConfigBase = require("./webpack.config.client");
 
 module.exports = (env, options, returnConfigObject) => {
 
@@ -14,43 +12,38 @@ module.exports = (env, options, returnConfigObject) => {
 
     const inherited = Object.assign({}, options);
     Object.assign(options, {
-        cacheDir: "./var/buildcache/backend",
-        tsConfigPath: "./tsconfig.json",
-        scriptDir: "./source/app/server",
-        analyzerFileName: "backend.json"
+        cacheDir: "./var/buildcache/worker",
+        analyzerFileName: "worker.json",
+        manifestFileName: "workerChunksManifest.json",
+        cleanupPatterns: ["!*.md", "worker.*.js"]
     }, inherited);
 
     ///////////////////////////////////
     // LOAD BASE
-
     const webpackConfigObject = webpackConfigBase(env, options, true);
 
     ///////////////////////////////////
     // CONFIGURE BUILD
-
     const settings = lodash.merge(webpackConfigObject.settings, {
-        target: "node",
-        entry: {
-            WebServer: path.resolve(arp.path, "source", "app", "WebServer.ts"),
-            GameServer: path.resolve(arp.path, "source", "app", "GameServer.ts")
-        },
+        target: "webworker",
         output: {
-            path: path.resolve(arp.path, "out", "app", "server")
+            chunkFilename: "worker.[name].js"
         },
-        node: {
-            // Need this when working with express, otherwise the build fails
-            __dirname: false,   // if you don't put this is, __dirname
-            __filename: false,  // and __filename return blank or /
-        },
-        externals: [nodeExternals()], // Need this to avoid error when working with Express
         optimization: {
             splitChunks: false
         }
     });
 
     ///////////////////////////////////
+    // WORKERS ENTRIES ONLY
+
+    settings.entry = {
+        ServiceWorker: path.resolve(arp.path, "source", "app", "client", "ts", "ServiceWorker.ts")
+    }
+
+    ///////////////////////////////////
     // EXTEND BUILD PLUGINS
-    // @ts-ignore
+
     settings.plugins = settings.plugins.concat([]);
 
     ///////////////////////////////////

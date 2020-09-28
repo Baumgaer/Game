@@ -12,7 +12,7 @@ const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPl
 const TsconfigPathsPlugin = require('tsconfig-paths-webpack-plugin').TsconfigPathsPlugin;
 const ManifestPlugin = require('webpack-manifest-plugin');
 
-module.exports = (_env, options) => {
+module.exports = (_env, options, returnConfigObject) => {
 
     console.log("operating in mode", options.mode);
 
@@ -49,7 +49,7 @@ module.exports = (_env, options) => {
         output: {
             filename: "[name].js"
         },
-        devtool: isDevelopment ? 'inline-source-map' : '', // use cheap-eval-source-map when sourcemaps are broken
+        devtool: isDevelopment ? 'cheap-eval-source-map' : '', // use cheap-eval-source-map when sourcemaps are broken
         resolve: {
             extensions: [".ts", ".tsx", ".js", ".njk", ".less"],
             alias: {
@@ -73,11 +73,11 @@ module.exports = (_env, options) => {
             }),
             new CleanWebpackPlugin({
                 protectWebpackAssets: true,
-                cleanOnceBeforeBuildPatterns: ["!*.md", "*.js"],
+                cleanOnceBeforeBuildPatterns: options.cleanupPatterns ? options.cleanupPatterns.concat(["!*.md"]) : ["!*.md"],
                 cleanStaleWebpackAssets: false
             }),
             new ManifestPlugin({
-                fileName: "chunkManifest.json",
+                fileName: options.manifestFileName || "chunkManifest.json",
                 sort: (a, b) => {
                     if (a < b) return 1;
                     else if (a > b) return -1;
@@ -157,7 +157,8 @@ module.exports = (_env, options) => {
                     output: {
                         ecma: 6,
                         comments: false,
-                        beautify: false
+                        beautify: false,
+                        quote_style: 3
                     },
                     sourceMap: false
                 }
@@ -215,10 +216,7 @@ module.exports = (_env, options) => {
     // EXTEND WATCH OPTIONS
     if (options.watch) settings.watchOptions = { ignored: ["node_modules", "var/**/*"] };
 
-    return {
-        settings,
-        cacheLoaderSettings,
-        threadLoaderSettings
-    }
+    const webpackConfigObject = { settings, cacheLoaderSettings, threadLoaderSettings };
+    return returnConfigObject ? webpackConfigObject : settings;
 
 };

@@ -5,7 +5,7 @@ import { Logger } from "~client/lib/Logger";
 export default null;
 declare let self: ServiceWorkerGlobalScope;
 
-self.process = JSON.parse(`{{ process | json }}`);
+self.process = JSON.parse('{{ process | json }}');
 const logger = new Logger();
 const cacheName = `ServiceWorker_${__webpack_hash__}`; // eslint-disable-line
 

@@ -10,34 +10,37 @@ const EventHooksPlugin = require('event-hooks-webpack-plugin');
 
 const webpackConfigBase = require("./webpack.config.base");
 
-module.exports = (env, options) => {
+module.exports = (env, options, returnConfigObject) => {
 
     ///////////////////////////////////
     // CONFIGURE ENVIRONMENT
-    lodash.merge(options, {
+
+    const inherited = Object.assign({}, options);
+    Object.assign(options, {
         cacheDir: "./var/buildcache/frontend",
         tsConfigPath: "./source/app/client/ts/tsconfig.json",
         scriptDir: "./source/app/client/ts",
-        analyzerFileName: "frontend.json"
-    });
+        analyzerFileName: "frontend.json",
+        cleanupPatterns: ["!*.md", "client.*.js"]
+    }, inherited);
 
     ///////////////////////////////////
     // LOAD BASE
-    const webpackConfigBaseObject = webpackConfigBase(env, options);
+    const webpackConfigObject = webpackConfigBase(env, options, true);
 
     ///////////////////////////////////
     // CONFIGURE BUILD
-    const settings = lodash.merge(webpackConfigBaseObject.settings, {
+    const settings = lodash.merge(webpackConfigObject.settings, {
         target: "web",
         entry: {
             WebClient: [
                 path.resolve(arp.path, "node_modules/@webcomponents/webcomponentsjs/webcomponents-bundle.js"),
                 path.resolve(arp.path, "source", "app", "client", "ts", "WebClient.ts")
-            ],
-            ServiceWorker: path.resolve(arp.path, "source", "app", "client", "ts", "ServiceWorker.ts")
+            ]
         },
         output: {
-            path: path.resolve(arp.path, "out", "app", "client", "js")
+            path: path.resolve(arp.path, "out", "app", "client", "js"),
+            chunkFilename: "client.[name].js"
         },
         node: {
             fs: "empty"
@@ -65,10 +68,10 @@ module.exports = (env, options) => {
 
     ///////////////////////////////////
     // EXTENDS BUILD MODULE RULES
-    // @ts-expect-error
+
     settings.module.rules = settings.module.rules.concat([{
         test: /\.less$/,
-        use: [webpackConfigBaseObject.cacheLoaderSettings("styles"), webpackConfigBaseObject.threadLoaderSettings(),
+        use: [webpackConfigObject.cacheLoaderSettings("styles"), webpackConfigObject.threadLoaderSettings(),
         {
             loader: 'to-string-loader'
         },
@@ -85,5 +88,5 @@ module.exports = (env, options) => {
         }]
     }]);
 
-    return settings;
+    return returnConfigObject ? webpackConfigObject : settings;
 };

@@ -123,7 +123,7 @@ export class ClientRoute extends BDORoute {
     private async templateParamsFromServer(): Promise<IndexStructure> {
         let urlToAskFor = location.pathname;
         if (!urlToAskFor) urlToAskFor = `/`;
-        const headers = new Headers({ 'Content-Type': 'application/json' });
+        const headers = { 'Content-Type': 'application/json' };
         return (await fetch(urlToAskFor, { headers })).json();
     }
 }
