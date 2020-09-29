@@ -36,7 +36,7 @@ if (!(checkResult instanceof Promise) && checkResult.error.length) {
 const fs = require('graceful-fs');
 const arp = require('app-root-path');
 const path = require('path');
-const colors = require('colors');
+const colors = require('ansicolor');
 const commandLineArgs = require('command-line-args');
 const commandLineUsage = require('command-line-usage');
 
@@ -82,7 +82,7 @@ function walkDir(dir, dirList) {
  * @returns {void}
  */
 function createJunctions() {
-    console.log(colors.bold.green("create junctions"));
+    console.log(colors.bright.green("create junctions"));
 
     let outPath = path.join(arp.path, 'out');
     let sourcePath = path.join(arp.path, 'source');
@@ -96,7 +96,7 @@ function createJunctions() {
         if (!sourcePaths.includes(item.replace(outPath, sourcePath))) {
             if (!item.includes(lastJunction) && !settings.junctions.ignoredPaths.includes(item)) {
                 lastJunction = item;
-                if (VERBOSE) console.log(colors.cyan.bold('create junction:'), item, colors.cyan('<=>'), target);
+                if (VERBOSE) console.log(colors.cyan.bright('create junction:'), item, colors.cyan('<=>'), target);
                 fs.symlink(item, target, 'junction', (error) => {
                     if (error && error.code === 'EEXIST') {
                         fs.unlinkSync(target);
@@ -114,7 +114,7 @@ function createJunctions() {
  * @returns {void}
  */
 function install() {
-    console.log(colors.bold.green("installing project"));
+    console.log(colors.bright.green("installing project"));
 
     childProcess.execSync('npm install && npm prune', {
         stdio: VERBOSE ? 'inherit' : "ignore"
@@ -122,7 +122,7 @@ function install() {
 
     createJunctions();
 
-    console.log(colors.bold.green("building project"));
+    console.log(colors.bright.green("building project"));
     childProcess.execSync('npm run build', {
         stdio: VERBOSE ? 'inherit' : "ignore"
     });
@@ -190,7 +190,7 @@ if (require && require.main === module) {
     if (!options.help) {
         if (options.junctions || options.install) {
             console.log(
-                `\n${colors.magenta.bold(
+                `\n${colors.magenta.bright(
                     'NOTE'
                 )}: Execute junction creation on original OS to see junctions in the editors tree.`
             );
