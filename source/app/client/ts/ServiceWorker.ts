@@ -48,7 +48,6 @@ class ServiceWorker extends BaseEnvironment {
             logger.debug("Cache opened");
             return cache.addAll([
                 "/",
-                "/css/bundle.css",
                 "/css/global.css",
                 "/css/themes/default.css",
                 "/css/themes/dark.css",
