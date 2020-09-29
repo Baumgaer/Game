@@ -3,7 +3,7 @@ import { BDOLogger } from "~bdo/lib/BDOLogger";
 import { includesMemberOfList, toURIPathPart } from "~bdo/utils/util";
 import { isClientRoute, isServerRoute } from "~bdo/utils/framework";
 
-import type { Application, Request, Response, NextFunction } from "express";
+import { Application } from "express";
 import type NightHawk from "nighthawk";
 
 const logger = new BDOLogger({
@@ -46,10 +46,6 @@ export abstract class BaseEnvironment {
         }).then(() => {
             this.state = "ready";
             logger.info(`${global.process.env.NAME} is ready for start`);
-            this.app.use((request: Request, _response: Response, next: NextFunction) => {
-                logger.error(`Route ${request.path} is not defined`);
-                next();
-            });
         });
     }
 

@@ -106,6 +106,8 @@ export class ServerRoute extends BDORoute {
             return next(new httpError.InternalServerError(String(error)));
         }
 
+        if (response.headersSent) return;
+
         if (!this.jsonOnly) content = this.renderTemplate(templateParams);
         if (request.header("Content-Type") === "application/json" || !content || this.jsonOnly) {
             response.setHeader('Content-Type', 'application/json');

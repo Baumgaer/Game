@@ -8,14 +8,15 @@ import fresh from "fresh";
 import type { IncomingHttpHeaders, IncomingMessage } from "http";
 import { Response } from "~client/lib/Response";
 import type { NextFunction } from 'express';
+import type Router from "router";
 
 export class Request extends EventEmitter {
 
-    public app = null;
+    public app!: ReturnType<typeof Router>;
 
     public url: string = "";
     public method: string = "GET";
-    public baseUrl = "/";
+    public baseUrl = "";
     public originalUrl: string = "";
     public protocol: string = "";
     public hostname: string = "";
@@ -83,15 +84,11 @@ export class Request extends EventEmitter {
     }
 
     public processFetchEvent(event: FetchEvent) {
-        const headers: IncomingHttpHeaders = {};
         const parsedURL = parseUrl(event.request.url);
 
         // Prepare headers
-        event.request.headers.forEach((header) => {
-            const headerValue = event.request.headers.get(header);
-            if (!headerValue) return;
-            headers[header] = headerValue;
-        });
+        // @ts-expect-error This is an iterator..
+        const headers: IncomingHttpHeaders = Object.fromEntries(event.request.headers.entries());
 
         this.headers = headers;
         this.url = event.request.url;
@@ -154,6 +151,10 @@ export class Request extends EventEmitter {
     public is(type: string | string[]) {
         if (!(type instanceof Array)) type = [type];
         return typeIs(this as unknown as IncomingMessage, type);
+    }
+
+    public resume() {
+        return;
     }
 
 }

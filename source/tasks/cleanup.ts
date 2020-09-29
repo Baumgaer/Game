@@ -1,7 +1,7 @@
 import { resolve, dirname } from 'path';
 import { path as rootPath } from 'app-root-path';
 import { existsSync, unlinkSync } from 'graceful-fs';
-import colors from 'colors';
+import { ansicolor as colors } from 'ansicolor';
 import {
     getCorrespondingFile,
     isSourceFile,
@@ -36,7 +36,7 @@ module.exports = (grunt: IGrunt): void => {
             if (!isSource && !exists) fileToDelete = currentFile;
             if (isAppFile(currentFile)) fileToDelete = null;
             if (fileToDelete) {
-                grunt.log.ok(`${colors.cyan.bold('Cleanup')}: ${currentFile} ${colors.cyan('=>')} ${fileToDelete}`);
+                grunt.log.ok(`${colors.cyan.bright('Cleanup')}: ${currentFile} ${colors.cyan('=>')} ${fileToDelete}`);
                 unlinkSync(fileToDelete);
             }
         }
@@ -56,7 +56,7 @@ module.exports = (grunt: IGrunt): void => {
                 while (myDir) {
                     deletedFolders.push(myDir);
                     cleanEmptyFoldersRecursively(myDir, (folder) => {
-                        grunt.log.ok(`${colors.cyan.bold('Cleanup')}: ${folder} `);
+                        grunt.log.ok(`${colors.cyan.bright('Cleanup')}: ${folder} `);
                     });
                     if (resolve(rootPath, 'out') === myDir) {
                         break;

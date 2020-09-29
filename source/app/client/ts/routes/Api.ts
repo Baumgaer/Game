@@ -13,8 +13,8 @@ const logger = new Logger();
  */
 export default class Api extends BDOApiFactory(ClientRoute) {
 
-    protected async templateParams(request: Request) {
-        logger.log(request);
+    protected async templateParams(_request: Request) {
+        logger.log("!APIIIII");
         return {};
     }
 }

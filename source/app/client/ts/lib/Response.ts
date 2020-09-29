@@ -12,6 +12,7 @@ import { buf as crc32Buffer } from "crc-32";
 import type { Request } from "~client/lib/Request";
 import type { ServerResponse } from 'http';
 import type { NextFunction } from 'express';
+import type Router from "router";
 
 type callback = () => void;
 type status = {
@@ -22,11 +23,11 @@ type status = {
 const charsetRegExp = /;\s*charset\s*=/;
 
 export class Response extends EventEmitter {
-    public app = null;
+    public app!: ReturnType<typeof Router>;
     public locals = Object.create(null);
     public headersSent = false;
-    public statusCode: number = 0;
-    public statusMessage = '';
+    public statusCode: number = 200;
+    public statusMessage = 'OK';
     public finished = false;
     public sendDate = false;
 
@@ -34,7 +35,7 @@ export class Response extends EventEmitter {
 
     private kOutHeaders: Record<string, any> = {};
 
-    private sendFunction!: (body?: any, encoding?: BufferEncoding, header?: Record<string, any>, status?: status) => Promise<void>;
+    private sendFunction!: (body?: any, encoding?: BufferEncoding, header?: string[][], status?: status) => void;
 
     private eTagGenerationEnabled: boolean = true;
 
@@ -267,13 +268,9 @@ export class Response extends EventEmitter {
 
         if (!theEncoding) theEncoding = "utf-8";
         this.headersSent = true;
-        this.sendFunction(theBody, theEncoding, this.kOutHeaders, status).then(() => {
-            if (theCallback) theCallback();
-            this.finished = true;
-        }).catch(() => {
-            callback && callback();
-            this.finished = true;
-        });
+        this.sendFunction(theBody, theEncoding, Object.values(this.kOutHeaders), status);
+        if (theCallback) theCallback();
+        this.finished = true;
     }
 
     public format(obj: Record<string, (request: Request, response: Response, next: NextFunction) => void>) {

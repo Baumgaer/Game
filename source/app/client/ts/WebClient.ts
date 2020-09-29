@@ -12,6 +12,7 @@ export class WebClient extends BaseClient {
                 navigator.serviceWorker.register('/ServiceWorker.js').then((registration) => {
                     // Registration was successful
                     logger.info('ServiceWorker registration successful with scope: ', registration.scope);
+                    registration.active?.postMessage("start");
                 }, (err) => {
                     // registration failed :(
                     logger.error('ServiceWorker registration failed: ', err);

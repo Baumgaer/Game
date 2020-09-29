@@ -1,10 +1,11 @@
 /* tslint:disable:no-console*/
 import moment from 'moment';
+import { ansicolor as colors } from "ansicolor";
 import { sep } from 'path';
 import { includesMemberOfList, getPrototypeNamesRecursive } from '~bdo/utils/util';
 
 export type logLevels = 'log' | 'debug' | 'info' | 'warn' | 'error';
-export type printEnvironments = 'console' | 'file' | 'browser';
+export type printEnvironments = 'terminal' | 'file';
 
 /**
  * Prints nice formatted strings to console and file and adds some useful information.
@@ -46,6 +47,19 @@ export class BDOLogger {
     public logLevel?: logLevels = 'debug';
 
     /**
+     * Colors to indicate current log level
+     *
+     * @memberof BDOLogger
+     */
+    protected logLevelColors = {
+        log: colors.bright.darkGray,
+        debug: colors.bright.green,
+        info: colors.bright.blue,
+        warn: colors.bright.yellow,
+        error: colors.bright.red
+    };
+
+    /**
      * Holds a list of prototype names to determine the log point correctly
      *
      * @memberof BDOLogger
@@ -69,7 +83,7 @@ export class BDOLogger {
     public log(message: any, loglevel: logLevels = 'log', ...args: any[]): void {
         if (loglevel !== 'log' && !this.isAllowed(loglevel)) return;
         if (!this.preventConsolePrint || ['log', 'error'].includes(loglevel)) {
-            const header = this.getHeader(loglevel);
+            const header = this.getHeader(loglevel, "terminal");
             let newArgs: string[] = [];
             if (header instanceof Array) {
                 newArgs = newArgs.concat(header);
@@ -193,16 +207,23 @@ export class BDOLogger {
      *
      * @protected
      * @param logLevel The log level which effects the colorization
-     * @param _printEnv The environment where to print a message
+     * @param printEnv The environment where to print a message
      * @returns The ready to use header
      * @memberof BDOLogger
      */
-    protected getHeader(logLevel: logLevels, _printEnv?: printEnvironments): string | string[] {
+    protected getHeader(logLevel: logLevels, printEnv?: printEnvironments): string | string[] {
         const procInfo = this.getProcInfo();
         const currentTime = this.currentTime();
         const upperLogLevel = logLevel.toUpperCase();
         const logPoint = this.getLogPoint();
-        return `[${upperLogLevel} - ${procInfo} - ${currentTime} - ${logPoint}]`;
+        if (printEnv === 'terminal') {
+            const formattedLogLevel = this.logLevelColors[logLevel](upperLogLevel);
+            const formattedPid = colors.magenta(procInfo);
+            const formattedLogPoint = colors.magenta(logPoint);
+            const formattedTime = colors.blue(currentTime);
+            return `[${formattedLogLevel} - ${formattedPid} - ${formattedTime} at ${formattedLogPoint}]`;
+        }
+        return `[${upperLogLevel} - ${procInfo} - ${currentTime} at ${logPoint}]`;
     }
 
     /**

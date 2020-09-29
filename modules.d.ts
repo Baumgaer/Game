@@ -13,6 +13,14 @@ declare module '~static/locales' {
     export default value;
 }
 
+declare module 'router' {
+    export default import('express').Router;
+}
+
+declare module 'window' {
+    export default Window;
+}
+
 declare module 'nighthawk' {
 
     interface listenOptions {
@@ -32,6 +40,6 @@ declare module 'nighthawk' {
     }
 
     function nighthawk(options?: nighthawkOptions): Router;
-    const value: typeof nighthawk;
-    export default value;
+    const NightHawk: typeof nighthawk;
+    export default NightHawk;
 }
