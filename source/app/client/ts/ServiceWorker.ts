@@ -90,6 +90,9 @@ class ServiceWorker extends BaseEnvironment {
                         // TODO: May be redirect the client in some way?
                     } else {
                         logger.error(`Error (${status.code}): ${status.message}`);
+                        // Ask the server in case of resource not found because
+                        // it could be just not sent to client yet
+                        if (status.code === 404) return resolve(await this.requestServerAndCache(event));
                         resolve(new Response(body, { headers: header, status: status.code, statusText: status.message }));
                     }
                 } else resolve(await this.requestServerAndCache(event)); // Don't know what to do... Ask the server...
@@ -117,7 +120,7 @@ class ServiceWorker extends BaseEnvironment {
                 // Check if we received a valid response
                 if (!response || response.status !== 200 || response.type !== 'basic') return response;
 
-                // IMPORTANT: Clone the response. A response is a stream
+                // NOTE: Clone the response. A response is a stream
                 // and because we want the browser to consume the response
                 // as well as the cache consuming the response, we need
                 // to clone it so we have two streams.
