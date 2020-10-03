@@ -1,4 +1,4 @@
-import { BDORoute } from '~bdo/lib/BDORoute';
+import { BDORoute, minimumAccessRights } from '~bdo/lib/BDORoute';
 
 /**
  * constructs the base for the api route on server and client
@@ -20,12 +20,22 @@ export function BDOApiFactory<TBase extends Constructor<BDORoute>>(ctor: TBase) 
      * @extends TBase
      */
     abstract class BDOApi extends ctor {
+
         /**
          * @inheritdoc
          *
          * @memberof BDOApi
          */
         public routes: string[] = ["/:className", "/:className/:id"];
+
+        /**
+         * @inheritdoc
+         *
+         * @protected
+         * @type {minimumAccessRights}
+         * @memberof BDOApi
+         */
+        protected access: minimumAccessRights = "public";
 
         /**
          * @inheritdoc

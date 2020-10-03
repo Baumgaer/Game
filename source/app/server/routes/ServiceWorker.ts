@@ -17,20 +17,25 @@ import { resolve as resolvePath } from "path";
  */
 export default class ServiceWorker extends BDOServiceWorkerFactory(ServerRoute) {
 
-    private preRenderedServiceWorker: string;
+    private preRenderedServiceWorker!: string;
 
     constructor(serverInstance: BaseServer) {
         super(serverInstance);
-        const fileBuffer = readFileSync(resolvePath(rootPath, "out/app/client/js/ServiceWorker.js"), { encoding: "utf-8" });
-        this.preRenderedServiceWorker = fileBuffer.toString().replace("{{$$serviceWorkerProcess$$}}", JSON.stringify(globalTemplateVars.process).replace(/"/g, "\\\""));
+        this.renderServiceWorker();
     }
 
     protected async templateParams(request: Request, response: Response, next: NextFunction) {
+        if (global.process.env.NODE_ENV === "development") this.renderServiceWorker();
         const superParams = await super.templateParams(request, response, next);
         // const fileNameIndex = superParams.scripts.indexOf("ServiceWorker.js");
         // superParams.scripts.splice(fileNameIndex, 1);
         response.setHeader("Content-Type", "application/javascript");
         response.send(this.preRenderedServiceWorker);
         return superParams;
+    }
+
+    private renderServiceWorker() {
+        const fileBuffer = readFileSync(resolvePath(rootPath, "out/app/client/js/ServiceWorker.js"), { encoding: "utf-8" });
+        this.preRenderedServiceWorker = fileBuffer.toString().replace("{{$$serviceWorkerProcess$$}}", JSON.stringify(globalTemplateVars.process).replace(/"/g, "\\\""));
     }
 }
