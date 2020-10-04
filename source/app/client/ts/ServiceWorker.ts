@@ -9,8 +9,12 @@ import { Response as MyResponse } from "~client/lib/Response";
 import Router from "router";
 import finalHandler from "finalhandler";
 import { parse as parseUrl } from "url";
+import hpp from "hpp";
+import { parse as parseQueryString } from "query-string";
+import httpErrors from "http-errors";
 
 import type { IncomingMessage, ServerResponse } from 'http';
+import type { NextFunction } from 'express';
 
 // For some reason this is necessary to get typings...
 export default null;
@@ -110,6 +114,29 @@ class ServiceWorker extends BaseEnvironment {
 
     public onMessage(_event: ExtendableMessageEvent) {
         // nothing to do here
+    }
+
+    protected async setup() {
+        await super.setup();
+        // parse the body to get post data and so on
+        // NOTE: This is important for some middlewares to have directly.
+        //       So this has to be the first middleware
+        this.app.use((request: MyRequest, _response: Response, next: NextFunction) => {
+            const parsedQuery = parseQueryString(decodeURI(request._query));
+            for (const key in parsedQuery) {
+                if (Object.prototype.hasOwnProperty.call(parsedQuery, key)) {
+                    const element = parsedQuery[key];
+                    if (element instanceof Array) return next(new httpErrors.BadRequest(`Multiple matches of query parameter ${key}`));
+                    try {
+                        request.query[key] = JSON.parse(element || "");
+                    } catch (error) {
+                        return next(new httpErrors.InternalServerError(error));
+                    }
+                }
+            }
+            next();
+        });
+        this.app.use(hpp());
     }
 
     private requestServerAndCache(event: FetchEvent) {

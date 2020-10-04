@@ -22,7 +22,8 @@ export class Request extends EventEmitter {
     public hostname: string = "";
     public port = location.port;
     public path: string = "";
-    public query: string = "";
+    public query: Record<string, any> = {};
+    public _query: string = "";
 
     public secure = this.protocol === 'https';
     public subdomains: string[] = [];
@@ -40,7 +41,7 @@ export class Request extends EventEmitter {
 
     public xhr = false;
 
-    public body: any;
+    public body: ReadableStream | null = null;
 
     public res!: Response;
 
@@ -98,7 +99,7 @@ export class Request extends EventEmitter {
         this.hostname = parsedURL.hostname || "";
         this.port = parsedURL.port || "";
         this.path = parsedURL.path || "";
-        this.query = parsedURL.search || "";
+        this._query = parsedURL.query || "";
 
         this.subdomains = this.hostname.split('.').reverse().slice(2);
         this.referer = event.request.referrer;

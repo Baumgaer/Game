@@ -1,19 +1,10 @@
 /* tslint:disable */
-import { BDORepository } from "~bdo/lib/BDORepository";
+import { BDORepository, attributes } from "~bdo/lib/BDORepository";
 import { getFilePartsFromPath } from "~bdo/utils/util";
 import { User } from "~client/models/User";
 import localforage from "localforage";
 
 import type { ClientModel } from "~client/lib/ClientModel";
-
-interface IAttributes<T> {
-    name: keyof ConstParams<T>,
-    attributes: Array<
-        keyof ConstParams<Extract<Unpacked<T[IAttributes<T>["name"]]>, ClientModel>> |
-        IAttributes<Extract<Unpacked<T[IAttributes<T>["name"]]>, ClientModel>>
-    >
-}
-type attributes<T> = Array<keyof ConstParams<T> | IAttributes<T>>
 
 class Store<T extends typeof ClientModel> {
     private database: LocalForage;
