@@ -49,7 +49,8 @@ module.exports = (_env, options, returnConfigObject) => {
         output: {
             filename: "[name].js"
         },
-        devtool: isDevelopment ? 'cheap-eval-source-map' : '', // use cheap-eval-source-map when sourcemaps are broken
+        context: path.resolve(arp.path, "out"),
+        devtool: isDevelopment ? 'inline-source-map' : '', // use cheap-eval-source-map when sourcemaps are broken
         resolve: {
             extensions: [".ts", ".tsx", ".js", ".njk", ".less"],
             alias: {
@@ -147,20 +148,18 @@ module.exports = (_env, options, returnConfigObject) => {
             removeEmptyChunks: !isDevelopment,
             minimize: !isDevelopment,
             minimizer: [new TerserPlugin({
-                sourceMap: false,
                 extractComments: false,
                 terserOptions: {
-                    warnings: false,
                     compress: true,
                     keep_classnames: true,
                     keep_fnames: true,
+                    sourceMap: false,
                     output: {
-                        ecma: 6,
+                        ecma: 2015,
                         comments: false,
                         beautify: false,
                         quote_style: 3
-                    },
-                    sourceMap: false
+                    }
                 }
             })]
         }
