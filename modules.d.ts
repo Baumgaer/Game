@@ -22,6 +22,7 @@ declare module 'window' {
 }
 
 declare module 'nighthawk' {
+    import type { IRouterMatcher } from "express";
 
     interface listenOptions {
         popstate: boolean;
@@ -29,7 +30,8 @@ declare module 'nighthawk' {
         dispatch: boolean;
     }
 
-    interface Router extends ReturnType<import('express').Router> {
+    interface Router extends IRouter {
+        use: IRouterMatcher
         listen(options?: listenOptions): void
         changeRoute(path: string): void
     }

@@ -23,7 +23,7 @@ export abstract class BaseClient extends BaseEnvironment {
 
     public async start() {
         await super.start();
-        return new Promise((resolver) => {
+        return new Promise<void>((resolver) => {
             this.app.listen();
             this.state = "started";
             logger.info(`${global.process.env.NAME} started`);

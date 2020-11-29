@@ -58,7 +58,7 @@ export abstract class BaseEnvironment {
      */
     public async start() {
         logger.info(`Start of ${global.process.env.NAME} requested`);
-        return new Promise((resolver) => {
+        return new Promise<void>((resolver) => {
             const interval = setInterval(() => {
                 if (this.state === 'ready') {
                     clearInterval(interval);

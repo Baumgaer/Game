@@ -98,12 +98,12 @@ export abstract class BaseServer extends BaseEnvironment {
      */
     public async start() {
         await super.start();
-        return new Promise((resolver) => {
+        return new Promise<void>((resolver) => {
             try {
                 let port = 8080;
                 if (process.env.PORT) port = parseInt(process.env.PORT, 10);
                 this.server.listen(port, "0.0.0.0");
-                resolver(this);
+                resolver();
             } catch (error) {
                 logger.error(error);
                 process.exit(1);
