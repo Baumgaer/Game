@@ -62,8 +62,8 @@ module.exports = (grunt: IGrunt): void => {
  *
  * @returns A promise which indicates that the compilation is ready
  */
-function compileLess(): Promise<any> {
-    return new Promise<any>((resolve) => {
+function compileLess(): Promise<void> {
+    return new Promise<void>((resolve) => {
         const sourcePath = resolvePath(rootPath, 'source', 'app', 'client', 'less');
         const promises: Promise<Less.RenderOutput | void>[] = [];
         walk(sourcePath, (filePath) => {
@@ -95,7 +95,7 @@ function compileLess(): Promise<any> {
  * @returns A promise which indicates ready state
  */
 function compileConfig(grunt: IGrunt) {
-    return new Promise((resolve) => {
+    return new Promise<void>((resolve) => {
         const bdoConfig = resolvePath(rootPath, "out", "app", "config");
         const clientConfig = resolvePath(rootPath, "out", "app", "client", "config");
         const serverConfig = resolvePath(rootPath, "out", "app", "server", "config");
@@ -152,7 +152,7 @@ function compileConfig(grunt: IGrunt) {
  * @returns A promise which indicates ready state
  */
 function compileSchema(grunt: IGrunt, filePaths: string[]) {
-    return new Promise((resolver) => {
+    return new Promise<void>((resolver) => {
         const modelsToCompile: string[] = [];
         const args: Array<[string, string]> = [];
 

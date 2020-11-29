@@ -249,6 +249,6 @@ export abstract class BDOModel implements IBaseConstructorOpts {
      * @returns {Promise<void>}
      * @memberof BDOModel
      */
-    public abstract async discard(attr?: DefNonFuncPropNames<this>): Promise<void>;
+    public abstract discard(attr?: DefNonFuncPropNames<this>): Promise<void>;
 
 }

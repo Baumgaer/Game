@@ -1,4 +1,4 @@
-
+import type { ClientModel } from "~client/lib/ClientModel";
 interface IAttributes<T> {
     name: keyof ConstParams<T>,
     attributes: Array<
