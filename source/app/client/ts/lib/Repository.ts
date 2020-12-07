@@ -7,9 +7,9 @@ import localforage from "localforage";
 import type { ClientModel } from "~client/lib/ClientModel";
 
 class Store<T extends typeof ClientModel> {
-    private database: LocalForage;
+    protected database: LocalForage;
 
-    private model: T;
+    protected model: T;
 
     constructor(database: LocalForage, model: T) {
         this.database = database;

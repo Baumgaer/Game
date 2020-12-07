@@ -10,7 +10,7 @@ const FilterWarningsPlugin = require('webpack-filter-warnings-plugin');
 const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
 const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
 const TsconfigPathsPlugin = require('tsconfig-paths-webpack-plugin').TsconfigPathsPlugin;
-const ManifestPlugin = require('webpack-manifest-plugin');
+const ManifestPlugin = require('webpack-manifest-plugin').WebpackManifestPlugin;
 
 module.exports = (_env, options, returnConfigObject) => {
 
@@ -122,7 +122,8 @@ module.exports = (_env, options, returnConfigObject) => {
                     options: {
                         happyPackMode: true, // IMPORTANT! use happyPackMode mode to speed-up compilation and reduce errors reported to webpack
                         transpileOnly: true,
-                        experimentalWatchApi: options.watch === true
+                        experimentalWatchApi: options.watch === true,
+                        allowTsInNodeModules: false
                     }
                 }]
             }, {

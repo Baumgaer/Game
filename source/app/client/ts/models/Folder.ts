@@ -8,12 +8,14 @@ import { baseConstructor, attribute } from "~bdo/utils/decorators";
  *
  * @extends returnType<BDOTest1Factory<Test>>
  */
-@baseConstructor({ treeType: "nested-set" })
+@baseConstructor()
 export class Folder extends BDOFolderFactory(Artifact) {
 
     @attribute() public parent!: Folder;
 
     @attribute() public children!: Artifact[];
+
+    @attribute() public tester!: string[];
 
     constructor(params?: ConstParams<Folder>) {
         super(params);

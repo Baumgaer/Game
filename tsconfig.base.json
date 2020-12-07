@@ -35,7 +35,6 @@
             "babylonjs-post-process",
             "babylonjs-procedural-textures",
             "babylonjs-gltf2interface",
-            "babylonjs-inspector",
             "reflect-metadata"
         ],
         "allowSyntheticDefaultImports": true,
