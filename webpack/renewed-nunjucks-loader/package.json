@@ -3,7 +3,7 @@
     "version": "1.0.0",
     "main": "./index.js",
     "dependencies": {
-        "loader-utils": "^2.0.0",
+        "loader-utils": "^2.0.4",
         "nunjucks": "^3.2.2",
         "slash": "^3.0.0"
     }
